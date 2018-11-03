@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { cleanShaclProp } from './helper';
 
 export const availableVocabs = {
   schema: 'Schema.org',
@@ -27,10 +28,12 @@ export const fetchVocabs = async (
       vocabNames.map(async (vocabName) => {
         const response = await axios.get(`/api/vocabs/${vocabName}`);
         if (vocabName === 'webapi') {
-          vocabs[vocabName] = response.data['@graph'].filter(
-            (o: any) =>
-              o['@id'].startsWith('webapi') || o['@id'].startsWith('_:'),
-          );
+          vocabs[vocabName] = response.data['@graph']
+            .filter(
+              (o: any) =>
+                o['@id'].startsWith('webapi') || o['@id'].startsWith('_:'),
+            )
+            .map((n: any) => cleanShaclProp(n));
         } else {
           vocabs[vocabName] = response.data['@graph'];
         }

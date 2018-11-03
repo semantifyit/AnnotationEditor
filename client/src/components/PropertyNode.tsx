@@ -38,12 +38,32 @@ class PropertyNode extends React.Component<IProps, IState> {
     nodeId: this.props.nodeId,
   };
 
-  public constructor(props: IProps) {
-    super(props);
-    const node = getNode(this.props.nodeId);
-    this.ranges = node ? extractIds(node['schema:rangeIncludes']) : [];
-    this.state.selectedRange = this.ranges[0];
+  public shouldComponentUpdate(nextProps: IProps, nextState: IState) {
+    // if the parent type node calls setState, don't re-render properties
+    return (
+      nextProps.nodeId !== this.props.nodeId ||
+      this.state.nodeId !== nextState.nodeId
+    );
+  }
 
+  public changedPropSelection = (e: ISingleOption) => {
+    const node = getNode(e.value);
+    if (!node) {
+      return;
+    }
+    this.ranges = extractIds(node['schema:rangeIncludes']);
+    this.setState({ nodeId: e.value, selectedRange: this.ranges[0] });
+  };
+
+  public render() {
+    const node = getNode(this.state.nodeId);
+    if (!node) {
+      return <h1>Node not found</h1>;
+    }
+    this.ranges = extractIds(node['schema:rangeIncludes']);
+    if (this.state.selectedRange === '') {
+      this.state.selectedRange = this.ranges[0];
+    }
     if (this.props.restriction) {
       const restrictions = this.props.restriction.filter(
         (r) => r.property === this.state.nodeId,
@@ -59,27 +79,6 @@ class PropertyNode extends React.Component<IProps, IState> {
         }, {});
         this.state.selectedRange = this.ranges[0];
       }
-    }
-  }
-
-  public changedPropSelection = (e: ISingleOption) => {
-    const node = getNode(e.value);
-    if (!node) {
-      return;
-    }
-    this.ranges = extractIds(node['schema:rangeIncludes']);
-    this.setState(() => ({ nodeId: e.value, selectedRange: this.ranges[0] }));
-  };
-
-  public render() {
-    const node = getNode(this.state.nodeId);
-    if (!node) {
-      return <h1>Node not found</h1>;
-    }
-    this.ranges = extractIds(node['schema:rangeIncludes']);
-
-    if (this.state.selectedRange === '') {
-      this.state.selectedRange = this.ranges[0];
     }
 
     const path =
@@ -152,6 +151,7 @@ class PropertyNode extends React.Component<IProps, IState> {
         <div className="col-sm-8" style={{ padding: '5px' }}>
           <RangeNode
             nodeId={this.state.selectedRange}
+            key={this.state.selectedRange}
             path={path}
             canUseDashIOProps={this.props.canUseDashIOProps}
             restriction={this.props.restriction}

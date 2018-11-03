@@ -202,7 +202,7 @@ const getSuperClassesForTypes = (nodeIds: string[]): string[] =>
     ),
   );
 
-const clone = (o: any) => JSON.parse(JSON.stringify(o));
+const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 
 const haveCommon = <T>(arr1: T[], arr2: T[]): boolean =>
   arr1.filter((e) => arr2.includes(e)).length !== 0;
@@ -285,16 +285,80 @@ export interface IRestriction {
   valueIn?: string[];
   minCount?: number;
   maxCount?: number;
+  pattern?: string;
 }
 
-const makePropertyRestrictionObj = (shProp: any): IRestriction => {
+interface IIdNode {
+  '@id': string;
+}
+
+interface IShaclProp {
+  'sh:path': IIdNode;
+  'sh:datatype'?: IIdNode;
+  'sh:class'?: IIdNode;
+  'sh:minCount'?: number;
+  'sh:minInclusive'?: number;
+  'sh:maxInclusive'?: number;
+}
+
+const xsdPropToSchemaClass = (prop: string) =>
+  ({
+    'xsd:string': 'schema:Text',
+    'xsd:decimal': 'schema:Float',
+    'xsd:integer': 'schema:Integer',
+    'xsd:boolean': 'schema:Boolean',
+    'xsd:date': 'schema:Date',
+    'xsd:time': 'schema:Time',
+  }[prop]);
+
+const toIdNode = (str: string) => ({
+  '@id': str,
+});
+
+export const cleanShaclProp = (shProp: IShaclProp): IShaclProp => {
+  const shPropCpy = clone(shProp);
+  // schema:path & sh:minValue - Umut's error in shapes I think?
+  if (shPropCpy['schema:path']) {
+    shPropCpy['sh:path'] = shProp['schema:path'];
+    delete shPropCpy['schema:path'];
+  }
+  if (shPropCpy['sh:minValue']) {
+    shPropCpy['sh:minCount'] = shProp['sh:minValue'];
+    delete shPropCpy['sh:minValue'];
+  }
+
+  if (
+    shPropCpy['sh:datatype'] &&
+    shPropCpy['sh:datatype']['@id'].startsWith('xsd:')
+  ) {
+    shPropCpy['sh:class'] = toIdNode(
+      xsdPropToSchemaClass(shPropCpy['sh:datatype']['@id']),
+    );
+    delete shPropCpy['sh:datatype'];
+  }
+  if (
+    shPropCpy['sh:nodeKind'] &&
+    shPropCpy['sh:nodeKind']['@id'] === 'sh:IRI'
+  ) {
+    shPropCpy['sh:class'] = toIdNode('schema:URL');
+    delete shPropCpy['sh:nodeKind'];
+  }
+  return shPropCpy;
+};
+
+const makePropertyRestrictionObj = (shProp: IShaclProp): IRestriction => {
   const pRangeId = shProp['sh:class'] && shProp['sh:class']['@id'];
   const pRanges: IRestrictionRange[] = [];
   if (pRangeId) {
-    pRanges.push({
+    const pRange: IRestrictionRange = {
       nodeId: pRangeId,
-      restrictionId: shProp['sh:node'] && shProp['sh:node']['@id'],
-    });
+    };
+    if (shProp['sh:node']) {
+      pRange.restrictionId = shProp['sh:node'] && shProp['sh:node']['@id'];
+    } else if (shProp['sh:property']) {
+      pRange.restrictionId = shProp['@id']; // add this node if it has properties and doesn't refer to a new node via sh:node
+    }
+    pRanges.push(pRange);
   }
   if (shProp['sh:or'] && shProp['sh:or']['@list']) {
     pRanges.push(
@@ -322,9 +386,10 @@ const makeRestrictions = (restrictNodes: INode[]): IRestriction[] =>
       const populatedNote = replaceBlankNodes(shNodeShape);
       const propertyRestrictionNodes = makeArray(populatedNote['sh:property']);
 
-      return propertyRestrictionNodes.map((n: INode) => {
-        return clone(makePropertyRestrictionObj(n)); // we clone to remove undefined fields
-      });
+      return propertyRestrictionNodes.map(
+        (n: INode) =>
+          clone(makePropertyRestrictionObj((n as unknown) as IShaclProp)), // we clone to remove undefined fields; double as because error otherwise
+      );
     }),
   );
 
@@ -393,3 +458,8 @@ export const getSparqlRestrictionsForTypes = async (
 
   return restrictionObjs;
 };
+
+const removeDashIO = (str: string): string => str.split('-')[0];
+
+export const isEqProp = (a: string, b: string): boolean =>
+  removeDashIO(a) === removeDashIO(b);

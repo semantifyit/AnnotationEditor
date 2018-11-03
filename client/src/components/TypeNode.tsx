@@ -15,6 +15,7 @@ import {
   getRestrictionsForTypes,
   IRestriction,
   getSparqlRestrictionsForTypes,
+  isEqProp,
 } from '../helpers/helper';
 
 import PropertyNode from './PropertyNode';
@@ -51,20 +52,8 @@ class TypeNode extends React.Component<IProps, IState> {
   public restrictions: IRestriction[] = [];
   public restrictionsLoaded: boolean = false;
 
-  public constructor(props: IProps) {
-    super(props);
-    // this.update();
-  }
-
   public componentDidMount() {
     this.update();
-  }
-
-  public componentDidUpdate(prevProps: IProps) {
-    // component was updated, happens when the range of a property changes
-    if (this.props.nodeId !== prevProps.nodeId) {
-      this.update();
-    }
   }
 
   public update() {
@@ -150,8 +139,8 @@ class TypeNode extends React.Component<IProps, IState> {
         this.props.additionalRestrictionIds,
         jsonld,
       );
-      this.useRestrictions(sparqlRestrictions);
       this.restrictions = this.restrictions.concat(sparqlRestrictions);
+      this.useRestrictions(sparqlRestrictions);
     }, 10);
   }
 
@@ -338,7 +327,7 @@ class TypeNode extends React.Component<IProps, IState> {
               arrIndex={propsBefore}
               canUseDashIOProps={canUseDashIOProps}
               restriction={this.restrictions.filter(
-                (r) => r.property === propId.nodeId,
+                (r) => isEqProp(r.property, propId.nodeId), // func call because of -input -output props
               )}
             />
           );

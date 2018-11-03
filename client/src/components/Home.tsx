@@ -10,18 +10,10 @@ class App extends React.Component {
           style={{ backgroundColor: '#fff' }}
         >
           <div className="container">
-            <h1 className="jumbotron-heading">Welcome to semantify actions!</h1>
-            <p className="lead  text-muted">
-              Use schema.org Actions to semantically connect
-              <br />
-            </p>
-            <a href="/vocab" className="btn btn-primary margin5">
-              API Documentation Vocabulary
-            </a>
-            <a href="/api-docs" className="btn btn-primary margin5">
-              Take a look at our API
-            </a>
-            <h3 style={{ marginTop: '50px' }}>Create Annotations: </h3>
+            <h1 className="jumbotron-heading">
+              Welcome to The Annotation Editor!
+            </h1>
+            <h3 style={{ marginTop: '50px' }}>Create Annotations</h3>
             <Link to="/annotation/webApi/" className="btn btn-primary margin5">
               Semantic WebApi
             </Link>

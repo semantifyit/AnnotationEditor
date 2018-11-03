@@ -1,20 +1,11 @@
 import * as React from 'react';
 import TypeNode from './TypeNode';
-import { set, has } from 'lodash';
-import Select from 'react-select';
+import { set } from 'lodash';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {
-  availableVocabs,
-  fetchVocabs,
-  getAllNodes,
-  INode,
-} from '../helpers/vocabs';
-import { getDescriptionOfNode, getNameOfNode } from '../helpers/helper';
-import DropDownSelect, { ISingleOption } from './DropDownSelect';
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
 
 interface IProps {

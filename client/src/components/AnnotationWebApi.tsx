@@ -1,14 +1,12 @@
 import * as React from 'react';
 import TypeNode from './TypeNode';
-import { set, has } from 'lodash';
+import { set } from 'lodash';
 
 import { fetchVocabs, getAllNodes, INode } from '../helpers/vocabs';
 import {
   removeNS,
   getDescriptionOfNode,
   getNameOfNode,
-  getNode,
-  setProp,
 } from '../helpers/helper';
 
 const acceptableBases = [

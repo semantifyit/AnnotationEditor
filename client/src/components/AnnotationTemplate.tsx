@@ -2,12 +2,7 @@ import * as React from 'react';
 import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
-import {
-  addVocab,
-  fetchVocabs,
-  getAllNodes,
-  getRestrictionNodes,
-} from '../helpers/vocabs';
+import { addVocab, fetchVocabs } from '../helpers/vocabs';
 import { ISingleOption } from './DropDownSelect';
 import Annotation from './Annotation';
 import {

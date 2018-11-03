@@ -5,7 +5,6 @@ import {
   getNameOfNode,
   removeNS,
   extractIds,
-  getIONode,
   IRestriction,
   makeArray,
 } from '../helpers/helper';

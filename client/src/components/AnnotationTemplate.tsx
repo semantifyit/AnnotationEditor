@@ -37,7 +37,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
       return;
     }
     const shaclDS = transformDSToShacl(ds.content);
-    addVocab('template', shaclDS);
+    addVocab(shaclDS);
     this.setState({
       createdType: ds.content['dsv:class'][0]['dsv:baseClass']['@id'],
     });

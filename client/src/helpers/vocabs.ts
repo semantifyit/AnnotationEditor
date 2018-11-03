@@ -12,12 +12,17 @@ interface IVocab {
   [key: string]: INode[];
 }
 
-const vocabs: IVocab = {};
+interface INodeObj {
+  [key: string]: INode;
+}
+
+const nodesObj: INodeObj = {};
 
 export const fetchVocabs = async (
   ...vocabNames: string[]
 ): Promise<boolean> => {
   try {
+    const vocabs: IVocab = {};
     await Promise.all(
       vocabNames.map(async (vocabName) => {
         const response = await axios.get(`/api/vocabs/${vocabName}`);
@@ -31,14 +36,23 @@ export const fetchVocabs = async (
         }
       }),
     );
+    Object.entries(vocabs).forEach(([vocabName, nodes]) => {
+      addVocab(nodes);
+    });
     return true;
   } catch (e) {
     return false;
   }
 };
 
-export const addVocab = (name: string, vocab: any) => {
-  vocabs[name] = vocab;
+export const addVocab = (vocab: INode[]) => {
+  vocab.forEach((node) => {
+    if (nodesObj[node['@id']]) {
+      nodesObj[node['@id']] = Object.assign(nodesObj[node['@id']], node);
+    } else {
+      nodesObj[node['@id']] = node;
+    }
+  });
 };
 
 export interface INode {
@@ -46,8 +60,7 @@ export interface INode {
   '@type': string;
 }
 
-export const getAllNodes = (): INode[] =>
-  ([] as INode[]).concat(...Object.values(vocabs));
+export const getAllNodes = (): INode[] => Object.values(nodesObj);
 
 export const getRestrictionNodes = (): INode[] =>
   getAllNodes().filter((n) =>

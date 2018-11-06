@@ -55,7 +55,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
         >
           <div className="container">
             <h1 className="jumbotron-heading">
-              Create your Annotation from a templace
+              Create an annotation from a template
             </h1>
           </div>
         </section>

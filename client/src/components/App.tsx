@@ -10,29 +10,29 @@ import AnnotationTemplate from './AnnotationTemplate';
 class App extends React.Component {
   public render() {
     return (
-      <Router>
+      <Router basename="/annotation">
         <div
           className="container"
           style={{ marginBottom: '200px', width: '100%' }}
         >
           <Route
             exact={true}
-            path="/annotation/"
+            path="/"
             className="btn btn-primary my-2"
             component={Home}
           />
           <Route
-            path="/annotation/webApi/"
+            path="/webApi/"
             className="btn btn-primary my-2"
             component={AnnotationWebApi}
           />
           <Route
-            path="/annotation/template/"
+            path="/template/"
             className="btn btn-primary my-2"
             component={AnnotationTemplate}
           />
           <Route
-            path="/annotation/blank/"
+            path="/blank/"
             className="btn btn-primary my-2"
             component={AnnotationBlank}
           />

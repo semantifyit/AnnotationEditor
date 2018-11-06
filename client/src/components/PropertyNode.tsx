@@ -42,7 +42,8 @@ class PropertyNode extends React.Component<IProps, IState> {
     // if the parent type node calls setState, don't re-render properties
     return (
       nextProps.nodeId !== this.props.nodeId ||
-      this.state.nodeId !== nextState.nodeId
+      this.state.nodeId !== nextState.nodeId ||
+      this.state.selectedRange !== nextState.selectedRange
     );
   }
 
@@ -60,10 +61,6 @@ class PropertyNode extends React.Component<IProps, IState> {
     if (!node) {
       return <h1>Node not found</h1>;
     }
-    this.ranges = extractIds(node['schema:rangeIncludes']);
-    if (this.state.selectedRange === '') {
-      this.state.selectedRange = this.ranges[0];
-    }
     if (this.props.restriction) {
       const restrictions = this.props.restriction.filter(
         (r) => r.property === this.state.nodeId,
@@ -77,8 +74,15 @@ class PropertyNode extends React.Component<IProps, IState> {
           acc[cur.nodeId] = cur.restrictionId;
           return acc;
         }, {});
-        this.state.selectedRange = this.ranges[0];
+        if (this.state.selectedRange === '') {
+          this.state.selectedRange = this.ranges[0];
+        }
       }
+    }
+
+    this.ranges = extractIds(node['schema:rangeIncludes']);
+    if (this.state.selectedRange === '') {
+      this.state.selectedRange = this.ranges[0];
     }
 
     const path =

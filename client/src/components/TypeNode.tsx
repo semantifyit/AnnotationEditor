@@ -50,7 +50,6 @@ class TypeNode extends React.Component<IProps, IState> {
   };
 
   public restrictions: IRestriction[] = [];
-  public restrictionsLoaded: boolean = false;
 
   public componentDidMount() {
     this.update();
@@ -108,6 +107,8 @@ class TypeNode extends React.Component<IProps, IState> {
     this.restrictions = restrictions;
     // add properties
     this.useRestrictions(restrictions);
+    this.forceUpdate(); // since we set this.restrictions and render reads from it.
+    // probably better to put restrictions in state
 
     // sparql restrictions
     // Since the previous restrictions aren't set yet, and we need them for the sparql stuff we sleep a bit and try to find
@@ -170,7 +171,7 @@ class TypeNode extends React.Component<IProps, IState> {
     this.addProperty(this.state.selectedProp);
   };
 
-  public canUseAnotherProp = (propId: string) =>
+  public canUseAnotherProp = (propId: string): boolean =>
     this.restrictions
       .filter((r) => r.property === propId && r.maxCount)
       .reduce(
@@ -180,7 +181,7 @@ class TypeNode extends React.Component<IProps, IState> {
             cur.maxCount >
               this.state.propertyIds.filter((p) => p.nodeId === propId).length),
         true,
-      );
+      ) as boolean;
 
   public addProperty = (propId: string) => {
     const canUseAnotherProp = this.canUseAnotherProp(propId);
@@ -206,6 +207,19 @@ class TypeNode extends React.Component<IProps, IState> {
       this.setState({ nodeIds: newNodeIds });
       this.updateRestrictions(newNodeIds);
     }
+  };
+
+  public getStyleOfSelectProp = (prop: INode) => {
+    const propHasRestrictions =
+      this.restrictions.filter((r) => r.property === prop['@id']).length > 0;
+    if (!this.canUseAnotherProp(prop['@id'])) {
+      // this shouldn't matter, since we set the option to disabled
+      return { color: 'grey', fontStyle: 'italic' };
+    }
+    if (propHasRestrictions) {
+      return { background: 'rgb(255,255,153)' };
+    }
+    return {};
   };
 
   public render() {
@@ -282,9 +296,11 @@ class TypeNode extends React.Component<IProps, IState> {
                     $
                     {propArr.map((prop, j) => (
                       <option
+                        disabled={!this.canUseAnotherProp(prop['@id'])}
                         key={j}
                         value={prop['@id']}
                         title={getDescriptionOfNode(prop)}
+                        style={this.getStyleOfSelectProp(prop)}
                       >
                         {getNameOfNode(prop)}
                       </option>

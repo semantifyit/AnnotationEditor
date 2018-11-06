@@ -26,7 +26,7 @@ export const fetchVocabs = async (
     const vocabs: IVocab = {};
     await Promise.all(
       vocabNames.map(async (vocabName) => {
-        const response = await axios.get(`/api/vocabs/${vocabName}`);
+        const response = await axios.get(`/annotation/api/vocabs/${vocabName}`);
         if (vocabName === 'webapi') {
           vocabs[vocabName] = response.data['@graph']
             .filter(

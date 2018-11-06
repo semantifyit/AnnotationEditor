@@ -17,7 +17,7 @@ class App extends React.Component {
         >
           <Route
             exact={true}
-            path="/"
+            path="/annotation/"
             className="btn btn-primary my-2"
             component={Home}
           />

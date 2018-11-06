@@ -10,7 +10,7 @@ app.use(parser.json());
 app.use(morgan("dev"));
 
 // vocab routes
-app.get("/api/vocabs/:vocabName", (req, res) => {
+app.get("/annotation/api/vocabs/:vocabName", (req, res) => {
   const { vocabName } = req.params;
   try {
     const vocab = fs.readFileSync(
@@ -26,7 +26,7 @@ app.get("/api/vocabs/:vocabName", (req, res) => {
 // server app route
 if (process.env.NODE_ENV && process.env.NODE_ENV !== "default") {
   console.log("Use build");
-  app.use(express.static(path.join(__dirname, "..", "client", "build")));
+  app.use('/annotation', express.static(path.join(__dirname, "..", "client", "build")));
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
   });

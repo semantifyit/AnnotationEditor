@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Annotation Editor",
+  "name": "Create Schema.org Annotations with the help of an editor",
   "icons": [
     {
       "src": "favicon.ico",

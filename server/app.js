@@ -9,6 +9,11 @@ const app = express();
 app.use(parser.json());
 app.use(morgan("dev"));
 
+app.use((req, res, next) => {
+  res.setHeader('backend', 'annotation-editor');
+  return next();
+});
+
 // vocab routes
 app.get("/annotation/api/vocabs/:vocabName", (req, res) => {
   const { vocabName } = req.params;

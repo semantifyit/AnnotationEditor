@@ -14,16 +14,13 @@ class App extends React.Component {
               Welcome to The Annotation Editor!
             </h1>
             <h3 style={{ marginTop: '50px' }}>Create Annotations</h3>
-            <Link to="/annotation/webApi/" className="btn btn-primary margin5">
+            <Link to="/webApi/" className="btn btn-primary margin5">
               Semantic WebApi
             </Link>
-            <Link
-              to="/annotation/template/"
-              className="btn btn-primary margin5"
-            >
+            <Link to="/template/" className="btn btn-primary margin5">
               From Template
             </Link>
-            <Link to="/annotation/blank/" className="btn btn-primary margin5">
+            <Link to="/blank/" className="btn btn-primary margin5">
               Blank Annotation
             </Link>
           </div>

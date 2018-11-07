@@ -286,6 +286,8 @@ export interface IRestriction {
   minCount?: number;
   maxCount?: number;
   pattern?: string;
+  minInclusive?: number;
+  maxInclusive?: number;
 }
 
 interface IIdNode {
@@ -296,6 +298,7 @@ interface IShaclProp {
   'sh:path': IIdNode;
   'sh:datatype'?: IIdNode;
   'sh:class'?: IIdNode;
+  'sh:pattern'?: string;
   'sh:minCount'?: number;
   'sh:minInclusive'?: number;
   'sh:maxInclusive'?: number;
@@ -377,6 +380,9 @@ const makePropertyRestrictionObj = (shProp: IShaclProp): IRestriction => {
     valueIn: shProp['sh:in'] && shProp['sh:in']['@list'],
     minCount: shProp['sh:minCount'],
     maxCount: shProp['sh:maxCount'],
+    minInclusive: shProp['sh:minInclusive'],
+    maxInclusive: shProp['sh:maxInclusive'],
+    pattern: shProp['sh:pattern'],
   };
 };
 

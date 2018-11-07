@@ -27,11 +27,13 @@ interface IProps {
 
 interface IState {
   value: string;
+  valueCorrect: boolean;
 }
 
 class RangeNode extends React.Component<IProps, IState> {
   public state: IState = {
     value: '',
+    valueCorrect: true,
   };
 
   public enumerations: null | string[] = null; // for shacl sh:in stuff
@@ -66,7 +68,15 @@ class RangeNode extends React.Component<IProps, IState> {
   }
 
   public handleChange(e: React.ChangeEvent<any>) {
-    this.setState({ value: e.target.value });
+    const { value } = e.target;
+    // TODO: handle restrictions on values
+    this.props.restriction.forEach((r) => {
+      if (r.pattern && value.match(r.pattern)) {
+      }
+    });
+    console.log(this.props.restriction);
+    console.log(this.props.nodeId);
+    this.setState({ value });
   }
 
   public handleTime(e: Moment, format: string) {

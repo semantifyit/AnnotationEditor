@@ -72,6 +72,10 @@ class RangeNode extends React.Component<IProps, IState> {
     // TODO: handle restrictions on values
     this.props.restriction.forEach((r) => {
       if (r.pattern && value.match(r.pattern)) {
+
+        // TODO: something else should happen here
+        alert('FEUER!!');
+
       }
     });
     console.log(this.props.restriction);

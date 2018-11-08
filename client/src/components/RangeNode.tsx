@@ -70,7 +70,6 @@ class RangeNode extends React.Component<IProps, IState> {
 
   public handleChange(e: React.ChangeEvent<any>) {
     const { value } = e.target;
-    // TODO: handle restrictions on values
     let valueIncorrectnessReason = null;
     this.props.restriction.forEach((r) => {
       if (r.pattern && !value.match(r.pattern)) {
@@ -93,8 +92,6 @@ class RangeNode extends React.Component<IProps, IState> {
         }`;
       }
     });
-    console.log(this.props.restriction);
-    console.log(this.props.nodeId);
     this.setState({ value, valueIncorrectnessReason });
   }
 
@@ -124,7 +121,6 @@ class RangeNode extends React.Component<IProps, IState> {
       'form-control': true,
       'input-highlight': this.state.valueIncorrectnessReason || false,
     });
-    console.log(this.state.valueIncorrectnessReason);
     switch (getNameOfNode(node)) {
       case 'URL':
       case 'Text':

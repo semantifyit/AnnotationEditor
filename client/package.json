@@ -9,7 +9,7 @@
     "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:8007",
-  "homepage": ".",
+  "homepage": "/annotation",
   "prettier": {
     "singleQuote": true,
     "trailingComma": "all",

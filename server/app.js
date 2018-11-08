@@ -10,7 +10,7 @@ app.use(parser.json());
 app.use(morgan("dev"));
 
 app.use((req, res, next) => {
-  res.setHeader('backend', 'annotation-editor');
+  res.setHeader("backend", "annotation-editor");
   return next();
 });
 
@@ -31,7 +31,10 @@ app.get("/annotation/api/vocabs/:vocabName", (req, res) => {
 // server app route
 if (process.env.NODE_ENV && process.env.NODE_ENV !== "default") {
   console.log("Use build");
-  app.use('/annotation', express.static(path.join(__dirname, "..", "client", "build")));
+  app.use(
+    "/annotation",
+    express.static(path.join(__dirname, "..", "client", "build"))
+  );
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
   });

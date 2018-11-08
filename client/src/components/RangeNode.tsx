@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Moment } from 'moment';
 import * as DateTime from 'react-datetime';
 import 'react-datetime/css/react-datetime.css';
+import classNames from 'classnames';
 
 import {
   getNode,
@@ -27,13 +28,13 @@ interface IProps {
 
 interface IState {
   value: string;
-  valueCorrect: boolean;
+  valueIncorrectnessReason: string | null;
 }
 
 class RangeNode extends React.Component<IProps, IState> {
   public state: IState = {
     value: '',
-    valueCorrect: true,
+    valueIncorrectnessReason: null,
   };
 
   public enumerations: null | string[] = null; // for shacl sh:in stuff
@@ -70,15 +71,31 @@ class RangeNode extends React.Component<IProps, IState> {
   public handleChange(e: React.ChangeEvent<any>) {
     const { value } = e.target;
     // TODO: handle restrictions on values
+    let valueIncorrectnessReason = null;
     this.props.restriction.forEach((r) => {
-      if (r.pattern && value.match(r.pattern)) {
-        // TODO: something else should happen here
-        alert('FEUER!!');
+      if (r.pattern && !value.match(r.pattern)) {
+        valueIncorrectnessReason = `Value doesn't match pattern: ${r.pattern}`;
+      } else if (
+        r.minInclusive &&
+        r.maxInclusive &&
+        (value < r.minInclusive || value > r.maxInclusive)
+      ) {
+        valueIncorrectnessReason = `Value must be between ${
+          r.minInclusive
+        } and ${r.maxInclusive}`;
+      } else if (r.minInclusive && value < r.minInclusive) {
+        valueIncorrectnessReason = `Value can't be smaller than ${
+          r.minInclusive
+        }`;
+      } else if (r.maxInclusive && value > r.maxInclusive) {
+        valueIncorrectnessReason = `Value can't be bigger than ${
+          r.maxInclusive
+        }`;
       }
     });
     console.log(this.props.restriction);
     console.log(this.props.nodeId);
-    this.setState({ value });
+    this.setState({ value, valueIncorrectnessReason });
   }
 
   public handleTime(e: Moment, format: string) {
@@ -103,29 +120,48 @@ class RangeNode extends React.Component<IProps, IState> {
         </div>
       );
     }
+    const className = classNames({
+      'form-control': true,
+      'input-highlight': this.state.valueIncorrectnessReason || false,
+    });
+    console.log(this.state.valueIncorrectnessReason);
     switch (getNameOfNode(node)) {
       case 'URL':
       case 'Text':
         return (
-          <input
-            type="text"
-            className="form-control"
-            placeholder={getNameOfNode(node)}
-            value={this.state.value}
-            onChange={(e) => this.handleChange(e)}
-          />
+          <div>
+            <input
+              type="text"
+              className={className}
+              placeholder={getNameOfNode(node)}
+              value={this.state.value}
+              onChange={(e) => this.handleChange(e)}
+            />
+            {this.state.valueIncorrectnessReason && (
+              <small style={{ color: 'red' }}>
+                {this.state.valueIncorrectnessReason}
+              </small>
+            )}
+          </div>
         );
       case 'Integer':
       case 'Number':
       case 'Float':
         return (
-          <input
-            type="number"
-            className="form-control"
-            placeholder={getNameOfNode(node)}
-            value={this.state.value}
-            onChange={(e) => this.handleChange(e)}
-          />
+          <div>
+            <input
+              type="number"
+              className={className}
+              placeholder={getNameOfNode(node)}
+              value={this.state.value}
+              onChange={(e) => this.handleChange(e)}
+            />
+            {this.state.valueIncorrectnessReason && (
+              <small style={{ color: 'red' }}>
+                {this.state.valueIncorrectnessReason}
+              </small>
+            )}
+          </div>
         );
       case 'Boolean':
         return (

@@ -211,7 +211,8 @@ class TypeNode extends React.Component<IProps, IState> {
 
   public getStyleOfSelectProp = (prop: INode) => {
     const propHasRestrictions =
-      this.restrictions.filter((r) => r.property === prop['@id']).length > 0;
+      this.restrictions.filter((r) => isEqProp(r.property, prop['@id']))
+        .length > 0;
     if (!this.canUseAnotherProp(prop['@id'])) {
       // this shouldn't matter, since we set the option to disabled
       return { color: 'grey', fontStyle: 'italic' };

@@ -48,7 +48,7 @@ class PropertyNode extends React.Component<IProps, IState> {
   }
 
   public changedPropSelection = (e: ISingleOption) => {
-    this.setState({ nodeId: e.value });
+    this.setState({ nodeId: e.value, selectedRange: '' });
   };
 
   public render() {

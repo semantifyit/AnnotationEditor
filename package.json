@@ -1,10 +1,10 @@
 {
-  "name": "semantify-actions",
+  "name": "annotation-editor",
   "version": "1.0.0",
-  "homepage": "https://bitbucket.org/sti2/semantify-actions#readme",
+  "homepage": "https://github.com/semantifyit/annotation-editor",
   "repository": {
     "type": "git",
-    "url": "bitbucket:sti2/semantify-actions"
+    "url": "github.com:semantifyit/annotation-editor"
   },
   "main": "server/app.js",
   "scripts": {

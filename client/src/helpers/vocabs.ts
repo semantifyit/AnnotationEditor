@@ -16,32 +16,42 @@ interface IVocab {
 interface INodeObj {
   [key: string]: INode;
 }
+const vocabsCache: IVocab = {};
+let nodesObj: INodeObj = {};
+let currentVocabs: string[] = [];
 
-const nodesObj: INodeObj = {};
+export const cleanVocab = (vocab: any) =>
+  JSON.parse(JSON.stringify(vocab).replace(new RegExp('http://schema.org/', 'g'), 'schema:'));
 
 export const fetchVocabs = async (
   ...vocabNames: string[]
 ): Promise<boolean> => {
   try {
-    const vocabs: IVocab = {};
+    nodesObj = {};
+    currentVocabs = vocabNames;
     await Promise.all(
       vocabNames.map(async (vocabName) => {
+        if (vocabsCache[vocabName]) {
+          addVocab(vocabsCache[vocabName]);
+          return;
+        }
         const response = await axios.get(`/annotation/api/vocabs/${vocabName}`);
         if (vocabName === 'webapi') {
-          vocabs[vocabName] = response.data['@graph']
+          vocabsCache[vocabName] = cleanVocab(response.data['@graph'])
             .filter(
               (o: any) =>
                 o['@id'].startsWith('webapi') || o['@id'].startsWith('_:'),
             )
             .map((n: any) => cleanShaclProp(n));
         } else {
-          vocabs[vocabName] = response.data['@graph'];
+          vocabsCache[vocabName] = cleanVocab(response.data['@graph']);
         }
+        addVocab(vocabsCache[vocabName]);
       }),
     );
-    Object.entries(vocabs).forEach(([vocabName, nodes]) => {
-      addVocab(nodes);
-    });
+    // Object.entries(vocabsCache).forEach(([vocabName, nodes]) => {
+    //   addVocab(nodes);
+    // });
     return true;
   } catch (e) {
     return false;
@@ -69,3 +79,5 @@ export const getRestrictionNodes = (): INode[] =>
   getAllNodes().filter((n) =>
     ['sh:NodeShape', 'sh:SPARQLTargetType'].includes(n['@type']),
   );
+
+export const getCurrentVocabs = (): string[] => currentVocabs;

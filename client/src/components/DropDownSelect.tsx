@@ -3,7 +3,7 @@ import { Manager, Reference, Popper } from 'react-popper';
 import Select from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import onClickOutside from 'react-onclickoutside';
-import * as PopperJS from 'popper.js';
+import { Placement } from 'popper.js';
 
 export interface ISingleOption {
   label: string;
@@ -11,7 +11,7 @@ export interface ISingleOption {
 }
 interface IProps {
   multiSelect: boolean;
-  popperPlacement?: PopperJS.Placement;
+  popperPlacement?: Placement;
   selectOptions: ISingleOption[];
   selectedOptions: ISingleOption[] | ISingleOption;
   onChangeSelection(val: any): void;

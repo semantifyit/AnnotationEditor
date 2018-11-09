@@ -10,6 +10,7 @@ import {
   faCopy,
   faCog,
   faPlus,
+  faSyncAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
 import App from './components/App';
@@ -24,6 +25,7 @@ library.add(
   faCopy,
   faCog,
   faPlus,
+  faSyncAlt,
 );
 
 ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);

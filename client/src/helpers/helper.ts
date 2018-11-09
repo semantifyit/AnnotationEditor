@@ -11,8 +11,15 @@ export const removeNS = (str: string): string => {
   return lastOfNS || '';
 };
 
-export const getNameOfNode = (node: INode) =>
-  node['rdfs:label'] ? node['rdfs:label'] : removeNS(node['@id']);
+export const getNameOfNode = (node: INode) => {
+  if (node['rdfs:label'] && typeof node['rdfs:label'] === 'string') {
+    return node['rdfs:label'];
+  }
+  if (node['rdfs:label'] && node['rdfs:label']['@value']) {
+    return node['rdfs:label']['@value'];
+  }
+  return removeNS(node['@id']);
+};
 
 export const getDescriptionOfNode = (node: INode) =>
   stripHtml(node['rdfs:comment'] ? node['rdfs:comment'] : '');
@@ -488,3 +495,6 @@ export const generateJSONLD = (docEle: HTMLElement): any => {
   });
   return jsonld;
 };
+
+export const arraysAreEquals = <T>(arr1: T[], arr2: T[]): boolean =>
+  JSON.stringify(arr1.sort()) === JSON.stringify(arr2.sort());

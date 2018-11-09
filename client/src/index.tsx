@@ -5,16 +5,26 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faAngleDown,
   faAngleRight,
+  faAngleLeft,
   faAngleUp,
   faCopy,
   faCog,
+  faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 
 import App from './components/App';
 // import registerServiceWorker from './registerServiceWorker';
 import './styles/index.css';
 
-library.add(faAngleDown, faAngleRight, faAngleUp, faCopy, faCog);
+library.add(
+  faAngleDown,
+  faAngleRight,
+  faAngleUp,
+  faAngleLeft,
+  faCopy,
+  faCog,
+  faPlus,
+);
 
 ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);
 // registerServiceWorker();

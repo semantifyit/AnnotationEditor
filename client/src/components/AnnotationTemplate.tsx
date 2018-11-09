@@ -77,7 +77,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
         <br />
         <div>
           {this.state.createdType && (
-            <Annotation typeID={this.state.createdType} />
+            <Annotation typeID={this.state.createdType} generateButton={true} />
           )}
         </div>
       </div>

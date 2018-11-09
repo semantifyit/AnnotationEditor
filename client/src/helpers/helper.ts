@@ -202,7 +202,7 @@ const getSuperClassesForTypes = (nodeIds: string[]): string[] =>
     ),
   );
 
-const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
+export const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 
 const haveCommon = <T>(arr1: T[], arr2: T[]): boolean =>
   arr1.filter((e) => arr2.includes(e)).length !== 0;
@@ -469,3 +469,22 @@ const removeDashIO = (str: string): string => str.split('-')[0];
 
 export const isEqProp = (a: string, b: string): boolean =>
   removeDashIO(a) === removeDashIO(b);
+
+export const generateJSONLD = (docEle: HTMLElement): any => {
+  const jsonld = {
+    '@context': {
+      '@vocab': 'http://schema.org/',
+      webapi: 'http://actions.semantify.it/vocab/',
+    },
+  };
+  const terminals = docEle.querySelectorAll('[data-path]');
+  terminals.forEach((t: HTMLElement) => {
+    const { path, value } = t.dataset;
+    if (path && value) {
+      const schemaNSPath = path.replace(/schema:/g, '');
+      const schemaNSValue = value.replace(/^schema:/g, '');
+      set(jsonld, schemaNSPath, schemaNSValue);
+    }
+  });
+  return jsonld;
+};

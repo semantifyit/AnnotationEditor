@@ -21,7 +21,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
   };
 
   public async componentDidMount() {
-    await fetchVocabs('schema', 'schema-pending', 'webapi');
+    await fetchVocabs('schema', 'schema-pending');
     const bases = getAllNodes().filter((o) => o['@type'] === 'rdfs:Class');
     this.setState({ bases });
   }
@@ -63,7 +63,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
         <br />
         <div>
           {this.state.createdType && (
-            <Annotation typeID={this.state.createdType} />
+            <Annotation typeID={this.state.createdType} generateButton={true} />
           )}
         </div>
       </div>

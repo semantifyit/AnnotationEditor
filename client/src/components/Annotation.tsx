@@ -7,9 +7,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
+import * as uuidv1 from 'uuid/v1';
+import { generateJSONLD, joinPaths } from '../helpers/helper';
 
 interface IProps {
   typeID: string;
+  generateButton: boolean;
 }
 
 interface IState {
@@ -21,28 +24,19 @@ class Annotation extends React.Component<IProps, IState> {
     modalIsOpen: false,
   };
 
+  public annotationUid = uuidv1();
+  public baseUID = `baseid-${this.annotationUid}`;
+
   public jsonld = {};
 
-  public generateJSONLD() {
-    const jsonld = {
-      '@context': {
-        '@vocab': 'http://schema.org/',
-        webapi: 'http://actions.semantify.it/vocab/',
-      },
-    };
-    const terminals = document.querySelectorAll('[data-path]');
-    terminals.forEach((t: HTMLElement) => {
-      const { path, value } = t.dataset;
-      if (path && value) {
-        const schemaNSPath = path.replace(/schema:/g, '');
-        const schemaNSValue = value.replace(/^schema:/g, '');
-        set(jsonld, schemaNSPath, schemaNSValue);
-      }
-    });
-    // console.log(JSON.stringify(jsonld, null, 2));
-    this.jsonld = jsonld;
+  public createAnnotation = () => {
+    const baseEle = document.getElementById(this.baseUID);
+    if (!baseEle) {
+      return;
+    }
+    this.jsonld = generateJSONLD(baseEle);
     this.setState({ modalIsOpen: true });
-  }
+  };
 
   public toggleModal = () => {
     this.setState((state) => ({ modalIsOpen: !state.modalIsOpen }));
@@ -50,7 +44,7 @@ class Annotation extends React.Component<IProps, IState> {
 
   public render() {
     return (
-      <div>
+      <div id={this.baseUID}>
         <hr />
         <TypeNode
           nodeId={this.props.typeID}
@@ -58,13 +52,15 @@ class Annotation extends React.Component<IProps, IState> {
           canUseDashIOProps={false}
           key={this.props.typeID}
         />
-        <Button
-          onClick={() => this.generateJSONLD()}
-          color="primary"
-          style={{ marginTop: '100px' }}
-        >
-          Generate
-        </Button>
+        {this.props.generateButton && (
+          <Button
+            onClick={this.createAnnotation}
+            color="primary"
+            style={{ marginTop: '100px' }}
+          >
+            Generate
+          </Button>
+        )}
         <Modal isOpen={this.state.modalIsOpen} toggle={this.toggleModal}>
           <ModalHeader toggle={this.toggleModal}>Your Annotation</ModalHeader>
           <ModalBody>

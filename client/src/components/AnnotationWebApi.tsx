@@ -1,71 +1,83 @@
 import * as React from 'react';
-import TypeNode from './TypeNode';
-import { set } from 'lodash';
+import Select from 'react-select';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { fetchVocabs, getAllNodes, INode } from '../helpers/vocabs';
 import {
-  removeNS,
+  clone,
+  generateJSONLD,
   getDescriptionOfNode,
   getNameOfNode,
 } from '../helpers/helper';
-
-const acceptableBases = [
-  'Thing',
-  'Place',
-  'WebAPI',
-  'Action',
-  'Event',
-  'CreativeWork',
-];
+import { ISingleOption } from './DropDownSelect';
+import Annotation from './Annotation';
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
+import { toast, ToastContainer } from 'react-toastify';
 
 interface IState {
-  createdType: null | string;
-  selectedValue: string;
-  bases: null | INode[];
+  ready: boolean;
+  currentStep: number;
+  modalIsOpen: boolean;
 }
 
-class WebApi extends React.Component<{}, IState> {
+class AnnotationBlank extends React.Component<{}, IState> {
   public state: IState = {
-    createdType: null,
-    selectedValue: '',
-    bases: null,
+    ready: false,
+    currentStep: 0,
+    modalIsOpen: false,
   };
+
+  public steps = [
+    {
+      title: 'Step 1: Create a WebApi Annotation',
+      type: 'schema:WebAPI',
+      annotation: null,
+    },
+    {
+      title: 'Step 2: Create Action Annotation',
+      type: 'schema:Action',
+      annotation: null,
+    },
+  ];
 
   public async componentDidMount() {
     await fetchVocabs('schema', 'schema-pending', 'webapi');
-    const bases = getAllNodes()
-      .filter((o) => o['@type'] === 'rdfs:Class')
-      .filter((o) => acceptableBases.includes(removeNS(o['@id'])));
-    this.setState({ bases, selectedValue: bases[0]['@id'] });
+    this.setState({ ready: true });
   }
 
-  public createBase() {
-    const previousState = this.state;
-    previousState.createdType = this.state.selectedValue;
-    this.setState(previousState);
-  }
+  public toggleModal = () => {
+    this.setState((state) => ({ modalIsOpen: !state.modalIsOpen }));
+  };
 
-  public generateJSONLD() {
-    const jsonld = {
-      '@context': {
-        '@vocab': 'http://schema.org/',
-        webapi: 'http://actions.semantify.it/vocab/',
-      },
-    };
-    const terminals = document.querySelectorAll('[data-path]');
-    terminals.forEach((t: HTMLElement) => {
-      const { path, value } = t.dataset;
-      if (path && value) {
-        const schemaNSPath = path.replace(/schema:/g, '');
-        const schemaNSValue = value.replace(/^schema:/g, '');
-        set(jsonld, schemaNSPath, schemaNSValue);
+  public finalize = () => {
+    this.steps.forEach((step, i) => {
+      const ele = document.getElementById(`annotation-${i}`);
+      if (!ele) {
+        return;
       }
+      this.steps[i].annotation = generateJSONLD(ele);
     });
-    console.log(JSON.stringify(jsonld, null, 2));
-  }
+    this.setState({ modalIsOpen: true });
+  };
+
+  public nextStep = () => {
+    this.setState((state) => {
+      if (state.currentStep === this.steps.length - 1) {
+        this.steps.push(clone(this.steps[this.steps.length - 1]));
+      }
+      return { currentStep: state.currentStep + 1 };
+    });
+  };
+  public previousStep = () => {
+    if (this.state.currentStep !== 0) {
+      this.setState((state) => ({ currentStep: state.currentStep - 1 }));
+    }
+  };
 
   public render() {
-    if (!this.state.bases) {
+    if (!this.state.ready) {
       return <h1>Loading ...</h1>;
     }
     return (
@@ -75,69 +87,100 @@ class WebApi extends React.Component<{}, IState> {
           style={{ backgroundColor: '#fff' }}
         >
           <div className="container">
-            <h1 className="jumbotron-heading">
-              Create your semantic Web API Description
-            </h1>
+            <h1 className="jumbotron-heading">Create your Annotation</h1>
           </div>
         </section>
-        <div className="row" style={{ margin: 0 }}>
-          <h4>Choose a type:</h4>
-          <div className="col-sm-4 col-sm-offset-4">
-            <div className="input-group">
-              <select
-                className="custom-select"
-                value={this.state.selectedValue}
-                onChange={(e) =>
-                  this.setState({ selectedValue: e.target.value })
-                }
-              >
-                {this.state.bases.map((b, i) => (
-                  <option
-                    key={i}
-                    value={b['@id']}
-                    title={getDescriptionOfNode(b)}
-                  >
-                    {getNameOfNode(b)}
-                  </option>
-                ))}
-              </select>
-              <div className="input-group-append">
-                <button
-                  className="btn btn-primary"
-                  type="button"
-                  onClick={() => this.createBase()}
-                  disabled={this.state.createdType !== null}
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h4>
+          {this.steps[this.state.currentStep].title}{' '}
+          {this.state.currentStep > 0 && `(${this.state.currentStep})`}
+        </h4>
         <br />
         <div>
-          {this.state.createdType && (
-            <div>
-              <hr />
-              <TypeNode
-                nodeId={this.state.createdType}
-                path={[]}
-                canUseDashIOProps={false}
-              />
-              <button
-                onClick={() => this.generateJSONLD()}
-                type="button"
-                className="btn btn-primary"
-                style={{ marginTop: '100px' }}
-              >
-                Generate
-              </button>
+          {this.steps.map((step, i) => (
+            <div
+              hidden={i !== this.state.currentStep}
+              key={i}
+              id={`annotation-${i}`}
+            >
+              <Annotation typeID={step.type} generateButton={false} />
             </div>
-          )}
+          ))}
+          <div style={{ marginTop: '50px' }}>
+            {this.state.currentStep > 0 && (
+              <Button onClick={this.previousStep} color="primary">
+                <FontAwesomeIcon icon={'angle-left'} size="lg" /> Previous
+              </Button>
+            )}
+            &nbsp;&nbsp;
+            <Button onClick={this.nextStep} color="primary">
+              {this.state.currentStep === this.steps.length - 1 ? (
+                <div>
+                  New <FontAwesomeIcon icon={'plus'} size="lg" />
+                </div>
+              ) : (
+                <div>
+                  Next <FontAwesomeIcon icon={'angle-right'} size="lg" />
+                </div>
+              )}
+            </Button>
+            <Button
+              onClick={this.finalize}
+              color="success"
+              className="float-right"
+              size="lg"
+            >
+              Finalize
+            </Button>
+          </div>
         </div>
+        <Modal
+          isOpen={this.state.modalIsOpen}
+          toggle={this.toggleModal}
+          size="lg"
+        >
+          <ModalHeader toggle={this.toggleModal}>Your Annotations</ModalHeader>
+          <ModalBody>
+            <div className="row">
+              {this.steps.map((step) => (
+                <div className="col-md-6" style={{ padding: '3px' }}>
+                  <pre
+                    dangerouslySetInnerHTML={{
+                      __html: syntaxHighlightJsonStr(
+                        JSON.stringify(step.annotation, null, 2),
+                      ),
+                    }}
+                    style={{
+                      borderRadius: '4px',
+                      border: '1px solid lightgrey',
+                      fontSize: '13px',
+                      padding: '10px',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="primary"
+              onClick={() => {
+                copyStrIntoClipBoard(
+                  JSON.stringify(this.steps.map((s) => s.annotation)),
+                );
+                toast.info('Copied');
+              }}
+            >
+              <FontAwesomeIcon icon="copy" size="lg" /> Copy All
+            </Button>{' '}
+            <Button color="secondary" onClick={this.toggleModal}>
+              Close
+            </Button>
+          </ModalFooter>
+        </Modal>
+        <ToastContainer hideProgressBar={true} autoClose={3000} />
       </div>
     );
   }
 }
 
-export default WebApi;
+export default AnnotationBlank;

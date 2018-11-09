@@ -51,6 +51,9 @@ class TypeNode extends React.Component<IProps, IState> {
 
   public restrictions: IRestriction[] = [];
 
+  public nodeUid = uuidv1();
+  public baseUID = `baseid-${joinPaths(this.props.path)}-${this.nodeUid}`;
+
   public componentDidMount() {
     this.update();
   }
@@ -121,7 +124,11 @@ class TypeNode extends React.Component<IProps, IState> {
           webapi: 'http://actions.semantify.it/vocab/',
         },
       };
-      const terminals = document.querySelectorAll('[data-path]');
+      const curEle = document.getElementById(this.baseUID);
+      if (!curEle) {
+        return;
+      }
+      const terminals = curEle.querySelectorAll('[data-path]');
       const thisPath = joinPaths(this.props.path);
       terminals.forEach((t: HTMLElement) => {
         const { path, value } = t.dataset;
@@ -264,7 +271,7 @@ class TypeNode extends React.Component<IProps, IState> {
         : typeTitle;
 
     return (
-      <div style={divStyle}>
+      <div style={divStyle} id={this.baseUID}>
         {nodes.map((n, i) => {
           const path =
             nodes.length > 1

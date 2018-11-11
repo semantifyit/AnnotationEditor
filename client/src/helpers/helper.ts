@@ -348,7 +348,8 @@ export const cleanShaclProp = (shProp: IShaclProp): IShaclProp => {
   }
   if (
     shPropCpy['sh:nodeKind'] &&
-    shPropCpy['sh:nodeKind']['@id'] === 'sh:IRI'
+    shPropCpy['sh:nodeKind']['@id'] === 'sh:IRI' &&
+    shPropCpy['@type'] !== 'sh:NodeShape'
   ) {
     shPropCpy['sh:class'] = toIdNode('schema:URL');
     delete shPropCpy['sh:nodeKind'];
@@ -398,6 +399,16 @@ const makeRestrictions = (restrictNodes: INode[]): IRestriction[] =>
     restrictNodes.filter((n) => n['sh:property']).map((shNodeShape) => {
       const populatedNote = replaceBlankNodes(shNodeShape);
       const propertyRestrictionNodes = makeArray(populatedNote['sh:property']);
+
+      if (
+        populatedNote['sh:nodeKind'] &&
+        populatedNote['sh:nodeKind']['@id'] === 'sh:IRI'
+      ) {
+        propertyRestrictionNodes.push({
+          'sh:path': { '@id': '@id' },
+          'sh:minCount': 1,
+        });
+      }
 
       return propertyRestrictionNodes.map(
         (n: INode) =>

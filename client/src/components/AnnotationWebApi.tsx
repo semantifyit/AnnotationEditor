@@ -141,8 +141,8 @@ class AnnotationBlank extends React.Component<{}, IState> {
           <ModalHeader toggle={this.toggleModal}>Your Annotations</ModalHeader>
           <ModalBody>
             <div className="row">
-              {this.steps.map((step) => (
-                <div className="col-md-6" style={{ padding: '3px' }}>
+              {this.steps.map((step, i) => (
+                <div className="col-md-6" style={{ padding: '3px' }} key={i}>
                   <pre
                     dangerouslySetInnerHTML={{
                       __html: syntaxHighlightJsonStr(

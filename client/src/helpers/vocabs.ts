@@ -9,6 +9,21 @@ export const availableVocabs = {
   'schema-auto': 'Schema.org Auto',
 };
 
+const baseNodes = [
+  {
+    '@id': '@id',
+    '@type': 'rdf:Property',
+    'schema:domainIncludes': {
+      '@id': 'schema:Thing',
+    },
+    'schema:rangeIncludes': {
+      '@id': 'schema:URL',
+    },
+    'rdfs:comment': 'jsonld identifier',
+    'rdfs:label': '@id',
+  },
+];
+
 interface IVocab {
   [key: string]: INode[];
 }
@@ -21,7 +36,12 @@ let nodesObj: INodeObj = {};
 let currentVocabs: string[] = [];
 
 export const cleanVocab = (vocab: any) =>
-  JSON.parse(JSON.stringify(vocab).replace(new RegExp('http://schema.org/', 'g'), 'schema:'));
+  JSON.parse(
+    JSON.stringify(vocab).replace(
+      new RegExp('http://schema.org/', 'g'),
+      'schema:',
+    ),
+  );
 
 export const fetchVocabs = async (
   ...vocabNames: string[]
@@ -49,9 +69,8 @@ export const fetchVocabs = async (
         addVocab(vocabsCache[vocabName]);
       }),
     );
-    // Object.entries(vocabsCache).forEach(([vocabName, nodes]) => {
-    //   addVocab(nodes);
-    // });
+    // add base nodes
+    addVocab(baseNodes);
     return true;
   } catch (e) {
     return false;

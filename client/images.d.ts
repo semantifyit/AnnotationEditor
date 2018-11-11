@@ -14,3 +14,4 @@ declare module '*.json' {
 declare module 'react-select';
 
 declare module 'rdflib';
+declare module 'split.js';

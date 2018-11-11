@@ -12,6 +12,8 @@ import { INode } from '../helpers/vocabs';
 import RangeNode from './RangeNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
 
+import Split from 'split.js';
+
 interface IProps {
   nodeId: string;
   uid: string;
@@ -50,6 +52,28 @@ class PropertyNode extends React.Component<IProps, IState> {
   public changedPropSelection = (e: ISingleOption) => {
     this.setState({ nodeId: e.value, selectedRange: '' });
   };
+  public componentDidMount() {
+    Split(
+      [
+        `#split-first-${this.props.uid}`,
+        `#split-second-${this.props.uid}`,
+        `#split-third-${this.props.uid}`,
+      ],
+      { sizes: [30, 68, 2], minSize: [100, 150, 10] },
+    );
+    console.log('split');
+  }
+  public componentDidUpdate() {
+    Split(
+      [
+        `#split-first-${this.props.uid}`,
+        `#split-second-${this.props.uid}`,
+        `#split-third-${this.props.uid}`,
+      ],
+      { sizes: [30, 68, 2], minSize: [100, 150, 10] },
+    );
+    console.log('split');
+  }
 
   public render() {
     const node = getNode(this.state.nodeId);
@@ -100,7 +124,11 @@ class PropertyNode extends React.Component<IProps, IState> {
 
     return (
       <div className="row">
-        <div className="col-sm-3" style={{ padding: 0 }}>
+        <div
+          className="split"
+          style={{ padding: 0 }}
+          id={`split-first-${this.props.uid}`}
+        >
           <div className="row">
             <div
               className={this.ranges.length > 1 ? 'col-sm-8' : 'col-sm-12'}
@@ -148,7 +176,11 @@ class PropertyNode extends React.Component<IProps, IState> {
             )}
           </div>
         </div>
-        <div className="col-sm-8" style={{ padding: '5px' }}>
+        <div
+          className="split"
+          style={{ padding: '5px' }}
+          id={`split-second-${this.props.uid}`}
+        >
           <RangeNode
             nodeId={this.state.selectedRange}
             key={this.state.selectedRange}
@@ -160,7 +192,11 @@ class PropertyNode extends React.Component<IProps, IState> {
             ).filter((n) => n)}
           />
         </div>
-        <div className="col-sm-1" style={{ padding: '0' }}>
+        <div
+          className="split"
+          style={{ padding: '0' }}
+          id={`split-third-${this.props.uid}`}
+        >
           <button
             type="button"
             className="close"

@@ -46,6 +46,7 @@
     "react-select": "^2.1.0",
     "react-toastify": "^4.4.0",
     "reactstrap": "^6.5.0",
+    "split.js": "^1.5.9",
     "uuid": "latest"
   },
   "devDependencies": {

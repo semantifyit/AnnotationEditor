@@ -10,15 +10,24 @@ import {
 } from '../helpers/vocabs';
 import { Button } from 'reactstrap';
 import { arraysAreEquals, clone } from '../helpers/helper';
+import { toast, ToastContainer } from 'react-toastify';
+import axios from 'axios';
 
 interface IProps {
   reloadClick(): void;
+}
+
+interface IFile {
+  name: string;
+  data: any;
 }
 
 interface IState {
   isOpen: boolean;
   filename: string | null;
   currentVocabs: string[];
+  vocabUrl: string;
+  fileUploadVocab: IFile[];
 }
 
 class VocabSelection extends React.Component<IProps, IState> {
@@ -26,11 +35,11 @@ class VocabSelection extends React.Component<IProps, IState> {
     isOpen: false,
     filename: null,
     currentVocabs: getCurrentVocabs(),
+    vocabUrl: '',
+    fileUploadVocab: [],
   };
 
   public initialVocabSelection = clone(this.state.currentVocabs);
-
-  public fileUploadVocab: any;
 
   public fileUpload = (e: React.ChangeEvent<any>) => {
     if (
@@ -44,13 +53,39 @@ class VocabSelection extends React.Component<IProps, IState> {
     reader.onload = ((file: any) => () => {
       try {
         const json = JSON.parse(file.result);
-        this.fileUploadVocab = json;
+        this.setState((state) => ({
+          fileUploadVocab: state.fileUploadVocab.concat({
+            data: json,
+            name: file.name,
+          }),
+        }));
+        toast.info('Added vocab, make sure to reload!');
       } catch (e) {
         alert("Couldn't parse file! Is it not json?");
       }
     })(reader);
     reader.readAsText(fileSource);
     this.setState({ filename: fileSource.name });
+  };
+
+  public addVocabFromUrl = async () => {
+    try {
+      const url = this.state.vocabUrl;
+      if (!url) {
+        return;
+      }
+      const response = await axios.get(url);
+      toast.info('Added vocab, make sure to reload!');
+      this.setState((state) => ({
+        fileUploadVocab: state.fileUploadVocab.concat({
+          data: response.data,
+          name: url,
+        }),
+      }));
+    } catch (e) {
+      toast.error(`Couldn't fetch vocab:
+      ${e}`);
+    }
   };
 
   public toggleOpen = () => {
@@ -68,9 +103,12 @@ class VocabSelection extends React.Component<IProps, IState> {
 
   public reloadClick = async () => {
     await fetchVocabs(...this.state.currentVocabs);
-    if (this.fileUploadVocab && this.fileUploadVocab['@graph']) {
-      addVocab(cleanVocab(this.fileUploadVocab['@graph']));
-    }
+    this.state.fileUploadVocab
+      .filter(({ data }) => data['@graph'])
+      .forEach(({ data }) => {
+        addVocab(cleanVocab(data['@graph']));
+      });
+
     this.props.reloadClick();
     this.setState({ isOpen: false });
   };
@@ -137,7 +175,8 @@ class VocabSelection extends React.Component<IProps, IState> {
                     </div>
                   ))}
                   <hr />
-                  <span>Add additional vocabulary:</span>
+                  <h6>Add additional vocabulary</h6>
+                  <span>via file upload:</span>
                   <div className="custom-file">
                     <input
                       type="file"
@@ -151,6 +190,39 @@ class VocabSelection extends React.Component<IProps, IState> {
                     </label>
                   </div>
                   <br />
+                  <span>via url:</span>
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="URL"
+                      value={this.state.vocabUrl}
+                      onChange={(e) =>
+                        this.setState({ vocabUrl: e.target.value })
+                      }
+                    />
+                    <div className="input-group-append">
+                      <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        onClick={this.addVocabFromUrl}
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                  {this.state.fileUploadVocab.length > 0 && (
+                    <div>
+                      Added vocabs:
+                      <ul>
+                        {this.state.fileUploadVocab.map(({ name }, i) => (
+                          <li key={i} style={{ wordWrap: 'break-word' }}>
+                            {name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div style={{ marginTop: '10px' }}>
                     <Button
                       outline={true}
@@ -159,7 +231,7 @@ class VocabSelection extends React.Component<IProps, IState> {
                         arraysAreEquals(
                           this.initialVocabSelection,
                           this.state.currentVocabs,
-                        ) && !this.state.filename
+                        ) && this.state.fileUploadVocab.length === 0
                       } // to boolean
                       onClick={this.reloadClick}
                     >
@@ -171,6 +243,7 @@ class VocabSelection extends React.Component<IProps, IState> {
             )}
           </Popper>
         )}
+        <ToastContainer hideProgressBar={true} autoClose={3000} />
       </Manager>
     );
   }

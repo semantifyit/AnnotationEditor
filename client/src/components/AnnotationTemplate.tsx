@@ -2,7 +2,6 @@ import * as React from 'react';
 import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { addVocab, fetchVocabs } from '../helpers/vocabs';
 import { ISingleOption } from './DropDownSelect';
 import Annotation from './Annotation';
 import {
@@ -11,6 +10,7 @@ import {
   IDSMap,
   transformDSToShacl,
 } from '../helpers/semantify';
+import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IState {
   createdType: null | string;
@@ -19,6 +19,8 @@ interface IState {
 }
 
 class AnnotationTemplate extends React.Component<{}, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public state: IState = {
     createdType: null,
     selectedValue: '',
@@ -26,7 +28,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
   };
 
   public async componentDidMount() {
-    await fetchVocabs('schema', 'schema-pending');
+    await this.context.vocab.addDefaultVocabs('schema', 'schema-pending');
     const DS = await fetchPublicDS();
     this.setState({ bases: DS });
   }
@@ -37,7 +39,11 @@ class AnnotationTemplate extends React.Component<{}, IState> {
       return;
     }
     const shaclDS = transformDSToShacl(ds.content);
-    addVocab(shaclDS);
+    await this.context.vocab.addVocab(
+      ds.name,
+      JSON.stringify(shaclDS),
+      'application/ld+json',
+    );
     this.setState({
       createdType: ds.content['dsv:class'][0]['dsv:baseClass']['@id'],
     });

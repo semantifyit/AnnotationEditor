@@ -1,18 +1,18 @@
 import * as React from 'react';
 
 import {
-  getNode,
   getNameOfNode,
   removeNS,
   extractIds,
   IRestriction,
-  makeArray,
 } from '../helpers/helper';
-import { INode } from '../helpers/vocabs';
+import { INode } from '../helpers/Vocab';
 import RangeNode from './RangeNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
 
 import Split from 'split.js';
+import { makeArray } from '../helpers/util';
+import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IProps {
   nodeId: string;
@@ -30,6 +30,8 @@ interface IState {
 }
 
 class PropertyNode extends React.Component<IProps, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public node: INode | undefined;
 
   public ranges: string[] = [];
@@ -52,7 +54,8 @@ class PropertyNode extends React.Component<IProps, IState> {
   public changedPropSelection = (e: ISingleOption) => {
     this.setState({ nodeId: e.value, selectedRange: '' });
   };
-  public componentDidMount() {
+
+  public initSplit() {
     Split(
       [
         `#split-first-${this.props.uid}`,
@@ -61,22 +64,16 @@ class PropertyNode extends React.Component<IProps, IState> {
       ],
       { sizes: [30, 68, 2], minSize: [100, 150, 10] },
     );
-    console.log('split');
+  }
+  public componentDidMount() {
+    this.initSplit();
   }
   public componentDidUpdate() {
-    Split(
-      [
-        `#split-first-${this.props.uid}`,
-        `#split-second-${this.props.uid}`,
-        `#split-third-${this.props.uid}`,
-      ],
-      { sizes: [30, 68, 2], minSize: [100, 150, 10] },
-    );
-    console.log('split');
+    this.initSplit();
   }
 
   public render() {
-    const node = getNode(this.state.nodeId);
+    const node = this.context.vocab.getNode(this.state.nodeId);
     if (!node) {
       return <h1>Node not found</h1>;
     }

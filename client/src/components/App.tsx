@@ -6,6 +6,7 @@ import AnnotationWebApi from './AnnotationWebApi';
 import AnnotationBlank from './AnnotationBlank';
 import Home from './Home';
 import AnnotationTemplate from './AnnotationTemplate';
+import AnnotationEditorPage from './AnnotationEditorPage';
 
 class App extends React.Component {
   public render() {
@@ -22,19 +23,19 @@ class App extends React.Component {
             component={Home}
           />
           <Route
-            path="/webApi/"
+            path="/blank/"
             className="btn btn-primary my-2"
-            component={AnnotationWebApi}
+            render={() => <AnnotationEditorPage type="blank" />}
           />
           <Route
             path="/template/"
             className="btn btn-primary my-2"
-            component={AnnotationTemplate}
+            render={() => <AnnotationEditorPage type="template" />}
           />
           <Route
-            path="/blank/"
+            path="/webApi/"
             className="btn btn-primary my-2"
-            component={AnnotationBlank}
+            render={() => <AnnotationEditorPage type="webapi" />}
           />
         </div>
       </Router>

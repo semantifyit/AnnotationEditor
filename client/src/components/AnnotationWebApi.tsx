@@ -2,9 +2,8 @@ import * as React from 'react';
 import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { fetchVocabs, getAllNodes, INode } from '../helpers/vocabs';
+import { INode } from '../helpers/Vocab';
 import {
-  clone,
   generateJSONLD,
   getDescriptionOfNode,
   getNameOfNode,
@@ -15,6 +14,8 @@ import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
 import { toast, ToastContainer } from 'react-toastify';
+import { clone } from '../helpers/util';
+import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IState {
   ready: boolean;
@@ -22,7 +23,9 @@ interface IState {
   modalIsOpen: boolean;
 }
 
-class AnnotationBlank extends React.Component<{}, IState> {
+class AnnotationWebApi extends React.Component<{}, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public state: IState = {
     ready: false,
     currentStep: 0,
@@ -43,7 +46,11 @@ class AnnotationBlank extends React.Component<{}, IState> {
   ];
 
   public async componentDidMount() {
-    await fetchVocabs('schema', 'schema-pending', 'webapi');
+    await this.context.vocab.addDefaultVocabs(
+      'schema',
+      'schema-pending',
+      'webapi',
+    );
     this.setState({ ready: true });
   }
 
@@ -87,7 +94,9 @@ class AnnotationBlank extends React.Component<{}, IState> {
           style={{ backgroundColor: '#fff' }}
         >
           <div className="container">
-            <h1 className="jumbotron-heading">Create your Annotation</h1>
+            <h1 className="jumbotron-heading">
+              Create your Semantic API Description
+            </h1>
           </div>
         </section>
         <h4>
@@ -183,4 +192,4 @@ class AnnotationBlank extends React.Component<{}, IState> {
   }
 }
 
-export default AnnotationBlank;
+export default AnnotationWebApi;

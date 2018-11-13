@@ -1,17 +1,13 @@
 import * as React from 'react';
 import { Manager, Reference, Popper } from 'react-popper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  addVocab,
-  availableVocabs,
-  cleanVocab,
-  fetchVocabs,
-  getCurrentVocabs,
-} from '../helpers/vocabs';
 import { Button } from 'reactstrap';
-import { arraysAreEquals, clone } from '../helpers/helper';
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
+
+import { defaultVocabs } from '../helpers/Vocab';
+import { arraysAreEquals, clone } from '../helpers/util';
+import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IProps {
   reloadClick(): void;
@@ -31,10 +27,12 @@ interface IState {
 }
 
 class VocabSelection extends React.Component<IProps, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public state: IState = {
     isOpen: false,
     filename: null,
-    currentVocabs: getCurrentVocabs(),
+    currentVocabs: this.context.vocab.getCurrentVocabs(),
     vocabUrl: '',
     fileUploadVocab: [],
   };
@@ -102,11 +100,15 @@ class VocabSelection extends React.Component<IProps, IState> {
   };
 
   public reloadClick = async () => {
-    await fetchVocabs(...this.state.currentVocabs);
+    await this.context.vocab.addDefaultVocabs(...this.state.currentVocabs);
     this.state.fileUploadVocab
       .filter(({ data }) => data['@graph'])
-      .forEach(({ data }) => {
-        addVocab(cleanVocab(data['@graph']));
+      .forEach(({ data, name }) => {
+        this.context.vocab.addVocab(
+          name,
+          data['@graph'],
+          'application/ld+json',
+        );
       });
 
     this.props.reloadClick();
@@ -157,7 +159,7 @@ class VocabSelection extends React.Component<IProps, IState> {
               >
                 <div>
                   <span>Choose schema.org vocabularies:</span>
-                  {Object.entries(availableVocabs).map(([name, desc], i) => (
+                  {Object.entries(defaultVocabs).map(([name, desc], i) => (
                     <div className="form-check" key={i}>
                       <input
                         className="form-check-input"

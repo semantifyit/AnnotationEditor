@@ -2,11 +2,12 @@ import * as React from 'react';
 import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { fetchVocabs, getAllNodes, INode } from '../helpers/vocabs';
 import { getDescriptionOfNode, getNameOfNode } from '../helpers/helper';
 import { ISingleOption } from './DropDownSelect';
 import Annotation from './Annotation';
 import VocabSelection from './VocabSelection';
+import { INode } from '../helpers/Vocab';
+import { IContext, VocabContext } from '../helpers/VocabContext';
 
 interface IState {
   createdType: null | string;
@@ -15,6 +16,8 @@ interface IState {
 }
 
 class AnnotationBlank extends React.Component<{}, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public state: IState = {
     createdType: null,
     selectedValue: '',
@@ -22,8 +25,10 @@ class AnnotationBlank extends React.Component<{}, IState> {
   };
 
   public async componentDidMount() {
-    await fetchVocabs('schema', 'schema-pending');
-    const bases = getAllNodes().filter((o) => o['@type'] === 'rdfs:Class');
+    await this.context.vocab.addDefaultVocabs('schema', 'schema-pending');
+    const bases = this.context.vocab
+      .getAllNodes()
+      .filter((o) => o['@type'] === 'rdfs:Class');
     this.setState({ bases });
   }
 
@@ -33,7 +38,9 @@ class AnnotationBlank extends React.Component<{}, IState> {
 
   public reloadPage = () => {
     this.setState({
-      bases: getAllNodes().filter((o) => o['@type'] === 'rdfs:Class'),
+      bases: this.context.vocab
+        .getAllNodes()
+        .filter((o) => o['@type'] === 'rdfs:Class'),
     });
   };
 

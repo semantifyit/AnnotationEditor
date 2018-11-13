@@ -5,18 +5,14 @@ import 'react-datetime/css/react-datetime.css';
 import classNames from 'classnames';
 
 import {
-  getNode,
   getNameOfNode,
-  isTerminalNode,
   getDescriptionOfNode,
-  getEnumValues,
-  isEnumNode,
-  isSpecialTerminalNode,
   joinPaths,
   IRestriction,
 } from '../helpers/helper';
 import TypeNode from './TypeNode';
-import { INode } from '../helpers/vocabs';
+import { INode } from '../helpers/Vocab';
+import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IProps {
   nodeId: string;
@@ -32,6 +28,8 @@ interface IState {
 }
 
 class RangeNode extends React.Component<IProps, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public state: IState = {
     value: '',
     valueIncorrectnessReason: null,
@@ -39,11 +37,13 @@ class RangeNode extends React.Component<IProps, IState> {
 
   public enumerations: null | string[] = null; // for shacl sh:in stuff
 
-  constructor(props: IProps) {
+  constructor(props: IProps, context: IContext) {
+    // cannot use this.context inside constructor
     super(props);
-    const node = getNode(this.props.nodeId);
-    if (node && isEnumNode(node)) {
-      this.state.value = getEnumValues(node['@id'])[0]['@id'];
+    const node = context.vocab.getNode(this.props.nodeId);
+    if (node && context.vocab.isEnumNode(node)) {
+      const vocab = context.vocab;
+      this.state.value = vocab.getEnumValues(node['@id'])[0]['@id'];
     }
 
     if (this.props.restriction) {
@@ -205,8 +205,8 @@ class RangeNode extends React.Component<IProps, IState> {
           />
         );
       default:
-        if (isEnumNode(node)) {
-          const enumValues = getEnumValues(node['@id']);
+        if (this.context.vocab.isEnumNode(node)) {
+          const enumValues = this.context.vocab.getEnumValues(node['@id']);
           return (
             <div className="input-group">
               <select
@@ -227,7 +227,7 @@ class RangeNode extends React.Component<IProps, IState> {
             </div>
           );
         }
-        if (isSpecialTerminalNode(node)) {
+        if (this.context.vocab.isSpecialTerminalNode(node)) {
           return (
             <input
               type="text"
@@ -243,11 +243,11 @@ class RangeNode extends React.Component<IProps, IState> {
   }
 
   public render() {
-    const node = getNode(this.props.nodeId);
+    const node = this.context.vocab.getNode(this.props.nodeId);
     if (!node) {
       return <h1>Node not found</h1>;
     }
-    const isTerminal = isTerminalNode(node);
+    const isTerminal = this.context.vocab.isTerminalNode(node);
     if (isTerminal) {
       return (
         <div className="form-group">

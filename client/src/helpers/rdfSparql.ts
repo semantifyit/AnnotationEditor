@@ -36,7 +36,7 @@ const queryStore = (store: any, query: string): Promise<any[]> =>
     );
   });
 
-export const jsonldMathesQuery = async (
+export const jsonldMatchesQuery = async (
   jsonld: any,
   query: string,
 ): Promise<boolean> => {
@@ -52,8 +52,6 @@ export const jsonldMathesQuery = async (
 
   const results = await queryStore(store, queryObj);
 
-  // console.log(results);
-
   const matches = results.reduce(
     (acc, cur) =>
       acc ||
@@ -63,7 +61,5 @@ export const jsonldMathesQuery = async (
       ),
     false,
   );
-
   return matches;
-  // return Promise.resolve(true);
 };

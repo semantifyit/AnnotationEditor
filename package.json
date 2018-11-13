@@ -15,7 +15,8 @@
     "server": "cd server && node app.js",
     "server-dev": "cd server && nodemon app.js",
     "server-prod": "cd server && cross-env NODE_ENV=production node app.js",
-    "analyze": "source-map-explorer client/app/build/static/js/main.*"
+    "analyze": "source-map-explorer client/build/static/js/main.*",
+    "analyze-deps": "find client/build/static/js/**.chunk.js | head -n 1 | xargs source-map-explorer"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.6",
@@ -35,8 +36,9 @@
     "lodash": "^4.17.11",
     "moment": "^2.22.0",
     "morgan": "^1.9.0",
+    "n3": "^1.0.1",
     "rdflib": "^0.19.0",
-    "react": "^16.5.2",
+    "react": "^16.6.3",
     "react-datetime": "^2.15.0",
     "react-dom": "^16.5.2",
     "react-onclickoutside": "^6.7.1",
@@ -61,7 +63,7 @@
     "@types/react-toastify": "^4.0.1",
     "@types/reactstrap": "^6.4.2",
     "@types/uuid": "^3.4.4",
-    "nodemon": "^1.18.5",
+    "nodemon": "^1.18.6",
     "prettier": "^1.14.3",
     "react-app-rewired": "^1.6.2",
     "source-map-explorer": "^1.6.0",

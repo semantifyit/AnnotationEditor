@@ -1,26 +1,20 @@
 import * as React from 'react';
 import * as uuidv1 from 'uuid/v1';
 
-import { INode } from '../helpers/vocabs';
+import { INode } from '../helpers/Vocab';
 import {
-  getNode,
   getNameOfNode,
   removeNS,
-  getPropertyNodeForType,
   getDescriptionOfNode,
-  getSubClasses,
-  getPropertyNodeForTypes,
   joinPaths,
-  nodesCanUseIOProps,
-  getRestrictionsForTypes,
   IRestriction,
-  getSparqlRestrictionsForTypes,
   isEqProp,
 } from '../helpers/helper';
 
 import PropertyNode from './PropertyNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
 import { set } from 'lodash';
+import { IContext, VocabContext } from '../helpers/VocabContext';
 
 interface IProps {
   nodeId: string;
@@ -43,6 +37,8 @@ interface IState {
 }
 
 class TypeNode extends React.Component<IProps, IState> {
+  public static contextType = VocabContext;
+  public context: IContext;
   public state: IState = {
     nodeIds: [this.props.nodeId],
     propertyIds: [],
@@ -60,16 +56,20 @@ class TypeNode extends React.Component<IProps, IState> {
 
   public update() {
     const nodes: INode[] = this.state.nodeIds
-      .map((n) => getNode(n) || undefined)
+      .map((n) => this.context.vocab.getNode(n) || undefined)
       .filter((n) => n !== undefined) as INode[]; // as INode since tsc can't properly understand the filter
 
     const canUseDashIOProps =
-      this.props.canUseDashIOProps || nodesCanUseIOProps(nodes);
+      this.props.canUseDashIOProps ||
+      this.context.vocab.nodesCanUseIOProps(nodes);
 
     this.state.propertyIds = []; // since the node changed, reset the list of properties
     // reset the selected element for the select box
     this.state.selectedProp = Object.entries(
-      getPropertyNodeForType(this.props.nodeId, canUseDashIOProps),
+      this.context.vocab.getPropertyNodeForType(
+        this.props.nodeId,
+        canUseDashIOProps,
+      ),
     ).filter(([k, v]) => v.length > 0)[0][1][0]['@id'];
     this.state.nodeIds = [this.props.nodeId];
 
@@ -103,7 +103,7 @@ class TypeNode extends React.Component<IProps, IState> {
 
   public updateRestrictions(nIds?: string[]) {
     const nodeIds = nIds || this.state.nodeIds;
-    const restrictions = getRestrictionsForTypes(
+    const restrictions = this.context.vocab.getRestrictionsForTypes(
       nodeIds,
       this.props.additionalRestrictionIds,
     );
@@ -142,7 +142,7 @@ class TypeNode extends React.Component<IProps, IState> {
           set(jsonld, schemaNSPath, schemaNSValue);
         }
       });
-      const sparqlRestrictions = await getSparqlRestrictionsForTypes(
+      const sparqlRestrictions = await this.context.vocab.getSparqlRestrictionsForTypes(
         nodeIds,
         this.props.additionalRestrictionIds,
         jsonld,
@@ -232,14 +232,18 @@ class TypeNode extends React.Component<IProps, IState> {
 
   public render() {
     const nodes: INode[] = this.state.nodeIds
-      .map((n) => getNode(n) || undefined)
+      .map((n) => this.context.vocab.getNode(n) || undefined)
       .filter((n) => n !== undefined) as INode[]; // as INode since tsc can't properly understand the filter
 
     const canUseDashIOProps =
-      this.props.canUseDashIOProps || nodesCanUseIOProps(nodes);
+      this.props.canUseDashIOProps ||
+      this.context.vocab.nodesCanUseIOProps(nodes);
 
     const propertyNodeObj = Object.entries(
-      getPropertyNodeForTypes(this.state.nodeIds, canUseDashIOProps),
+      this.context.vocab.getPropertyNodeForTypes(
+        this.state.nodeIds,
+        canUseDashIOProps,
+      ),
     ).filter(([k, v]) => v.length > 0);
 
     if (this.state.selectedProp === '') {
@@ -248,7 +252,8 @@ class TypeNode extends React.Component<IProps, IState> {
     if (nodes.length === 0) {
       return <h1>Node not found</h1>;
     }
-    const typeSelectOptions = getSubClasses(this.props.nodeId)
+    const typeSelectOptions = this.context.vocab
+      .getSubClasses(this.props.nodeId)
       .map((c) => ({
         value: c,
         label: removeNS(c),

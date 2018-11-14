@@ -2,6 +2,7 @@ import N3 from 'n3';
 import jsonld from 'jsonld';
 import axios from 'axios';
 
+import * as p from './properties';
 import {
   clone,
   flatten2DArr,
@@ -13,10 +14,13 @@ import { jsonldMatchesQuery } from './rdfSparql';
 import {
   cleanShaclProp,
   extractIds,
+  getNameOfNode,
   IRestriction,
-  IShaclProp,
   isReplaceable,
+  joinNS,
+  makeIdArr,
   makePropertyRestrictionObj,
+  Namespace,
   removeNS,
 } from './helper';
 
@@ -28,13 +32,21 @@ export const defaultVocabs = {
   'schema-auto': 'Schema.org Auto',
 };
 
-export const specialCaseTerminals = ['schema:Enumeration', 'schema:Quantity'];
+export const specialCaseTerminals = [p.schemaEnumeration, p.schemaQuantity];
 
 export interface INode {
   '@id': string;
-  '@type'?: string;
-  '@value'?: string;
+  '@type'?: string[];
+  [key: string]: INodeValue[] | string | string[] | undefined;
+  // any other property, we need the other types for typescript (https://github.com/Microsoft/TypeScript/issues/17867)
 }
+export interface INodeValue {
+  '@id'?: string;
+  '@value'?: string;
+  '@type'?: string;
+  '@language'?: string;
+}
+
 interface ISingleVocab {
   [nodeid: string]: INode;
 }
@@ -45,10 +57,15 @@ interface IPropNodes {
   [key: string]: INode[];
 }
 
-const quadsToJsonLD = async (nquads: string) =>
+interface INodeTarget {
+  node: INode;
+  target: INode | undefined;
+}
+
+const quadsToJsonLD = async (nquads: string): Promise<object[]> =>
   jsonld.fromRDF(nquads, { format: 'application/n-quads' });
 
-const turtleToJsonLD = (turtleString: string): any =>
+const turtleToJsonLD = (turtleString: string): Promise<object[]> =>
   new Promise((resolve, reject) => {
     const parser = new N3.Parser();
     const writer = N3.Writer({ format: 'N-Triples' });
@@ -75,30 +92,21 @@ export default class Vocab {
 
   public addVocab = async (
     vocabName: string,
-    vocabString: string,
+    vocabData: string | object,
     format: string,
   ): Promise<any | true> => {
     try {
       switch (format) {
         case 'application/ld+json': {
           const jsonldObj =
-            typeof vocabString === 'string'
-              ? JSON.parse(vocabString)
-              : vocabString;
-          if (jsonldObj['@graph']) {
-            this.addVocabJsonLD(vocabName, jsonldObj['@graph']);
-          } else {
-            this.addVocabJsonLD(vocabName, makeArray(jsonldObj));
-          }
+            typeof vocabData === 'string' ? JSON.parse(vocabData) : vocabData;
+          const expandedVocab = jsonld.expand(jsonldObj);
+          this.addVocabJsonLD(vocabName, expandedVocab);
           break;
         }
         case 'text/turtle': {
-          const jsonldObj = await turtleToJsonLD(vocabString);
-          if (jsonldObj['@graph']) {
-            this.addVocabJsonLD(vocabName, jsonldObj['@graph']);
-          } else {
-            this.addVocabJsonLD(vocabName, makeArray(jsonldObj));
-          }
+          const jsonldObj = await turtleToJsonLD(vocabData as string);
+          this.addVocabJsonLD(vocabName, jsonldObj as INode[]);
           break;
         }
         default: {
@@ -139,16 +147,13 @@ export default class Vocab {
             `/annotation/api/vocabs/${vocabName}`,
           );
           if (vocabName === 'webapi') {
-            const cleanedVocab = response.data['@graph'].map((n: any) =>
+            const vocab = response.data;
+            vocab['@graph'] = vocab['@graph'].map((n: any) =>
               cleanShaclProp(n),
             );
-            return this.addVocab('webapi', cleanedVocab, 'application/ld+json');
+            return this.addVocab('webapi', vocab, 'application/ld+json');
           }
-          return this.addVocab(
-            'schema',
-            response.data['@graph'],
-            'application/ld+json',
-          );
+          return this.addVocab('schema', response.data, 'application/ld+json');
         }),
       );
       return true;
@@ -167,39 +172,38 @@ export default class Vocab {
 
   public getRestrictionNodes = (): INode[] =>
     this.getAllNodes().filter((n) =>
-      ['sh:NodeShape', 'sh:SPARQLTargetType'].includes(n['@type'] || ''),
+      haveCommon(['sh:NodeShape', 'sh:SPARQLTargetType'], n['@type'] || []),
     );
 
   public getAnyNode = (id: string): INode | undefined =>
-    this.getAllNodes().find((o: any) => o['@id'] === id);
+    this.getAllNodes().find((o) => o['@id'] === id);
 
   public getIONode = (nodeId: string, ioType: string): INode | undefined => {
-    const node = this.getAnyNode(nodeId.split('-')[0]);
+    const node = this.getAnyNode(nodeId.replace(`-${ioType}`, ''));
     if (!node) {
       return undefined;
     }
     const cpy = clone(node);
     cpy['@id'] = `${node['@id']}-${ioType}`;
-    cpy['rdfs:label'] = `${node['rdfs:label']}-${ioType}`;
-    cpy['schema:rangeIncludes'] = [
-      {
-        '@id': 'schema:Text',
-      },
-      {
-        '@id': 'schema:PropertyValueSpecification',
-      },
-    ];
+    cpy[p.rdfsLabel] = makeIdArr(`${node['rdfs:label']}-${ioType}`);
+    cpy[p.schemaRangeIncludes] = makeIdArr(
+      p.schemaText,
+      p.schemaPropertyValueSpecification,
+    );
     return cpy;
   };
 
-  public getNode = (id: string): INode | undefined => {
+  public getNodeFromNS = (ns: Namespace, id: string): INode | undefined =>
+    this.getNode(joinNS(ns, id));
+
+  public getNode = (nodeId: string): INode | undefined => {
     let node;
-    if (id.endsWith('-input')) {
-      node = this.getIONode(id, 'input');
-    } else if (id.endsWith('-output')) {
-      node = this.getIONode(id, 'output');
+    if (nodeId.endsWith('-input')) {
+      node = this.getIONode(nodeId, 'input');
+    } else if (nodeId.endsWith('-output')) {
+      node = this.getIONode(nodeId, 'output');
     } else {
-      node = this.getAnyNode(id);
+      node = this.getAnyNode(nodeId);
     }
     return node;
   };
@@ -210,8 +214,9 @@ export default class Vocab {
     if (!node) {
       return [];
     }
-    if (node['rdfs:subClassOf']) {
-      const superClasses = extractIds(node['rdfs:subClassOf']);
+    const subClassOfNode = node[p.rdfsSubClassOf];
+    if (subClassOfNode) {
+      const superClasses = extractIds(subClassOfNode);
       types = types.concat(superClasses);
       types = types.concat(...superClasses.map((c) => this.getSuperClasses(c)));
     }
@@ -223,8 +228,8 @@ export default class Vocab {
     const directSubClasses = this.getAllNodes()
       .filter(
         (n) =>
-          n['rdfs:subClassOf'] &&
-          extractIds(n['rdfs:subClassOf']).includes(nodeId),
+          n[p.rdfsSubClassOf] &&
+          extractIds(n[p.rdfsSubClassOf]).includes(nodeId),
       )
       .map((n) => n['@id']);
     if (directSubClasses.length !== 0) {
@@ -239,35 +244,30 @@ export default class Vocab {
   public getTypePropertyNodeForType = (type: string): INode[] =>
     this.getAllNodes()
       .filter(
-        (n: any) =>
-          n['@type'] === 'rdf:Property' &&
-          n['schema:domainIncludes'] &&
-          extractIds(n['schema:domainIncludes']).includes(type),
+        (n) =>
+          n['@type'] &&
+          n['@type'].includes(p.rdfProperty) &&
+          n[p.schemaDomainIncludes] &&
+          extractIds(n[p.schemaDomainIncludes]).includes(type),
       )
-      .sort((a, b) => removeNS(a['@id']).localeCompare(removeNS(b['@id'])));
+      .sort((a, b) => getNameOfNode(a).localeCompare(getNameOfNode(b)));
 
-  public getPropertyNodeForType = (
-    type: string,
-    canUseIOProps: boolean,
-  ): IPropNodes =>
+  public getPropertyNodeForType = (type: string): IPropNodes =>
     this.getSuperClasses(type).reduce((acc, cur) => {
       acc[cur] = this.getTypePropertyNodeForType(cur);
       return acc;
     }, {});
 
-  public getPropertyNodeForTypes = (
-    types: string[],
-    canUseIOProps: boolean,
-  ): IPropNodes =>
+  public getPropertyNodeForTypes = (types: string[]): IPropNodes =>
     types.reduce(
-      (acc, cur) =>
-        Object.assign(acc, this.getPropertyNodeForType(cur, canUseIOProps)),
+      (acc, cur) => Object.assign(acc, this.getPropertyNodeForType(cur)),
       {},
     );
-  public isEnumNode = (node: INode) =>
-    this.getSuperClasses(node['@id']).includes('schema:Enumeration');
 
-  public isSpecialTerminalNode = (node: INode) =>
+  public isEnumNode = (node: INode) =>
+    this.getSuperClasses(node['@id']).includes(p.schemaEnumeration);
+
+  public isSpecialTerminalNode = (node: INode): boolean =>
     this.getSuperClasses(node['@id']).some((c) =>
       specialCaseTerminals.includes(c),
     );
@@ -280,7 +280,7 @@ export default class Vocab {
       if (!n) {
         return;
       }
-      if (makeArray(n['@type']).includes('schema:DataType')) {
+      if (n['@type'] && n['@type'].includes(p.schemaDataType)) {
         isTerminal = true;
       }
       if (specialCaseTerminals.includes(c)) {
@@ -291,10 +291,10 @@ export default class Vocab {
   };
 
   public getEnumValues = (nodeId: string) =>
-    this.getAllNodes().filter((n) => n['@type'] === nodeId);
+    this.getAllNodes().filter((n) => n['@type'] && n['@type'].includes(nodeId));
 
   public typeCanUseIOProps = (nodeId: string): boolean =>
-    this.getSuperClasses(nodeId).includes('schema:Action');
+    this.getSuperClasses(nodeId).includes(p.schemaAction);
 
   public nodesCanUseIOProps = (nodes: INode[]) =>
     nodes.reduce(
@@ -310,7 +310,7 @@ export default class Vocab {
       ),
     );
 
-  public replaceBlankNodes = (obj: any): any =>
+  public replaceBlankNodes = <T>(obj: T): T =>
     typeof obj === 'object'
       ? isReplaceable(obj)
         ? this.replaceBlankNodes(this.getNode(obj['@id']))
@@ -336,9 +336,13 @@ export default class Vocab {
     if (!propNode) {
       return false;
     }
-    return this.getSuperClasses(
-      propNode['schema:rangeIncludes']['@id'],
-    ).includes('schema:Enumeration');
+    const rangeOfNode = propNode[p.schemaRangeIncludes];
+    if (!rangeOfNode || !rangeOfNode[0]) {
+      return false;
+    }
+    return this.getSuperClasses(rangeOfNode[0]['@id']).includes(
+      p.schemaEnumeration,
+    );
   };
 
   public replaceEnums = (obj: any): any =>
@@ -351,8 +355,11 @@ export default class Vocab {
               } else {
                 acc[k] = this.replaceEnums(v);
               }
-            } else if (this.isEnumJSONLD(`schema:${k}`)) {
-              acc[k] = { '@id': `http://schema.org/${v}` };
+            } else if (
+              typeof v === 'string' &&
+              this.isEnumJSONLD(joinNS('schema', k))
+            ) {
+              acc[k] = { '@id': joinNS('schema', v) };
             } else {
               acc[k] = v;
             }
@@ -365,26 +372,29 @@ export default class Vocab {
   public makeRestrictions = (restrictNodes: INode[]): IRestriction[] =>
     flatten2DArr(
       restrictNodes
-        .filter((n) => n['sh:property'])
+        .filter((n) => n[p.shProperty])
         .map((shNodeShape) => {
-          const populatedNote = this.replaceBlankNodes(shNodeShape);
-          const propertyRestrictionNodes = makeArray(
-            populatedNote['sh:property'],
-          );
-
+          const populatedNote = this.replaceBlankNodes(shNodeShape) as INode;
+          const propertyRestrictionNodes = (populatedNote[
+            p.shProperty
+          ] as unknown) as INode;
           if (
-            populatedNote['sh:nodeKind'] &&
-            populatedNote['sh:nodeKind']['@id'] === 'sh:IRI'
+            !propertyRestrictionNodes ||
+            !Array.isArray(propertyRestrictionNodes)
           ) {
+            return [];
+          }
+          const nodeKind = populatedNote[p.shNodeKind];
+          if (nodeKind && nodeKind[0] && nodeKind[0]['@id'][p.shIRI]) {
             propertyRestrictionNodes.push({
-              'sh:path': { '@id': '@id' },
-              'sh:minCount': 1,
-            });
+              [p.shPath]: [{ '@id': '@id' }],
+              [p.shMinCount]: [{ '@value': '1' }],
+            } as INode);
           }
 
           return propertyRestrictionNodes.map((n: INode) =>
-            // we clone to remove undefined fields; double as because error otherwise
-            clone(makePropertyRestrictionObj((n as unknown) as IShaclProp)),
+            // we clone to remove undefined fields
+            clone(makePropertyRestrictionObj(n)),
           );
         }),
     );
@@ -394,33 +404,39 @@ export default class Vocab {
     additionalRestrictions: string[] | undefined,
     jsonldObj: any,
   ): Promise<IRestriction[]> => {
-    const superTypes = this.getSuperClassesForTypes(nodeIds);
-    const sparqlRestrictionNodes: INode[] = this.getRestrictionNodes()
-      .filter((n) => n['sh:target'])
-      .map((n) => this.replaceBlankNodes(n))
+    const jsonldToMatch = this.replaceEnums(jsonldObj);
+    const sparqlRestrictionNodes: INodeTarget[] = this.getRestrictionNodes()
+      .filter((n) => n[p.shTarget])
+      .map(this.replaceBlankNodes)
       .map((n) => {
         const nodeCpy = clone(n);
-        nodeCpy['sh:target'].node = this.getNode(n['sh:target']['@type']);
-        return this.replaceBlankNodes(nodeCpy);
+        const nodeTarget = nodeCpy[p.shTarget];
+        return {
+          node: this.replaceBlankNodes(nodeCpy),
+          target: this.getNode(nodeTarget && nodeTarget['@type'][0]),
+        };
       });
-
-    const jsonldToMatch = this.replaceEnums(jsonldObj);
 
     const restrictions = await Promise.all(
       sparqlRestrictionNodes.map(async (restrictionNode) => {
+        if (!restrictionNode.target) {
+          return null;
+        }
         let sparqlQuery = `PREFIX schema: <http://schema.org/>
-        ${restrictionNode['sh:target'].node['sh:select']}`;
-        const params = Object.entries(restrictionNode['sh:target']).filter(
-          ([k]) => !['@id', '@type', 'node'].includes(k),
-        );
+        ${restrictionNode.target[p.shSelect]}`;
+        const params = Object.entries((restrictionNode.node[
+          p.shTarget
+        ] as unknown) as INode).filter(([k]) => !['@id', '@type'].includes(k));
         params.forEach(([k, v]) => {
-          sparqlQuery = sparqlQuery.replace(`$${removeNS(k)}`, v['@id']);
+          if (v && v[0]['@id']) {
+            sparqlQuery = sparqlQuery.replace(`$${removeNS(k)}`, v[0]['@id']);
+          }
         });
 
         // console.log(params);
         const matches = await jsonldMatchesQuery(jsonldToMatch, sparqlQuery);
         if (matches) {
-          return restrictionNode;
+          return restrictionNode.node;
         }
         return null;
       }),
@@ -439,8 +455,8 @@ export default class Vocab {
     const superTypes = this.getSuperClassesForTypes(nodeIds);
     const restrictNodes = this.getRestrictionNodes().filter(
       (n) =>
-        n['sh:targetClass'] &&
-        haveCommon(extractIds(n['sh:targetClass']), superTypes),
+        n[p.shTargetClass] &&
+        haveCommon(extractIds(p.shTargetClass), superTypes),
     );
     if (additionalRestrictions) {
       restrictNodes.push(

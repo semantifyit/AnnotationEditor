@@ -3,41 +3,61 @@ import { set, has, get } from 'lodash';
 import { INode } from './Vocab';
 import { jsonldMatchesQuery } from './rdfSparql';
 import { clone, hasP, makeArray, notEmpty, uniqueArray } from './util';
+import * as p from './properties';
+
+export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh';
+
+const commonNamespaces = {
+  xsd: 'http://www.w3.org/2001/XMLSchema#',
+  rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+  rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+  owl: 'http://www.w3.org/2002/07/owl#',
+  schema: 'http://schema.org/',
+  sh: 'http://www.w3.org/ns/shacl#',
+};
+
+export const joinNS = (namespace: Namespace, nodeId: string): string =>
+  commonNamespaces[namespace] + nodeId;
+
+export const makeIdArr = (...str: string[]) => str.map((s) => ({ '@id': s }));
 
 export const removeNS = (str: string): string => {
   const lastOfUrl = str.split('/').pop();
-  const lastOfNS = lastOfUrl ? lastOfUrl.split(':').pop() : '';
+  const lastOfURLHash = lastOfUrl ? lastOfUrl.split('#').pop() : '';
+  const lastOfNS = lastOfURLHash ? lastOfURLHash.split(':').pop() : '';
   return lastOfNS || '';
 };
 
-export const getNameOfNode = (node: INode) => {
-  if (node['rdfs:label'] && typeof node['rdfs:label'] === 'string') {
-    return node['rdfs:label'];
-  }
-  if (node['rdfs:label'] && node['rdfs:label']['@value']) {
-    return node['rdfs:label']['@value'];
+export const getNameOfNode = (node: INode): string => {
+  const label = node[joinNS('rdfs', 'label')];
+  if (label && label[0]['@value']) {
+    return label[0]['@value'];
   }
   return removeNS(node['@id']);
 };
 
-export const getDescriptionOfNode = (node: INode) =>
-  stripHtml(node['rdfs:comment'] ? node['rdfs:comment'] : '');
+export const getDescriptionOfNode = (node: INode): string => {
+  const comment = node[joinNS('rdfs', 'comment')];
+  if (comment && comment[0] && comment[0]['@value']) {
+    return stripHtml(comment[0]['@value']);
+  }
+  return '';
+};
 
-export const stripHtml = (html: string) => {
+export const stripHtml = (html: string): string => {
   const tmp = document.createElement('DIV');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
 };
 
-export const getProperties = (node: INode) =>
-  Array.isArray(node['sh:property'])
-    ? node['sh:property']
-    : [node['sh:property']];
-
 export const extractIds = (o: any) => makeArray(o).map((n: INode) => n['@id']);
 
-export const isTextNode = (node: INode) =>
-  !hasP.call(node, 'sh:class') || node['sh:class']['@id'] === 'schema:Text';
+export const isTextNode = (node: INode) => {
+  const shClass = node[joinNS('sh', 'class')];
+  return (
+    shClass && shClass[0] && shClass[0]['@id'] === joinNS('schema', 'Text')
+  );
+};
 
 export const setProp = (object: any, property: string, value: string) => {
   const old = get(object, property);
@@ -83,20 +103,6 @@ export interface IRestriction {
   maxInclusive?: number;
 }
 
-interface IIdNode {
-  '@id': string;
-}
-
-export interface IShaclProp {
-  'sh:path': IIdNode;
-  'sh:datatype'?: IIdNode;
-  'sh:class'?: IIdNode;
-  'sh:pattern'?: string;
-  'sh:minCount'?: number;
-  'sh:minInclusive'?: number;
-  'sh:maxInclusive'?: number;
-}
-
 const xsdPropToSchemaClass = (prop: string) =>
   ({
     'xsd:string': 'schema:Text',
@@ -111,74 +117,90 @@ const toIdNode = (str: string) => ({
   '@id': str,
 });
 
-export const cleanShaclProp = (shProp: IShaclProp): IShaclProp => {
-  const shPropCpy = clone(shProp);
-  // schema:path & sh:minValue - Umut's error in shapes I think?
-  if (shPropCpy['schema:path']) {
-    shPropCpy['sh:path'] = shProp['schema:path'];
-    delete shPropCpy['schema:path'];
-  }
-  if (shPropCpy['sh:minValue']) {
-    shPropCpy['sh:minCount'] = shProp['sh:minValue'];
-    delete shPropCpy['sh:minValue'];
-  }
+const toIdNodeArr = (str: string) => [
+  {
+    '@id': str,
+  },
+];
 
+export const cleanShaclProp = (shProp: INode): INode => {
+  const shPropCpy = clone(shProp);
+  const nodeDatatype = shPropCpy[p.shDatatype];
   if (
-    shPropCpy['sh:datatype'] &&
-    shPropCpy['sh:datatype']['@id'].startsWith('xsd:')
+    nodeDatatype &&
+    nodeDatatype[0] &&
+    nodeDatatype[0]['@id'].startsWith(commonNamespaces.xsd)
   ) {
-    shPropCpy['sh:class'] = toIdNode(
-      xsdPropToSchemaClass(shPropCpy['sh:datatype']['@id']),
+    shPropCpy[p.shClass] = toIdNodeArr(
+      xsdPropToSchemaClass(nodeDatatype[0]['@id']),
     );
-    delete shPropCpy['sh:datatype'];
+    delete shPropCpy[p.shDatatype];
   }
+  const nodekind = shPropCpy[p.shNodeKind];
   if (
-    shPropCpy['sh:nodeKind'] &&
-    shPropCpy['sh:nodeKind']['@id'] === 'sh:IRI' &&
-    shPropCpy['@type'] !== 'sh:NodeShape'
+    nodekind &&
+    nodekind['@id'] === p.shIRI &&
+    (shPropCpy['@type'] && !shPropCpy['@type'].includes(p.shNodeShape))
   ) {
-    shPropCpy['sh:class'] = toIdNode('schema:URL');
+    shPropCpy['sh:class'] = toIdNodeArr(p.schemaURL);
     delete shPropCpy['sh:nodeKind'];
   }
   return shPropCpy;
 };
 
-export const makePropertyRestrictionObj = (
-  shProp: IShaclProp,
-): IRestriction => {
-  const pRangeId = shProp['sh:class'] && shProp['sh:class']['@id'];
+export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
+  const nodeClass = shProp[p.shClass];
+  const pRangeId = nodeClass && nodeClass['@id'];
   const pRanges: IRestrictionRange[] = [];
   if (pRangeId) {
     const pRange: IRestrictionRange = {
       nodeId: pRangeId,
     };
-    if (shProp['sh:node']) {
-      pRange.restrictionId = shProp['sh:node'] && shProp['sh:node']['@id'];
+    if (shProp[p.shNode]) {
+      const nodeNode = shProp[p.shNode];
+      pRange.restrictionId = nodeNode && nodeNode['@id'];
     } else if (shProp['sh:property']) {
       pRange.restrictionId = shProp['@id']; // add this node if it has properties and doesn't refer to a new node via sh:node
     }
     pRanges.push(pRange);
   }
-  if (shProp['sh:or'] && shProp['sh:or']['@list']) {
+  const nodeOr = shProp[p.shOr];
+  if (nodeOr && nodeOr['@list']) {
     pRanges.push(
-      ...shProp['sh:or']['@list'] // ... to not push array inside array, but keep 1d array
-        .map((p: any) => ({
-          nodeId: p['sh:class']['@id'],
-          restrictionId: p['sh:node'] && p['sh:node']['@id'],
+      ...nodeOr['@list'] // ... to not push array inside array, but keep 1d array
+        .map((pr: any) => ({
+          nodeId: pr[pr.shClass]['@id'],
+          restrictionId: pr[pr.shNode] && p[p.shNode]['@id'],
         }))
-        .filter((p: any) => p),
+        .filter((pr: any) => pr),
     );
   }
+  const minCount = shProp[p.shMinCount];
+  const maxCount = shProp[p.shMaxCount];
+  const maxInclusive = shProp[p.shMaxInclusive];
+  const minInclusive = shProp[p.shMinInclusive];
+  const valueIn = shProp[p.shIn];
+  const defaultValue = shProp[p.shDefaultValue];
+  const path = shProp[p.shPath];
+  const pattern = shProp[p.shPattern];
   return {
-    property: shProp['sh:path'] && shProp['sh:path']['@id'],
+    property: path && path['@id'],
     propertyRanges: pRanges.length > 0 ? pRanges : undefined,
-    defaultValue: shProp['sh:defaultValue'] && shProp['sh:defaultValue']['@id'],
-    valueIn: shProp['sh:in'] && shProp['sh:in']['@list'],
-    minCount: shProp['sh:minCount'],
-    maxCount: shProp['sh:maxCount'],
-    minInclusive: shProp['sh:minInclusive'],
-    maxInclusive: shProp['sh:maxInclusive'],
-    pattern: shProp['sh:pattern'],
+    defaultValue: defaultValue && defaultValue['@id'],
+    valueIn: valueIn && valueIn['@list'],
+    minCount:
+      minCount && minCount[0]['@value'] && parseInt(minCount[0]['@value'], 10),
+    maxCount:
+      maxCount && maxCount[0]['@value'] && parseInt(maxCount[0]['@value'], 10),
+    minInclusive:
+      minInclusive &&
+      minInclusive[0]['@value'] &&
+      parseInt(minInclusive[0]['@value'], 10),
+    maxInclusive:
+      maxInclusive &&
+      maxInclusive[0]['@value'] &&
+      parseInt(maxInclusive[0]['@value'], 10),
+    pattern: pattern && pattern[0]['@value'],
   };
 };
 

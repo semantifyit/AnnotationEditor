@@ -23,6 +23,7 @@
     "max-line-length": [true, 150],
     "object-literal-sort-keys": false,
     "ter-arrow-parens": false,
+    "ter-computed-property-spacing": false,
     "semicolon": [true, "always", "ignore-bound-class-methods"],
     "ter-indent": [
       true,

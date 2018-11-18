@@ -2,12 +2,21 @@ import { set, has, get } from 'lodash';
 
 import { INode, INodeValue } from './Vocab';
 import { jsonldMatchesQuery } from './rdfSparql';
-import { clone, hasP, makeArray, notEmpty, uniqueArray } from './util';
+import {
+  clone,
+  flatten2DArr,
+  flatten3DArr,
+  hasP,
+  makeArray,
+  notEmpty,
+  uniqueArray,
+} from './util';
 import * as p from './properties';
 
 export const makeIdArr = (...str: string[]) => str.map((s) => ({ '@id': s }));
 
 export const removeNS = (str: string): string => {
+  // console.log(str);
   const lastOfUrl = str.split('/').pop();
   const lastOfURLHash = lastOfUrl ? lastOfUrl.split('#').pop() : '';
   const lastOfNS = lastOfURLHash ? lastOfURLHash.split(':').pop() : '';
@@ -59,8 +68,6 @@ export const setProp = (object: any, property: string, value: string) => {
     set(object, property, value);
   }
 };
-
-export const joinPaths = (pathArr: string[]): string => pathArr.join('.');
 
 export const isReplaceable = (obj: any): boolean => {
   const entries = Object.entries(obj);
@@ -137,7 +144,7 @@ export const cleanShaclProp = (shProp: INode): INode => {
 
 export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   const pRanges: IRestrictionRange[] = [];
-  const nodeClass = shProp[p.shClass] as INodeValue[];
+  const nodeClass = shProp[p.shClass] as INodeValue[] | undefined;
   if (nodeClass) {
     const pRangeIds = extractIds(nodeClass);
     pRangeIds.forEach((pRangeId) => {
@@ -152,20 +159,29 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
     });
   }
 
-  const nodeOrs = shProp[p.shOr] as INodeValue[];
-  if (nodeOrs.length > 0) {
-    nodeOrs
-      .filter((n) => n['@list'])
-      .forEach((nodeOr) => {
-        pRanges.push(
-          ...(nodeOr['@list'] as INode[]) // ... to not push array inside array, but keep 1d array
-            .map((n) => ({
-              nodeId: extractIds(n[p.shClass])[0],
-              restrictionIds: extractIds(n[p.shNode]),
-            }))
-            .filter((n) => n),
-        );
-      });
+  const nodeOrs = shProp[p.shOr] as INodeValue[] | undefined;
+  if (nodeOrs && nodeOrs.length > 0) {
+    const orRestrNodes = filterUndef(
+      nodeOrs
+        .filter((n) => n['@list'])
+        .map((n) => n['@list'])
+        .map((n: INode[]) =>
+          filterUndef(
+            n
+              .map((listItem) => makePropertyRestrictionObj(listItem))
+              .map((listItemRestr) => listItemRestr.propertyRanges),
+          ),
+        ),
+    );
+    if (orRestrNodes) {
+      pRanges.push(...flatten3DArr(orRestrNodes));
+    }
+  }
+
+  if (extractIds(shProp[p.shNodeKind]).includes(p.shIRI)) {
+    pRanges.push({
+      nodeId: '@id',
+    });
   }
 
   const minCount = shProp[p.shMinCount];
@@ -202,21 +218,43 @@ const removeDashIO = (str: string): string => str.split('-')[0];
 export const isEqProp = (a: string, b: string): boolean =>
   removeDashIO(a) === removeDashIO(b);
 
-export const generateJSONLD = (docEle: HTMLElement): any => {
-  const jsonld = {
-    '@context': {
-      '@vocab': 'http://schema.org/',
-      webapi: 'http://actions.semantify.it/vocab/',
-    },
-  };
+const pathSeparator = '$';
+export const joinPaths = (pathArr: string[]): string =>
+  pathArr.join(pathSeparator);
+
+export const generateJSONLD = (
+  docEleId: string,
+  pathStartsWith?: string,
+): any => {
+  const docEle = document.getElementById(docEleId);
+  if (!docEle) {
+    return undefined;
+  }
+  // we don't need a context anymore
+  // const jsonld = {
+  //   '@context': {
+  //     '@vocab': 'http://schema.org/',
+  //     webapi: 'http://actions.semantify.it/vocab/',
+  //   },
+  // };
+  const jsonld = {};
   const terminals = docEle.querySelectorAll('[data-path]');
   terminals.forEach((t: HTMLElement) => {
-    const { path, value } = t.dataset;
-    if (path && value) {
-      const schemaNSPath = path.replace(/schema:/g, '');
-      const schemaNSValue = value.replace(/^schema:/g, '');
-      set(jsonld, schemaNSPath, schemaNSValue);
+    let { path } = t.dataset;
+    const { value } = t.dataset;
+    if (!path || !value) {
+      return;
+    }
+    if (pathStartsWith && path.startsWith(pathStartsWith)) {
+      path = path.replace(`${pathStartsWith}${pathSeparator}`, '');
+      set(jsonld, path.split(pathSeparator), value);
+    } else {
+      set(jsonld, path.split(pathSeparator), value);
     }
   });
   return jsonld;
 };
+
+export function filterUndef<T>(ts: (T | undefined)[]): T[] {
+  return ts.filter((t: T | undefined): t is T => !!t);
+}

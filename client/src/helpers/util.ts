@@ -9,6 +9,9 @@ export const haveCommon = <T>(arr1: T[], arr2: T[]): boolean =>
 export const flatten2DArr = <T>(arr: T[][]): T[] =>
   arr.reduce((a, b) => a.concat(b), []);
 
+export const flatten3DArr = <T>(arr: T[][][]): T[] =>
+  arr.reduce((a: T[], b) => a.concat(flatten2DArr(b)), []);
+
 export const notEmpty = (p: any) =>
   !(p === null || p === undefined || p.toString().trim() === '');
 

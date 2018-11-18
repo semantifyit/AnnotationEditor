@@ -8,6 +8,7 @@ import { jsonldMatchesQuery } from './rdfSparql';
 import {
   cleanShaclProp,
   extractIds,
+  filterUndef,
   getNameOfNode,
   IRestriction,
   isReplaceable,
@@ -51,7 +52,7 @@ interface IPropNodes {
 
 interface INodeTarget {
   node: INode;
-  target: INode | undefined;
+  target: INode;
 }
 
 const quadsToJsonLD = async (nquads: string): Promise<object[]> =>
@@ -150,9 +151,12 @@ export default class Vocab {
           );
           const vocab = response.data;
           if (vocabName === 'webapi') {
-            vocab['@graph'] = vocab['@graph'].map((n: any) =>
-              cleanShaclProp(n),
-            );
+            vocab['@graph'] = vocab['@graph']
+              .map((n: any) => cleanShaclProp(n))
+              .filter(
+                (n: INode) =>
+                  n['@id'].startsWith('webapi') || n['@id'].startsWith('_:'),
+              );
             return this.addVocab('webapi', vocab, 'application/ld+json');
           }
           // schema vocabs are missing the schema namespace
@@ -427,40 +431,53 @@ export default class Vocab {
       .map((n) => {
         const nodeCpy = clone(n);
         const nodeTarget = nodeCpy[p.shTarget];
-        return {
-          node: this.replaceBlankNodes(nodeCpy),
-          target: this.getNode(nodeTarget && nodeTarget['@type'][0]),
-        };
-      });
+        if (nodeTarget && nodeTarget.length > 0) {
+          return {
+            node: this.replaceBlankNodes(nodeCpy),
+            target: this.getNode(nodeTarget[0] && nodeTarget[0]['@type'][0]),
+          };
+        }
+        return undefined;
+      })
+      .filter(
+        (n) => n && n.target && n.target[p.shSelect] && n.node,
+      ) as INodeTarget[];
 
     const restrictions = await Promise.all(
-      sparqlRestrictionNodes.map(async (restrictionNode) => {
-        if (!restrictionNode.target) {
-          return null;
-        }
-        let sparqlQuery = `PREFIX schema: <http://schema.org/>
-        ${restrictionNode.target[p.shSelect]}`;
-        const params = Object.entries((restrictionNode.node[
-          p.shTarget
-        ] as unknown) as INode).filter(([k]) => !['@id', '@type'].includes(k));
-        params.forEach(([k, v]) => {
-          if (v && v[0]['@id']) {
-            sparqlQuery = sparqlQuery.replace(`$${removeNS(k)}`, v[0]['@id']);
-          }
-        });
+      sparqlRestrictionNodes
+        .filter((n) => n && n.target && n.target[p.shSelect])
+        .map(async (restrictionNode) => {
+          const originQuery = restrictionNode.target[p.shSelect];
+          let sparqlQuery = `PREFIX schema: <http://schema.org/>
+            ${originQuery && originQuery[0] && originQuery[0]['@value']}`;
 
-        // console.log(params);
-        const matches = await jsonldMatchesQuery(jsonldToMatch, sparqlQuery);
-        if (matches) {
-          return restrictionNode.node;
-        }
-        return null;
-      }),
+          const targetInNode = restrictionNode.node[p.shTarget];
+          if (targetInNode && targetInNode.length > 0) {
+            const params = Object.entries(targetInNode[0]).filter(
+              ([k]) => !['@id', '@type'].includes(k),
+            );
+            params.forEach(([k, v]) => {
+              if (v && v[0]['@id']) {
+                sparqlQuery = sparqlQuery.replace(
+                  `$${removeNS(k)}`,
+                  v[0]['@id'],
+                );
+              }
+            });
+          }
+
+          // console.log(params);
+          const matches = await jsonldMatchesQuery(jsonldToMatch, sparqlQuery);
+          if (matches) {
+            return restrictionNode.node;
+          }
+          return null;
+        }),
     );
     const filteredRestrictions = restrictions.filter((n) => n) as INode[];
 
     const restrictionObjs = this.makeRestrictions(filteredRestrictions);
-
+    // console.log(restrictionObjs);
     return restrictionObjs;
   };
 

@@ -9,6 +9,7 @@ import {
   joinPaths,
   IRestriction,
   isEqProp,
+  generateJSONLD,
 } from '../helpers/helper';
 
 import PropertyNode from './PropertyNode';
@@ -108,6 +109,7 @@ class TypeNode extends React.Component<IProps, IState> {
       nodeIds,
       this.props.additionalRestrictionIds,
     );
+    // console.log(restrictions);
     this.restrictions = restrictions;
     // add properties
     this.useRestrictions(restrictions);
@@ -119,30 +121,7 @@ class TypeNode extends React.Component<IProps, IState> {
     // the newly set nodes. In the current case of only one sparql restriction needing a previous restriction this is fine.
     // sorry gods of programming for this code
     setTimeout(async () => {
-      const jsonld = {
-        '@context': {
-          '@vocab': 'http://schema.org/',
-          webapi: 'http://actions.semantify.it/vocab/',
-        },
-      };
-      const curEle = document.getElementById(this.baseUID);
-      if (!curEle) {
-        return;
-      }
-      const terminals = curEle.querySelectorAll('[data-path]');
-      const thisPath = joinPaths(this.props.path);
-      terminals.forEach((t: HTMLElement) => {
-        const { path, value } = t.dataset;
-        if (path && value && path.startsWith(thisPath)) {
-          const schemaNSPath = path
-            .replace(`${thisPath}.`, '')
-            .replace(/schema:/g, '');
-          const schemaNSValue = value
-            .replace(`${thisPath}.`, '')
-            .replace(/^schema:/g, '');
-          set(jsonld, schemaNSPath, schemaNSValue);
-        }
-      });
+      const jsonld = generateJSONLD(this.baseUID, joinPaths(this.props.path));
       const sparqlRestrictions = await this.context.vocab.getSparqlRestrictionsForTypes(
         nodeIds,
         this.props.additionalRestrictionIds,

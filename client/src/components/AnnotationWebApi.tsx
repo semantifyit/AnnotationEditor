@@ -61,11 +61,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
 
   public finalize = () => {
     this.steps.forEach((step, i) => {
-      const ele = document.getElementById(`annotation-${i}`);
-      if (!ele) {
-        return;
-      }
-      this.steps[i].annotation = generateJSONLD(ele);
+      this.steps[i].annotation = generateJSONLD(`annotation-${i}`);
     });
     this.setState({ modalIsOpen: true });
   };

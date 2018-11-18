@@ -15,6 +15,7 @@
   },
   "rules": {
     "no-console": false,
+    "array-type": false,
     "ordered-imports": false,
     "align": false,
     "import-name": false,

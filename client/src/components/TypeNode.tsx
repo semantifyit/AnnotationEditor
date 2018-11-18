@@ -59,6 +59,10 @@ class TypeNode extends React.Component<IProps, IState> {
       .map((n) => this.context.vocab.getNode(n) || undefined)
       .filter((n) => n !== undefined) as INode[]; // as INode since tsc can't properly understand the filter
 
+    if (nodes.length === 0) {
+      return;
+    }
+
     const canUseDashIOProps =
       this.props.canUseDashIOProps ||
       this.context.vocab.nodesCanUseIOProps(nodes);
@@ -232,6 +236,9 @@ class TypeNode extends React.Component<IProps, IState> {
       .map((n) => this.context.vocab.getNode(n) || undefined)
       .filter((n) => n !== undefined) as INode[]; // as INode since tsc can't properly understand the filter
 
+    if (nodes.length === 0) {
+      return <h1> Node not found </h1>;
+    }
     const canUseDashIOProps =
       this.props.canUseDashIOProps ||
       this.context.vocab.nodesCanUseIOProps(nodes);

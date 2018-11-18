@@ -38,6 +38,10 @@ export const fetchDSbyId = async (dsId: string): Promise<any> => {
 export const transformDSToShacl = (ds: any): any => {
   const shapes: any[] = [];
   let uid = 0;
+  const newUid = () => {
+    uid += 1;
+    return uid;
+  };
 
   const addShape = (classObj: any, id: any, withTargetClass = false) => {
     const shape = {
@@ -58,10 +62,10 @@ export const transformDSToShacl = (ds: any): any => {
               'sh:class': { '@id': `schema:${rangeProp['schema:name']}` },
             };
             if (rangeProp['@type'] === 'dsv:RestrictedClass') {
-              addShape(rangeProp, uid + 1);
-              uid += 1;
+              const childId = newUid();
+              addShape(rangeProp, childId);
               inner['sh:node'] = {
-                '@id': `ex:${rangeProp['schema:name']}Shape${uid}`,
+                '@id': `ex:${rangeProp['schema:name']}Shape${childId}`,
               };
             }
             return inner;

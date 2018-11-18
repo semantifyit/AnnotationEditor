@@ -11,6 +11,7 @@ import {
   transformDSToShacl,
 } from '../helpers/semantify';
 import { VocabContext, IContext } from '../helpers/VocabContext';
+import { joinNS } from '../helpers/properties';
 
 interface IState {
   createdType: null | string;
@@ -41,7 +42,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
     const shaclDS = transformDSToShacl(ds.content);
     await this.context.vocab.addVocab(ds.name, shaclDS, 'application/ld+json');
     this.setState({
-      createdType: ds.content['dsv:class'][0]['dsv:baseClass']['@id'],
+      createdType: joinNS('schema', ds.content['dsv:class'][0]['schema:name']),
     });
   }
 

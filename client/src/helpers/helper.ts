@@ -1,6 +1,6 @@
 import { set, has, get } from 'lodash';
 
-import { INode } from './Vocab';
+import { INode, INodeValue } from './Vocab';
 import { jsonldMatchesQuery } from './rdfSparql';
 import { clone, hasP, makeArray, notEmpty, uniqueArray } from './util';
 import * as p from './properties';
@@ -36,7 +36,10 @@ export const stripHtml = (html: string): string => {
   return tmp.textContent || tmp.innerText || '';
 };
 
-export const extractIds = (o: any) => makeArray(o).map((n: INode) => n['@id']);
+export const extractIds = (o: any) =>
+  makeArray(o)
+    .filter((n) => n && n['@id'])
+    .map((n: INode) => n['@id']);
 
 export const isTextNode = (node: INode) => {
   const shClass = node[p.shClass];
@@ -71,7 +74,7 @@ export const isReplaceable = (obj: any): boolean => {
 
 export interface IRestrictionRange {
   nodeId: string;
-  restrictionId?: string;
+  restrictionIds?: string[];
 }
 
 export interface IRestriction {
@@ -133,32 +136,38 @@ export const cleanShaclProp = (shProp: INode): INode => {
 };
 
 export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
-  const nodeClass = shProp[p.shClass];
-  const pRangeId = nodeClass && nodeClass['@id'];
   const pRanges: IRestrictionRange[] = [];
-  if (pRangeId) {
-    const pRange: IRestrictionRange = {
-      nodeId: pRangeId,
-    };
-    if (shProp[p.shNode]) {
-      const nodeNode = shProp[p.shNode];
-      pRange.restrictionId = nodeNode && nodeNode['@id'];
-    } else if (shProp['sh:property']) {
-      pRange.restrictionId = shProp['@id']; // add this node if it has properties and doesn't refer to a new node via sh:node
-    }
-    pRanges.push(pRange);
+  const nodeClass = shProp[p.shClass] as INodeValue[];
+  if (nodeClass) {
+    const pRangeIds = extractIds(nodeClass);
+    pRangeIds.forEach((pRangeId) => {
+      const pRange: IRestrictionRange = {
+        nodeId: pRangeId,
+        restrictionIds:
+          extractIds(shProp[p.shNode]) ||
+          (shProp['sh:property'] && shProp['@id']) ||
+          undefined,
+      };
+      pRanges.push(pRange);
+    });
   }
-  const nodeOr = shProp[p.shOr];
-  if (nodeOr && nodeOr['@list']) {
-    pRanges.push(
-      ...nodeOr['@list'] // ... to not push array inside array, but keep 1d array
-        .map((pr: any) => ({
-          nodeId: pr[pr.shClass]['@id'],
-          restrictionId: pr[pr.shNode] && p[p.shNode]['@id'],
-        }))
-        .filter((pr: any) => pr),
-    );
+
+  const nodeOrs = shProp[p.shOr] as INodeValue[];
+  if (nodeOrs.length > 0) {
+    nodeOrs
+      .filter((n) => n['@list'])
+      .forEach((nodeOr) => {
+        pRanges.push(
+          ...(nodeOr['@list'] as INode[]) // ... to not push array inside array, but keep 1d array
+            .map((n) => ({
+              nodeId: extractIds(n[p.shClass])[0],
+              restrictionIds: extractIds(n[p.shNode]),
+            }))
+            .filter((n) => n),
+        );
+      });
   }
+
   const minCount = shProp[p.shMinCount];
   const maxCount = shProp[p.shMaxCount];
   const maxInclusive = shProp[p.shMaxInclusive];
@@ -168,9 +177,9 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   const path = shProp[p.shPath];
   const pattern = shProp[p.shPattern];
   return {
-    property: path && path['@id'],
+    property: path && path[0] && path[0]['@id'],
     propertyRanges: pRanges.length > 0 ? pRanges : undefined,
-    defaultValue: defaultValue && defaultValue['@id'],
+    defaultValue: defaultValue && defaultValue[0] && defaultValue[0]['@id'],
     valueIn: valueIn && valueIn['@list'],
     minCount:
       minCount && minCount[0]['@value'] && parseInt(minCount[0]['@value'], 10),

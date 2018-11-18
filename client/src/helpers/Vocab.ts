@@ -100,7 +100,6 @@ export default class Vocab {
             flattenedVocab['@graph'] &&
             Array.isArray(flattenedVocab['@graph'])
           ) {
-            console.log('here');
             this.addVocabJsonLD(vocabName, flattenedVocab['@graph']);
           } else {
             alert('Error parsing document');
@@ -182,7 +181,7 @@ export default class Vocab {
 
   public getRestrictionNodes = (): INode[] =>
     this.getAllNodes().filter((n) =>
-      haveCommon(['sh:NodeShape', 'sh:SPARQLTargetType'], n['@type'] || []),
+      haveCommon([p.shNodeShape, p.shSPARQLTargetType], n['@type'] || []),
     );
 
   public getAnyNode = (id: string): INode | undefined =>
@@ -297,6 +296,7 @@ export default class Vocab {
       p.schemaURL,
       p.schemaNumber,
       p.schemaFloat,
+      p.schemaInteger,
       p.schemaBoolean,
       p.schemaDate,
       p.schemaTime,
@@ -472,7 +472,7 @@ export default class Vocab {
     const restrictNodes = this.getRestrictionNodes().filter(
       (n) =>
         n[p.shTargetClass] &&
-        haveCommon(extractIds(p.shTargetClass), superTypes),
+        haveCommon(extractIds(n[p.shTargetClass]), superTypes),
     );
     if (additionalRestrictions) {
       restrictNodes.push(

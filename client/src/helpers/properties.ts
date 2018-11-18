@@ -57,6 +57,7 @@ export const shDatatype = joinNS('sh', 'datatype');
 export const shClass = joinNS('sh', 'class');
 export const shNodeKind = joinNS('sh', 'nodeKind');
 export const shNodeShape = joinNS('sh', 'NodeShape');
+export const shSPARQLTargetType = joinNS('sh', 'SPARQLTargetType');
 export const shIRI = joinNS('sh', 'IRI');
 export const shPath = joinNS('sh', 'path');
 export const shDefaultValue = joinNS('sh', 'defaultValue');

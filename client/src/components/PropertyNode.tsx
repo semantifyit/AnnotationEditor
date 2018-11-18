@@ -36,7 +36,7 @@ class PropertyNode extends React.Component<IProps, IState> {
   public node: INode | undefined;
 
   public ranges: string[] = [];
-  public rangeRestrictions: any = {};
+  public rangeRestrictions: { [nodeId: string]: string[] } = {};
 
   public state: IState = {
     selectedRange: '',
@@ -90,7 +90,7 @@ class PropertyNode extends React.Component<IProps, IState> {
         this.ranges = pRange.map((r) => r.nodeId);
 
         this.rangeRestrictions = pRange.reduce((acc, cur) => {
-          acc[cur.nodeId] = cur.restrictionId;
+          acc[cur.nodeId] = cur.restrictionIds;
           return acc;
         }, {});
         // if (this.state.selectedRange === '') {

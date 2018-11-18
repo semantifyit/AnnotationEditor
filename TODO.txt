@@ -1,0 +1,6 @@
+- change split to not include remove prop button
+- check remove prop where minCount: 1 with 2 props
+- switch range on prop with restriction (eg. aquarium ds)
+
+- new shacl props targeting data nodes
+- webapi: check fields filled in on "next" click

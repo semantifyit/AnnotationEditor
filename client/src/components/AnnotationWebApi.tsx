@@ -16,6 +16,7 @@ import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
 import { toast, ToastContainer } from 'react-toastify';
 import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
+import * as p from '../helpers/properties';
 
 interface IState {
   ready: boolean;
@@ -35,12 +36,12 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   public steps = [
     {
       title: 'Step 1: Create a WebApi Annotation',
-      type: 'schema:WebAPI',
+      type: p.schemaWebAPI,
       annotation: null,
     },
     {
       title: 'Step 2: Create Action Annotation',
-      type: 'schema:Action',
+      type: p.schemaAction,
       annotation: null,
     },
   ];

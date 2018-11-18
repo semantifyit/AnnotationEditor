@@ -8,6 +8,7 @@ import Annotation from './Annotation';
 import VocabSelection from './VocabSelection';
 import { INode } from '../helpers/Vocab';
 import { IContext, VocabContext } from '../helpers/VocabContext';
+import * as p from '../helpers/properties';
 
 interface IState {
   createdType: null | string;
@@ -28,7 +29,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
     await this.context.vocab.addDefaultVocabs('schema', 'schema-pending');
     const bases = this.context.vocab
       .getAllNodes()
-      .filter((o) => o['@type'] === 'rdfs:Class');
+      .filter((o) => o['@type'] && o['@type'].includes(p.rdfsClass));
     this.setState({ bases });
   }
 
@@ -40,7 +41,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
     this.setState({
       bases: this.context.vocab
         .getAllNodes()
-        .filter((o) => o['@type'] === 'rdfs:Class'),
+        .filter((o) => o['@type'] && o['@type'].includes(p.rdfsClass)),
     });
   };
 

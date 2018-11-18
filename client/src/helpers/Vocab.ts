@@ -223,7 +223,7 @@ export default class Vocab {
     return uniqueArray(types);
   };
 
-  public getSubClasses = (nodeId: string) => {
+  public getSubClasses = (nodeId: string): string[] => {
     let types = [nodeId];
     const directSubClasses = this.getAllNodes()
       .filter(
@@ -272,22 +272,19 @@ export default class Vocab {
       specialCaseTerminals.includes(c),
     );
 
-  public isTerminalNode = (node: INode) => {
-    const superClasses = this.getSuperClasses(node['@id']);
-    let isTerminal = false;
-    superClasses.forEach((c) => {
-      const n = this.getNode(c);
-      if (!n) {
-        return;
-      }
-      if (n['@type'] && n['@type'].includes(p.schemaDataType)) {
-        isTerminal = true;
-      }
-      if (specialCaseTerminals.includes(c)) {
-        isTerminal = true;
-      }
-    });
-    return isTerminal;
+  public isTerminalNode = (nodeId: string) => {
+    const xsdTerminal = [
+      p.xsdBoolean,
+      p.xsdDate,
+      p.xsdDecimal,
+      p.xsdBoolean,
+      p.xsdInteger,
+      p.xsdString,
+      p.xsdTime,
+    ];
+    const schemaTerminals = this.getSubClasses(p.schemaDataType);
+    const terminals = xsdTerminal.concat(schemaTerminals, specialCaseTerminals);
+    return terminals.includes(nodeId);
   };
 
   public getEnumValues = (nodeId: string) =>

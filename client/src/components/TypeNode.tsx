@@ -66,10 +66,7 @@ class TypeNode extends React.Component<IProps, IState> {
     this.state.propertyIds = []; // since the node changed, reset the list of properties
     // reset the selected element for the select box
     this.state.selectedProp = Object.entries(
-      this.context.vocab.getPropertyNodeForType(
-        this.props.nodeId,
-        canUseDashIOProps,
-      ),
+      this.context.vocab.getPropertyNodeForType(this.props.nodeId),
     ).filter(([k, v]) => v.length > 0)[0][1][0]['@id'];
     this.state.nodeIds = [this.props.nodeId];
 
@@ -240,10 +237,7 @@ class TypeNode extends React.Component<IProps, IState> {
       this.context.vocab.nodesCanUseIOProps(nodes);
 
     const propertyNodeObj = Object.entries(
-      this.context.vocab.getPropertyNodeForTypes(
-        this.state.nodeIds,
-        canUseDashIOProps,
-      ),
+      this.context.vocab.getPropertyNodeForTypes(this.state.nodeIds),
     ).filter(([k, v]) => v.length > 0);
 
     if (this.state.selectedProp === '') {

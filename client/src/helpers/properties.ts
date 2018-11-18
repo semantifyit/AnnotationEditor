@@ -1,10 +1,30 @@
 import { joinNS } from './helper';
 
+// XSD
+export const xsdString = joinNS('xsd', 'string');
+export const xsdDecimal = joinNS('xsd', 'decimal');
+export const xsdInteger = joinNS('xsd', 'integer');
+export const xsdBoolean = joinNS('xsd', 'boolean');
+export const xsdDate = joinNS('xsd', 'date');
+export const xsdTime = joinNS('xsd', 'time');
+
+// RDF
 export const rdfProperty = joinNS('rdf', 'Property');
 
+// RDFS
 export const rdfsLabel = joinNS('rdfs', 'label');
+export const rdfsComment = joinNS('rdfs', 'comment');
+export const rdfsClass = joinNS('rdfs', 'class');
 export const rdfsSubClassOf = joinNS('rdfs', 'subClassOf');
 
+// SCHEMA
+export const schemaBoolean = joinNS('schema', 'Boolean');
+export const schemaDate = joinNS('schema', 'Date');
+export const schemaTime = joinNS('schema', 'Time');
+export const schemaDateTime = joinNS('schema', 'DateTime');
+export const schemaFloat = joinNS('schema', 'Float');
+export const schemaNumber = joinNS('schema', 'Number');
+export const schemaInteger = joinNS('schema', 'Integer');
 export const schemaURL = joinNS('schema', 'URL');
 export const schemaDomainIncludes = joinNS('schema', 'domainIncludes');
 export const schemaEnumeration = joinNS('schema', 'Enumeration');
@@ -13,11 +33,13 @@ export const schemaDataType = joinNS('schema', 'DataType');
 export const schemaRangeIncludes = joinNS('schema', 'rangeIncludes');
 export const schemaText = joinNS('schema', 'Text');
 export const schemaAction = joinNS('schema', 'Action');
+export const schemaWebAPI = joinNS('schema', 'WebAPI');
 export const schemaPropertyValueSpecification = joinNS(
   'schema',
   'PropertyValueSpecification',
 );
 
+// SHACL
 export const shDatatype = joinNS('sh', 'datatype');
 export const shClass = joinNS('sh', 'class');
 export const shNodeKind = joinNS('sh', 'nodeKind');

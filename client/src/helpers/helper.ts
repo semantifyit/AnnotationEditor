@@ -29,7 +29,7 @@ export const removeNS = (str: string): string => {
 };
 
 export const getNameOfNode = (node: INode): string => {
-  const label = node[joinNS('rdfs', 'label')];
+  const label = node[p.rdfsLabel];
   if (label && label[0]['@value']) {
     return label[0]['@value'];
   }
@@ -37,7 +37,7 @@ export const getNameOfNode = (node: INode): string => {
 };
 
 export const getDescriptionOfNode = (node: INode): string => {
-  const comment = node[joinNS('rdfs', 'comment')];
+  const comment = node[p.rdfsComment];
   if (comment && comment[0] && comment[0]['@value']) {
     return stripHtml(comment[0]['@value']);
   }
@@ -53,10 +53,8 @@ export const stripHtml = (html: string): string => {
 export const extractIds = (o: any) => makeArray(o).map((n: INode) => n['@id']);
 
 export const isTextNode = (node: INode) => {
-  const shClass = node[joinNS('sh', 'class')];
-  return (
-    shClass && shClass[0] && shClass[0]['@id'] === joinNS('schema', 'Text')
-  );
+  const shClass = node[p.shClass];
+  return shClass && shClass[0] && shClass[0]['@id'] === p.schemaText;
 };
 
 export const setProp = (object: any, property: string, value: string) => {

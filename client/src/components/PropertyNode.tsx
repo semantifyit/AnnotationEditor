@@ -13,6 +13,7 @@ import DropDownSelect, { ISingleOption } from './DropDownSelect';
 import Split from 'split.js';
 import { makeArray } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
+import * as p from '../helpers/properties';
 
 interface IProps {
   nodeId: string;
@@ -77,7 +78,7 @@ class PropertyNode extends React.Component<IProps, IState> {
     if (!node) {
       return <h1>Node not found</h1>;
     }
-    this.ranges = extractIds(node['schema:rangeIncludes']);
+    this.ranges = extractIds(node[p.schemaRangeIncludes]);
 
     if (this.props.restriction) {
       const restrictions = this.props.restriction.filter(

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { makeArray } from './util';
 
 export interface IDSMap {
   id: string;
@@ -34,14 +35,14 @@ export const fetchDSbyId = async (dsId: string): Promise<any> => {
   }
 };
 
-export const transformDSToShacl = (ds: any): any[] => {
+export const transformDSToShacl = (ds: any): any => {
   const shapes: any[] = [];
   let uid = 0;
 
   const addShape = (classObj: any, id: any, withTargetClass = false) => {
     const shape = {
       '@id': `ex:${classObj['schema:name']}Shape${id}`,
-      '@type': 'sh:NodeShape',
+      '@type': makeArray('sh:NodeShape'),
       'sh:targetClass': withTargetClass
         ? { '@id': classObj['dsv:baseClass']['@id'] }
         : undefined,
@@ -75,5 +76,14 @@ export const transformDSToShacl = (ds: any): any[] => {
     addShape(c, uid, true);
     uid += 1;
   });
-  return shapes;
+
+  const vocab = {
+    '@context': {
+      schema: 'http://schema.org/',
+      sh: 'http://www.w3.org/ns/shacl#',
+    },
+    '@graph': shapes,
+  };
+
+  return vocab;
 };

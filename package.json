@@ -52,7 +52,6 @@
     "uuid": "latest"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
     "@types/jest": "^23.3.3",
     "@types/lodash": "^4.14.117",
     "@types/node": "^10.11.4",

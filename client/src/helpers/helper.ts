@@ -5,20 +5,6 @@ import { jsonldMatchesQuery } from './rdfSparql';
 import { clone, hasP, makeArray, notEmpty, uniqueArray } from './util';
 import * as p from './properties';
 
-export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh';
-
-const commonNamespaces = {
-  xsd: 'http://www.w3.org/2001/XMLSchema#',
-  rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
-  owl: 'http://www.w3.org/2002/07/owl#',
-  schema: 'http://schema.org/',
-  sh: 'http://www.w3.org/ns/shacl#',
-};
-
-export const joinNS = (namespace: Namespace, nodeId: string): string =>
-  commonNamespaces[namespace] + nodeId;
-
 export const makeIdArr = (...str: string[]) => str.map((s) => ({ '@id': s }));
 
 export const removeNS = (str: string): string => {
@@ -127,7 +113,7 @@ export const cleanShaclProp = (shProp: INode): INode => {
   if (
     nodeDatatype &&
     nodeDatatype[0] &&
-    nodeDatatype[0]['@id'].startsWith(commonNamespaces.xsd)
+    nodeDatatype[0]['@id'].startsWith(p.commonNamespaces.xsd)
   ) {
     shPropCpy[p.shClass] = toIdNodeArr(
       xsdPropToSchemaClass(nodeDatatype[0]['@id']),

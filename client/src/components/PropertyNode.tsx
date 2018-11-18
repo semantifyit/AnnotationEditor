@@ -87,7 +87,7 @@ class PropertyNode extends React.Component<IProps, IState> {
       const rangeRestrictions = restrictions.filter((r) => r.propertyRanges);
       if (rangeRestrictions.length > 0 && rangeRestrictions[0].propertyRanges) {
         const pRange = rangeRestrictions[0].propertyRanges;
-        this.ranges = pRange.map((p) => p.nodeId);
+        this.ranges = pRange.map((r) => r.nodeId);
 
         this.rangeRestrictions = pRange.reduce((acc, cur) => {
           acc[cur.nodeId] = cur.restrictionId;
@@ -146,7 +146,7 @@ class PropertyNode extends React.Component<IProps, IState> {
                   multiSelect={false}
                   selectOptions={propIOOptions}
                   selectedOptions={
-                    propIOOptions.find((p) => p.value === this.state.nodeId) ||
+                    propIOOptions.find((o) => o.value === this.state.nodeId) ||
                     propIOOptions[0]
                   }
                   onChangeSelection={this.changedPropSelection}

@@ -9,7 +9,6 @@ import {
   getDescriptionOfNode,
   joinPaths,
   IRestriction,
-  joinNS,
   removeNS,
 } from '../helpers/helper';
 import TypeNode from './TypeNode';

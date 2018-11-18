@@ -3,13 +3,7 @@ import jsonld from 'jsonld';
 import axios from 'axios';
 
 import * as p from './properties';
-import {
-  clone,
-  flatten2DArr,
-  haveCommon,
-  makeArray,
-  uniqueArray,
-} from './util';
+import { clone, flatten2DArr, haveCommon, uniqueArray } from './util';
 import { jsonldMatchesQuery } from './rdfSparql';
 import {
   cleanShaclProp,
@@ -17,10 +11,8 @@ import {
   getNameOfNode,
   IRestriction,
   isReplaceable,
-  joinNS,
   makeIdArr,
   makePropertyRestrictionObj,
-  Namespace,
   removeNS,
 } from './helper';
 
@@ -100,8 +92,19 @@ export default class Vocab {
         case 'application/ld+json': {
           const jsonldObj =
             typeof vocabData === 'string' ? JSON.parse(vocabData) : vocabData;
-          const expandedVocab = jsonld.expand(jsonldObj);
-          this.addVocabJsonLD(vocabName, expandedVocab);
+          const expandedVocab = await jsonld.expand(jsonldObj);
+          const flattenedVocab = await jsonld.flatten(expandedVocab);
+          if (Array.isArray(flattenedVocab)) {
+            this.addVocabJsonLD(vocabName, expandedVocab);
+          } else if (
+            flattenedVocab['@graph'] &&
+            Array.isArray(flattenedVocab['@graph'])
+          ) {
+            console.log('here');
+            this.addVocabJsonLD(vocabName, flattenedVocab['@graph']);
+          } else {
+            alert('Error parsing document');
+          }
           break;
         }
         case 'text/turtle': {
@@ -146,14 +149,21 @@ export default class Vocab {
           const response = await axios.get(
             `/annotation/api/vocabs/${vocabName}`,
           );
+          const vocab = response.data;
           if (vocabName === 'webapi') {
-            const vocab = response.data;
             vocab['@graph'] = vocab['@graph'].map((n: any) =>
               cleanShaclProp(n),
             );
             return this.addVocab('webapi', vocab, 'application/ld+json');
           }
-          return this.addVocab('schema', response.data, 'application/ld+json');
+          // schema vocabs are missing the schema namespace
+          // instead of adding to the vocab file we add them here - could be changed later on
+          // additionally we remove the top level @id, which screws up jsonld expanding
+          vocab['@context'] = Object.assign(vocab['@context'], {
+            schema: 'http://schema.org/',
+          });
+          delete vocab['@id'];
+          return this.addVocab('schema', vocab, 'application/ld+json');
         }),
       );
       return true;
@@ -193,8 +203,8 @@ export default class Vocab {
     return cpy;
   };
 
-  public getNodeFromNS = (ns: Namespace, id: string): INode | undefined =>
-    this.getNode(joinNS(ns, id));
+  public getNodeFromNS = (ns: p.Namespace, id: string): INode | undefined =>
+    this.getNode(p.joinNS(ns, id));
 
   public getNode = (nodeId: string): INode | undefined => {
     let node;
@@ -282,7 +292,16 @@ export default class Vocab {
       p.xsdString,
       p.xsdTime,
     ];
-    const schemaTerminals = this.getSubClasses(p.schemaDataType);
+    const schemaTerminals = [
+      p.schemaText,
+      p.schemaURL,
+      p.schemaNumber,
+      p.schemaFloat,
+      p.schemaBoolean,
+      p.schemaDate,
+      p.schemaTime,
+      p.schemaDateTime,
+    ];
     const terminals = xsdTerminal.concat(schemaTerminals, specialCaseTerminals);
     return terminals.includes(nodeId);
   };
@@ -354,9 +373,9 @@ export default class Vocab {
               }
             } else if (
               typeof v === 'string' &&
-              this.isEnumJSONLD(joinNS('schema', k))
+              this.isEnumJSONLD(p.joinNS('schema', k))
             ) {
-              acc[k] = { '@id': joinNS('schema', v) };
+              acc[k] = { '@id': p.joinNS('schema', v) };
             } else {
               acc[k] = v;
             }

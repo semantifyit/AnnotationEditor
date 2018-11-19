@@ -25,7 +25,7 @@ export const defaultVocabs = {
   'schema-auto': 'Schema.org Auto',
 };
 
-export const specialCaseTerminals = [p.schemaEnumeration, p.schemaQuantity];
+export const specialCaseTerminals = [p.schemaQuantity];
 
 export interface INode {
   '@id': string;
@@ -159,12 +159,7 @@ export default class Vocab {
               );
             return this.addVocab('webapi', vocab, 'application/ld+json');
           }
-          // schema vocabs are missing the schema namespace
-          // instead of adding to the vocab file we add them here - could be changed later on
-          // additionally we remove the top level @id, which screws up jsonld expanding
-          vocab['@context'] = Object.assign(vocab['@context'], {
-            schema: 'http://schema.org/',
-          });
+          // we remove the top level @id, which screws up jsonld expanding
           delete vocab['@id'];
           return this.addVocab('schema', vocab, 'application/ld+json');
         }),

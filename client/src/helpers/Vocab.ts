@@ -421,7 +421,6 @@ export default class Vocab {
     additionalRestrictions: string[] | undefined,
     jsonldObj: any,
   ): Promise<IRestriction[]> => {
-    const jsonldToMatch = this.replaceEnums(jsonldObj);
     const sparqlRestrictionNodes: INodeTarget[] = this.getRestrictionNodes()
       .filter((n) => n[p.shTarget])
       .map(this.replaceBlankNodes)
@@ -457,14 +456,12 @@ export default class Vocab {
               if (v && v[0]['@id']) {
                 sparqlQuery = sparqlQuery.replace(
                   `$${removeNS(k)}`,
-                  v[0]['@id'],
+                  `<${v[0]['@id']}>`,
                 );
               }
             });
           }
-
-          // console.log(params);
-          const matches = await jsonldMatchesQuery(jsonldToMatch, sparqlQuery);
+          const matches = await jsonldMatchesQuery(jsonldObj, sparqlQuery);
           if (matches) {
             return restrictionNode.node;
           }
@@ -474,7 +471,6 @@ export default class Vocab {
     const filteredRestrictions = restrictions.filter((n) => n) as INode[];
 
     const restrictionObjs = this.makeRestrictions(filteredRestrictions);
-    // console.log(restrictionObjs);
     return restrictionObjs;
   };
 
@@ -496,8 +492,7 @@ export default class Vocab {
       );
     }
     // console.log(restrictNodes);
-    const restrictions = this.makeRestrictions(restrictNodes);
-    return restrictions;
+    return this.makeRestrictions(restrictNodes);
   };
 
   public getMembersOfTypes = (nodeIds: string[]): INode[] =>

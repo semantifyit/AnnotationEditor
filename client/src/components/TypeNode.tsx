@@ -47,7 +47,7 @@ class TypeNode extends React.Component<IProps, IState> {
   };
 
   public restrictions: IRestriction[] = [];
-
+  public existingMembersIds: string[] = [];
   public nodeUid = uuidv1();
   public baseUID = `baseid-${joinPaths(this.props.path)}-${this.nodeUid}`;
 
@@ -77,6 +77,13 @@ class TypeNode extends React.Component<IProps, IState> {
 
     // restrictions
     this.updateRestrictions();
+
+    this.existingMembersIds = this.context.vocab
+      .getMembersOfTypes(this.state.nodeIds)
+      .map((n) => n['@id']);
+    if (this.existingMembersIds.length > 0) {
+      this.addProperty('@id');
+    }
   }
 
   public useRestrictions(restrictions: IRestriction[]) {
@@ -214,7 +221,6 @@ class TypeNode extends React.Component<IProps, IState> {
   };
 
   public render() {
-    console.log(this.context.vocab.getMembersOfTypes(this.state.nodeIds));
     const nodes: INode[] = this.state.nodeIds
       .map((n) => this.context.vocab.getNode(n) || undefined)
       .filter((n) => n !== undefined) as INode[]; // as INode since tsc can't properly understand the filter
@@ -258,10 +264,6 @@ class TypeNode extends React.Component<IProps, IState> {
             .map((n) => getNameOfNode(n))
             .join(', ')}...`
         : typeTitle;
-
-    const existingMembersIds = this.context.vocab
-      .getMembersOfTypes(this.state.nodeIds)
-      .map((n) => n['@id']);
 
     return (
       <div style={divStyle} id={this.baseUID}>
@@ -349,7 +351,7 @@ class TypeNode extends React.Component<IProps, IState> {
           return (
             <PropertyNode
               existingMembersIds={
-                propId.nodeId === '@id' ? existingMembersIds : []
+                propId.nodeId === '@id' ? this.existingMembersIds : []
               }
               nodeId={propId.nodeId}
               uid={propId.uid}

@@ -69,6 +69,10 @@ class RangeNode extends React.Component<IProps, IState> {
         this.enumerations = valueInRestriction[0].valueIn;
       }
     }
+
+    if (this.props.existingMembersIds) {
+      this.state.value = this.props.existingMembersIds[0];
+    }
   }
 
   public handleChange(e: React.ChangeEvent<any>) {
@@ -122,7 +126,8 @@ class RangeNode extends React.Component<IProps, IState> {
     if (this.enumerations) {
       return this.makeSelect(this.enumerations);
     }
-    if (this.props.existingMembersIds) {
+    if (this.props.existingMembersIds.length > 0) {
+      this.state.value = this.props.existingMembersIds[0];
       return this.makeSelect(this.props.existingMembersIds);
     }
     const className = classNames({

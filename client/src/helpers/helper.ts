@@ -192,11 +192,20 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   const defaultValue = shProp[p.shDefaultValue];
   const path = shProp[p.shPath];
   const pattern = shProp[p.shPattern];
+  let valueInValues: string[] = [];
+  if (valueIn && Array.isArray(valueIn)) {
+    valueInValues = flatten2DArr(
+      (valueIn as INodeValue[])
+        .filter((v) => v['@list'])
+        .map((v) => v['@list'].map((i: INodeValue) => i['@value'])),
+    );
+  }
+
   return {
     property: path && path[0] && path[0]['@id'],
     propertyRanges: pRanges.length > 0 ? pRanges : undefined,
     defaultValue: defaultValue && defaultValue[0] && defaultValue[0]['@id'],
-    valueIn: valueIn && valueIn['@list'],
+    valueIn: valueInValues,
     minCount:
       minCount && minCount[0]['@value'] && parseInt(minCount[0]['@value'], 10),
     maxCount:

@@ -5,6 +5,7 @@ import {
   removeNS,
   extractIds,
   IRestriction,
+  makeIdArr,
 } from '../helpers/helper';
 import { INode } from '../helpers/Vocab';
 import RangeNode from './RangeNode';
@@ -57,13 +58,16 @@ class PropertyNode extends React.Component<IProps, IState> {
   };
 
   public initSplit() {
+    if (
+      !this.context.vocab.getNode(this.state.nodeId) &&
+      this.state.nodeId !== '@id'
+    ) {
+      // if node doesn't exist
+      return;
+    }
     Split(
-      [
-        `#split-first-${this.props.uid}`,
-        `#split-second-${this.props.uid}`,
-        `#split-third-${this.props.uid}`,
-      ],
-      { sizes: [30, 68, 2], minSize: [100, 150, 10] },
+      [`#split-first-${this.props.uid}`, `#split-second-${this.props.uid}`],
+      { sizes: [30, 70], minSize: [100, 150] },
     );
   }
   public componentDidMount() {
@@ -74,9 +78,16 @@ class PropertyNode extends React.Component<IProps, IState> {
   }
 
   public render() {
-    const node = this.context.vocab.getNode(this.state.nodeId);
+    let node = this.context.vocab.getNode(this.state.nodeId);
     if (!node) {
-      return <h1>Node not found</h1>;
+      if (this.state.nodeId === '@id') {
+        node = {
+          '@id': '@id',
+          [p.schemaRangeIncludes]: makeIdArr(p.xsdAnyURI),
+        };
+      } else {
+        return <h1>Node not found</h1>;
+      }
     }
     this.ranges = extractIds(node[p.schemaRangeIncludes]);
 
@@ -179,23 +190,9 @@ class PropertyNode extends React.Component<IProps, IState> {
           style={{ padding: '5px' }}
           id={`split-second-${this.props.uid}`}
         >
-          <RangeNode
-            nodeId={this.state.selectedRange}
-            key={this.state.selectedRange}
-            path={path}
-            canUseDashIOProps={this.props.canUseDashIOProps}
-            restriction={this.props.restriction}
-            additionalRestrictionIds={makeArray(
-              this.rangeRestrictions[this.state.selectedRange],
-            ).filter((n) => n)}
-          />
-        </div>
-        <div
-          className="split"
-          style={{ padding: '0' }}
-          id={`split-third-${this.props.uid}`}
-        >
+          {/*button before the rangeNode doesn't make sense, works though; stupid CSS */}
           <button
+            style={{ float: 'right' }}
             type="button"
             className="close"
             aria-label="Close"
@@ -206,6 +203,20 @@ class PropertyNode extends React.Component<IProps, IState> {
           >
             <span aria-hidden="true">&times;</span>
           </button>
+          <div style={{ overflow: 'hidden', paddingRight: '10px' }}>
+            <div style={{ width: '100%' }}>
+              <RangeNode
+                nodeId={this.state.selectedRange}
+                key={this.state.selectedRange}
+                path={path}
+                canUseDashIOProps={this.props.canUseDashIOProps}
+                restriction={this.props.restriction}
+                additionalRestrictionIds={makeArray(
+                  this.rangeRestrictions[this.state.selectedRange],
+                ).filter((n) => n)}
+              />
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -289,6 +289,7 @@ export default class Vocab {
       p.xsdInteger,
       p.xsdString,
       p.xsdTime,
+      p.xsdAnyURI,
     ];
     const schemaTerminals = [
       p.schemaText,

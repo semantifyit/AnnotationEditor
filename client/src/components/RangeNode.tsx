@@ -125,6 +125,7 @@ class RangeNode extends React.Component<IProps, IState> {
     });
     switch (nodeId) {
       case p.xsdString:
+      case p.xsdAnyURI:
       case p.schemaURL:
       case p.schemaText:
         return (

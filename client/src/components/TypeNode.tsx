@@ -148,7 +148,6 @@ class TypeNode extends React.Component<IProps, IState> {
       alert(`Cannot remove ${propId}`);
       return;
     }
-
     this.setState((state) => ({
       propertyIds: state.propertyIds.filter((p) => p.uid !== propUid),
     }));
@@ -184,7 +183,11 @@ class TypeNode extends React.Component<IProps, IState> {
         uid,
         nodeId: propId,
       });
-      return { propertyIds };
+      const selectedProp =
+        !this.canUseAnotherProp(propId) || propId === '@id'
+          ? ''
+          : state.selectedProp;
+      return { propertyIds, selectedProp };
     });
   };
 
@@ -286,7 +289,6 @@ class TypeNode extends React.Component<IProps, IState> {
                 >
                 {propertyNodeObj.map(([type, propArr], i) => (
                   <optgroup key={i} label={removeNS(type)}>
-                    $
                     {propArr.map((prop, j) => (
                       <option
                         disabled={!this.canUseAnotherProp(prop['@id'])}
@@ -300,6 +302,17 @@ class TypeNode extends React.Component<IProps, IState> {
                     ))}
                   </optgroup>
                 ))}
+                <optgroup label="General">
+                  <option
+                    title="IRI of the resource"
+                    value="@id"
+                    disabled={this.state.propertyIds.some(
+                      ({ nodeId }) => nodeId === '@id',
+                    )}
+                  >
+                    @id
+                  </option>
+                </optgroup>
               </select>
               <div className="input-group-append">
                 <button

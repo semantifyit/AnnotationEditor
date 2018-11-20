@@ -20,6 +20,7 @@ export const xsdInteger = joinNS('xsd', 'integer');
 export const xsdBoolean = joinNS('xsd', 'boolean');
 export const xsdDate = joinNS('xsd', 'date');
 export const xsdTime = joinNS('xsd', 'time');
+export const xsdAnyURI = joinNS('xsd', 'anyURI');
 
 // RDF
 export const rdfProperty = joinNS('rdf', 'Property');

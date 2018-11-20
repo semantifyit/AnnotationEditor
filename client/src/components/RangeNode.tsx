@@ -22,6 +22,7 @@ interface IProps {
   canUseDashIOProps: boolean;
   restriction: IRestriction[];
   additionalRestrictionIds: string[];
+  existingMembersIds: string[];
 }
 
 interface IState {
@@ -101,23 +102,28 @@ class RangeNode extends React.Component<IProps, IState> {
     this.setState({ value: e.format(format) });
   }
 
+  public makeSelect = (values: string[]) => (
+    <div className="input-group">
+      <select
+        className="custom-select"
+        value={this.state.value}
+        onChange={(e) => this.handleChange(e)}
+      >
+        {values.map((val, i) => (
+          <option key={i} value={val} title={val}>
+            {val}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
   public getInputField(nodeId: string) {
     if (this.enumerations) {
-      return (
-        <div className="input-group">
-          <select
-            className="custom-select"
-            value={this.state.value}
-            onChange={(e) => this.handleChange(e)}
-          >
-            {this.enumerations.map((enumVal, i) => (
-              <option key={i} value={enumVal['@id']} title={enumVal}>
-                {enumVal}
-              </option>
-            ))}
-          </select>
-        </div>
-      );
+      return this.makeSelect(this.enumerations);
+    }
+    if (this.props.existingMembersIds) {
+      return this.makeSelect(this.props.existingMembersIds);
     }
     const className = classNames({
       'form-control': true,

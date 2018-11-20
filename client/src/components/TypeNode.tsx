@@ -214,6 +214,7 @@ class TypeNode extends React.Component<IProps, IState> {
   };
 
   public render() {
+    console.log(this.context.vocab.getMembersOfTypes(this.state.nodeIds));
     const nodes: INode[] = this.state.nodeIds
       .map((n) => this.context.vocab.getNode(n) || undefined)
       .filter((n) => n !== undefined) as INode[]; // as INode since tsc can't properly understand the filter
@@ -258,6 +259,10 @@ class TypeNode extends React.Component<IProps, IState> {
             .join(', ')}...`
         : typeTitle;
 
+    const existingMembersIds = this.context.vocab
+      .getMembersOfTypes(this.state.nodeIds)
+      .map((n) => n['@id']);
+
     return (
       <div style={divStyle} id={this.baseUID}>
         {nodes.map((n, i) => {
@@ -269,14 +274,16 @@ class TypeNode extends React.Component<IProps, IState> {
         })}
         <div className="row">
           <h4 title={typeTitle}>{typeHeader} </h4>
-          <DropDownSelect
-            multiSelect={true}
-            selectOptions={typeSelectOptions}
-            selectedOptions={typeSelectOptions.filter((o) =>
-              this.state.nodeIds.includes(o.value),
-            )}
-            onChangeSelection={this.changedTypesSelection}
-          />
+          {typeSelectOptions.length > 1 && (
+            <DropDownSelect
+              multiSelect={true}
+              selectOptions={typeSelectOptions}
+              selectedOptions={typeSelectOptions.filter((o) =>
+                this.state.nodeIds.includes(o.value),
+              )}
+              onChangeSelection={this.changedTypesSelection}
+            />
+          )}
           <div className="col-sm-6 col-sm-offset-6  pull-right">
             <div className="input-group">
               <select
@@ -341,6 +348,9 @@ class TypeNode extends React.Component<IProps, IState> {
           }
           return (
             <PropertyNode
+              existingMembersIds={
+                propId.nodeId === '@id' ? existingMembersIds : []
+              }
               nodeId={propId.nodeId}
               uid={propId.uid}
               key={propId.uid}

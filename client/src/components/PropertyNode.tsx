@@ -23,6 +23,7 @@ interface IProps {
   canUseDashIOProps: boolean;
   arrIndex?: undefined | number;
   restriction: IRestriction[];
+  existingMembersIds: string[];
   removeProp(uid: string, id: string): void;
 }
 
@@ -74,7 +75,7 @@ class PropertyNode extends React.Component<IProps, IState> {
     this.initSplit();
   }
   public componentDidUpdate() {
-    this.initSplit();
+    // this.initSplit();
   }
 
   public render() {
@@ -152,7 +153,7 @@ class PropertyNode extends React.Component<IProps, IState> {
               >
                 {nameOfNode}
               </span>
-              {this.props.canUseDashIOProps && (
+              {this.props.canUseDashIOProps && this.state.nodeId !== '@id' && (
                 <DropDownSelect
                   multiSelect={false}
                   selectOptions={propIOOptions}
@@ -203,7 +204,7 @@ class PropertyNode extends React.Component<IProps, IState> {
           >
             <span aria-hidden="true">&times;</span>
           </button>
-          <div style={{ overflow: 'hidden', paddingRight: '10px' }}>
+          <div style={{ paddingRight: '20px' }}>
             <div style={{ width: '100%' }}>
               <RangeNode
                 nodeId={this.state.selectedRange}
@@ -214,6 +215,7 @@ class PropertyNode extends React.Component<IProps, IState> {
                 additionalRestrictionIds={makeArray(
                   this.rangeRestrictions[this.state.selectedRange],
                 ).filter((n) => n)}
+                existingMembersIds={this.props.existingMembersIds}
               />
             </div>
           </div>

@@ -281,6 +281,7 @@ export default class Vocab {
     );
 
   public isTerminalNode = (nodeId: string) => {
+    // maybe have a boolean in the vocab if we handle enums as nodes or as terminals
     const xsdTerminal = [
       p.xsdBoolean,
       p.xsdDate,
@@ -498,4 +499,9 @@ export default class Vocab {
     const restrictions = this.makeRestrictions(restrictNodes);
     return restrictions;
   };
+
+  public getMembersOfTypes = (nodeIds: string[]): INode[] =>
+    this.getAllNodes().filter(
+      (n) => n['@type'] && haveCommon(n['@type'], nodeIds),
+    );
 }

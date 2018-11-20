@@ -6,7 +6,6 @@ import * as p from './properties';
 import { clone, flatten2DArr, haveCommon, uniqueArray } from './util';
 import { jsonldMatchesQuery } from './rdfSparql';
 import {
-  cleanShaclProp,
   extractIds,
   filterUndef,
   getNameOfNode,
@@ -151,12 +150,10 @@ export default class Vocab {
           );
           const vocab = response.data;
           if (vocabName === 'webapi') {
-            vocab['@graph'] = vocab['@graph']
-              .map((n: any) => cleanShaclProp(n))
-              .filter(
-                (n: INode) =>
-                  n['@id'].startsWith('webapi') || n['@id'].startsWith('_:'),
-              );
+            vocab['@graph'] = vocab['@graph'].filter(
+              (n: INode) =>
+                n['@id'].startsWith('webapi') || n['@id'].startsWith('_:'),
+            );
             return this.addVocab('webapi', vocab, 'application/ld+json');
           }
           // we remove the top level @id, which screws up jsonld expanding

@@ -87,6 +87,7 @@ export interface IRestrictionRange {
 export interface IRestriction {
   property: string;
   propertyRanges?: IRestrictionRange[];
+  rangeIsIdNode: boolean;
   // propertyRangeIn: IRestrictionRange[];
   defaultValue?: string;
   valueIn?: string[];
@@ -96,16 +97,6 @@ export interface IRestriction {
   minInclusive?: number;
   maxInclusive?: number;
 }
-
-const xsdPropToSchemaClass = (prop: string) =>
-  ({
-    'xsd:string': 'schema:Text',
-    'xsd:decimal': 'schema:Float',
-    'xsd:integer': 'schema:Integer',
-    'xsd:boolean': 'schema:Boolean',
-    'xsd:date': 'schema:Date',
-    'xsd:time': 'schema:Time',
-  }[prop]);
 
 const toIdNode = (str: string) => ({
   '@id': str,
@@ -117,36 +108,15 @@ const toIdNodeArr = (str: string) => [
   },
 ];
 
-export const cleanShaclProp = (shProp: INode): INode => {
-  const shPropCpy = clone(shProp);
-  const nodeDatatype = shPropCpy[p.shDatatype];
-  if (
-    nodeDatatype &&
-    nodeDatatype[0] &&
-    nodeDatatype[0]['@id'].startsWith(p.commonNamespaces.xsd)
-  ) {
-    shPropCpy[p.shClass] = toIdNodeArr(
-      xsdPropToSchemaClass(nodeDatatype[0]['@id']),
-    );
-    delete shPropCpy[p.shDatatype];
-  }
-  const nodekind = shPropCpy[p.shNodeKind];
-  if (
-    nodekind &&
-    nodekind['@id'] === p.shIRI &&
-    (shPropCpy['@type'] && !shPropCpy['@type'].includes(p.shNodeShape))
-  ) {
-    shPropCpy['sh:class'] = toIdNodeArr(p.schemaURL);
-    delete shPropCpy['sh:nodeKind'];
-  }
-  return shPropCpy;
-};
-
 export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   const pRanges: IRestrictionRange[] = [];
-  const nodeClass = shProp[p.shClass] as INodeValue[] | undefined;
-  if (nodeClass) {
-    const pRangeIds = extractIds(nodeClass);
+
+  const nodeClass: INodeValue[] = (shProp[p.shClass] as INodeValue[]) || [];
+  const nodeDatatype: INodeValue[] =
+    (shProp[p.shDatatype] as INodeValue[]) || [];
+  const nodeRanges = nodeClass.concat(nodeDatatype);
+  if (nodeRanges.length > 0) {
+    const pRangeIds = extractIds(nodeRanges);
     pRangeIds.forEach((pRangeId) => {
       const pRange: IRestrictionRange = {
         nodeId: pRangeId,
@@ -178,12 +148,6 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
     }
   }
 
-  if (extractIds(shProp[p.shNodeKind]).includes(p.shIRI)) {
-    pRanges.push({
-      nodeId: '@id',
-    });
-  }
-
   const minCount = shProp[p.shMinCount];
   const maxCount = shProp[p.shMaxCount];
   const maxInclusive = shProp[p.shMaxInclusive];
@@ -202,10 +166,11 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   }
 
   return {
+    rangeIsIdNode: extractIds(shProp[p.shNodeKind]).includes(p.shIRI),
     property: path && path[0] && path[0]['@id'],
     propertyRanges: pRanges.length > 0 ? pRanges : undefined,
     defaultValue: defaultValue && defaultValue[0] && defaultValue[0]['@id'],
-    valueIn: valueInValues,
+    valueIn: valueInValues.length > 0 ? valueInValues : undefined,
     minCount:
       minCount && minCount[0]['@value'] && parseInt(minCount[0]['@value'], 10),
     maxCount:

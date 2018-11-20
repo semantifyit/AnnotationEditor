@@ -23,6 +23,7 @@ interface IProps {
   path: string[];
   canUseDashIOProps: boolean;
   additionalRestrictionIds?: string[];
+  isIdPropNode?: boolean;
 }
 
 interface IProperty {
@@ -70,9 +71,12 @@ class TypeNode extends React.Component<IProps, IState> {
 
     this.state.propertyIds = []; // since the node changed, reset the list of properties
     // reset the selected element for the select box
-    this.state.selectedProp = Object.entries(
+    const propNode = Object.entries(
       this.context.vocab.getPropertyNodeForType(this.props.nodeId),
-    ).filter(([k, v]) => v.length > 0)[0][1][0]['@id'];
+    ).filter(([k, v]) => v.length > 0);
+
+    this.state.selectedProp =
+      propNode.length > 0 ? propNode[0][1][0]['@id'] : '@id';
     this.state.nodeIds = [this.props.nodeId];
 
     // restrictions
@@ -81,7 +85,7 @@ class TypeNode extends React.Component<IProps, IState> {
     this.existingMembersIds = this.context.vocab
       .getMembersOfTypes(this.state.nodeIds)
       .map((n) => n['@id']);
-    if (this.existingMembersIds.length > 0) {
+    if (this.existingMembersIds.length > 0 || this.props.isIdPropNode) {
       this.addProperty('@id');
     }
   }
@@ -237,7 +241,11 @@ class TypeNode extends React.Component<IProps, IState> {
     ).filter(([k, v]) => v.length > 0);
 
     if (this.state.selectedProp === '') {
-      this.state.selectedProp = propertyNodeObj[0][1][0]['@id'];
+      if (propertyNodeObj.length > 0) {
+        this.state.selectedProp = propertyNodeObj[0][1][0]['@id'];
+      } else {
+        this.state.selectedProp = '@id';
+      }
     }
     if (nodes.length === 0) {
       return <h1>Node not found</h1>;
@@ -267,74 +275,78 @@ class TypeNode extends React.Component<IProps, IState> {
 
     return (
       <div style={divStyle} id={this.baseUID}>
-        {nodes.map((n, i) => {
-          const path =
-            nodes.length > 1
-              ? joinPaths(this.props.path.concat('@type', `[${i}]`))
-              : joinPaths(this.props.path.concat('@type'));
-          return <div key={i} data-value={n['@id']} data-path={path} />;
-        })}
-        <div className="row">
-          <h4 title={typeTitle}>{typeHeader} </h4>
-          {typeSelectOptions.length > 1 && (
-            <DropDownSelect
-              multiSelect={true}
-              selectOptions={typeSelectOptions}
-              selectedOptions={typeSelectOptions.filter((o) =>
-                this.state.nodeIds.includes(o.value),
+        {!this.props.isIdPropNode && (
+          <div>
+            {nodes.map((n, i) => {
+              const path =
+                nodes.length > 1
+                  ? joinPaths(this.props.path.concat('@type', `[${i}]`))
+                  : joinPaths(this.props.path.concat('@type'));
+              return <div key={i} data-value={n['@id']} data-path={path} />;
+            })}
+            <div className="row">
+              <h4 title={typeTitle}>{typeHeader} </h4>
+              {typeSelectOptions.length > 1 && (
+                <DropDownSelect
+                  multiSelect={true}
+                  selectOptions={typeSelectOptions}
+                  selectedOptions={typeSelectOptions.filter((o) =>
+                    this.state.nodeIds.includes(o.value),
+                  )}
+                  onChangeSelection={this.changedTypesSelection}
+                />
               )}
-              onChangeSelection={this.changedTypesSelection}
-            />
-          )}
-          <div className="col-sm-6 col-sm-offset-6  pull-right">
-            <div className="input-group">
-              <select
-                className="custom-select"
-                value={this.state.selectedProp}
-                onChange={(e) =>
-                  this.setState({ selectedProp: e.target.value })
-                }
-              >
-                >
-                {propertyNodeObj.map(([type, propArr], i) => (
-                  <optgroup key={i} label={removeNS(type)}>
-                    {propArr.map((prop, j) => (
-                      <option
-                        disabled={!this.canUseAnotherProp(prop['@id'])}
-                        key={j}
-                        value={prop['@id']}
-                        title={getDescriptionOfNode(prop)}
-                        style={this.getStyleOfSelectProp(prop)}
-                      >
-                        {getNameOfNode(prop)}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-                <optgroup label="General">
-                  <option
-                    title="IRI of the resource"
-                    value="@id"
-                    disabled={this.state.propertyIds.some(
-                      ({ nodeId }) => nodeId === '@id',
-                    )}
+              <div className="col-sm-6 col-sm-offset-6  pull-right">
+                <div className="input-group">
+                  <select
+                    className="custom-select"
+                    value={this.state.selectedProp}
+                    onChange={(e) =>
+                      this.setState({ selectedProp: e.target.value })
+                    }
                   >
-                    @id
-                  </option>
-                </optgroup>
-              </select>
-              <div className="input-group-append">
-                <button
-                  className="btn btn-primary"
-                  type="button"
-                  onClick={this.addPropertyClick}
-                >
-                  Add
-                </button>
+                    >
+                    {propertyNodeObj.map(([type, propArr], i) => (
+                      <optgroup key={i} label={removeNS(type)}>
+                        {propArr.map((prop, j) => (
+                          <option
+                            disabled={!this.canUseAnotherProp(prop['@id'])}
+                            key={j}
+                            value={prop['@id']}
+                            title={getDescriptionOfNode(prop)}
+                            style={this.getStyleOfSelectProp(prop)}
+                          >
+                            {getNameOfNode(prop)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                    <optgroup label="General">
+                      <option
+                        title="IRI of the resource"
+                        value="@id"
+                        disabled={this.state.propertyIds.some(
+                          ({ nodeId }) => nodeId === '@id',
+                        )}
+                      >
+                        @id
+                      </option>
+                    </optgroup>
+                  </select>
+                  <div className="input-group-append">
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      onClick={this.addPropertyClick}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         {this.state.propertyIds.map((propId, i) => {
           const propIds = this.state.propertyIds.slice(0); // clone array
           propIds.splice(i, 1);

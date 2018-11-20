@@ -1,7 +1,7 @@
-- fix enums
-- change split to not include remove prop button
+- enum flag if treated as single select or as node?
+- range selection maybe without bootstrap row-col
 - check remove prop where minCount: 1 with 2 props
-- switch range on prop with restriction (eg. aquarium ds)
+- switch range on prop with restriction doesn't work(eg. aquarium ds)
 
 - new shacl props targeting data nodes
 - webapi: check fields filled in on "next" click

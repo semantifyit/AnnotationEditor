@@ -39,6 +39,7 @@ class PropertyNode extends React.Component<IProps, IState> {
 
   public ranges: string[] = [];
   public rangeRestrictions: { [nodeId: string]: string[] } = {};
+  public makeRangeIdNode = false;
 
   public state: IState = {
     selectedRange: '',
@@ -108,6 +109,10 @@ class PropertyNode extends React.Component<IProps, IState> {
         // if (this.state.selectedRange === '') {
         this.state.selectedRange = this.ranges[0];
         // }
+      }
+      const nodeIdRestrictions = restrictions.filter((r) => r.rangeIsIdNode);
+      if (nodeIdRestrictions.length > 0) {
+        this.makeRangeIdNode = true;
       }
     }
 
@@ -216,6 +221,7 @@ class PropertyNode extends React.Component<IProps, IState> {
                   this.rangeRestrictions[this.state.selectedRange],
                 ).filter((n) => n)}
                 existingMembersIds={this.props.existingMembersIds}
+                makeRangeIdNode={this.makeRangeIdNode}
               />
             </div>
           </div>

@@ -23,6 +23,7 @@ interface IProps {
   restriction: IRestriction[];
   additionalRestrictionIds: string[];
   existingMembersIds: string[];
+  makeRangeIdNode: boolean;
 }
 
 interface IState {
@@ -265,7 +266,7 @@ class RangeNode extends React.Component<IProps, IState> {
 
   public render() {
     const isTerminal = this.context.vocab.isTerminalNode(this.props.nodeId);
-    if (isTerminal) {
+    if (isTerminal && !this.props.makeRangeIdNode) {
       return (
         <div className="form-group">
           <div
@@ -287,6 +288,7 @@ class RangeNode extends React.Component<IProps, IState> {
         path={this.props.path}
         canUseDashIOProps={this.props.canUseDashIOProps}
         additionalRestrictionIds={this.props.additionalRestrictionIds}
+        isIdPropNode={this.props.makeRangeIdNode}
       />
     );
   }

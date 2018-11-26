@@ -158,14 +158,14 @@ class TypeNode extends React.Component<IProps, IState> {
   }
 
   public removeProp = (propUid: string, propId: string) => {
+    const otherPropsWithSameId = this.state.propertyIds.filter(
+      (p) => p.nodeId === propId,
+    ).length;
     const canRemoveProp = this.restrictions
       .filter((r) => r.property === propId && r.minCount)
       .reduce(
         (acc, cur) =>
-          acc &&
-          (cur.minCount &&
-            cur.minCount <
-              this.state.propertyIds.filter((p) => p.uid === propUid).length),
+          acc && (cur.minCount && cur.minCount < otherPropsWithSameId),
         true,
       );
 

@@ -29,10 +29,13 @@ class Annotation extends React.Component<IProps, IState> {
   public annotationUid = uuidv1();
   public baseUID = `baseid-${this.annotationUid}`;
 
-  public jsonld = {};
+  public jsonldResult: { jsonld: any; complete: boolean } = {
+    jsonld: null,
+    complete: false,
+  };
 
   public createAnnotation = () => {
-    this.jsonld = generateJSONLD(this.baseUID);
+    this.jsonldResult = generateJSONLD(this.baseUID);
     this.setState({ modalIsOpen: true });
   };
 
@@ -62,10 +65,16 @@ class Annotation extends React.Component<IProps, IState> {
         <Modal isOpen={this.state.modalIsOpen} toggle={this.toggleModal}>
           <ModalHeader toggle={this.toggleModal}>Your Annotation</ModalHeader>
           <ModalBody>
+            {!this.jsonldResult.complete && (
+              <div className="alert alert-warning" role="alert">
+                Some fields weren't filled in and thus don't appear in the
+                annotation!
+              </div>
+            )}
             <pre
               dangerouslySetInnerHTML={{
                 __html: syntaxHighlightJsonStr(
-                  JSON.stringify(this.jsonld, null, 2),
+                  JSON.stringify(this.jsonldResult.jsonld, null, 2),
                 ),
               }}
               style={{
@@ -80,7 +89,7 @@ class Annotation extends React.Component<IProps, IState> {
             <Button
               color="primary"
               onClick={() => {
-                copyStrIntoClipBoard(JSON.stringify(this.jsonld));
+                copyStrIntoClipBoard(JSON.stringify(this.jsonldResult.jsonld));
                 toast.info('Copied');
               }}
             >

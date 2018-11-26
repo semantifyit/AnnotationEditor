@@ -37,12 +37,12 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     {
       title: 'Step 1: Create a WebApi Annotation',
       type: p.schemaWebAPI,
-      annotation: null,
+      annotationResult: { jsonld: null, complete: false },
     },
     {
       title: 'Step 2: Create Action Annotation',
       type: p.schemaAction,
-      annotation: null,
+      annotationResult: { jsonld: null, complete: false },
     },
   ];
 
@@ -61,12 +61,23 @@ class AnnotationWebApi extends React.Component<{}, IState> {
 
   public finalize = () => {
     this.steps.forEach((step, i) => {
-      this.steps[i].annotation = generateJSONLD(`annotation-${i}`);
+      this.steps[i].annotationResult = generateJSONLD(`annotation-${i}`);
     });
     this.setState({ modalIsOpen: true });
   };
 
   public nextStep = () => {
+    const currentAnnotationIsComplete = generateJSONLD(
+      `annotation-${this.state.currentStep}`,
+    ).complete;
+    if (!currentAnnotationIsComplete) {
+      const proceed = confirm(
+        'Your annotation has some empty fields, are you sure you want to continue?',
+      );
+      if (!proceed) {
+        return;
+      }
+    }
     this.setState((state) => {
       if (state.currentStep === this.steps.length - 1) {
         this.steps.push(clone(this.steps[this.steps.length - 1]));
@@ -134,6 +145,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
               color="success"
               className="float-right"
               size="lg"
+              disabled={this.state.currentStep !== this.steps.length - 1}
             >
               Finalize
             </Button>
@@ -146,13 +158,20 @@ class AnnotationWebApi extends React.Component<{}, IState> {
         >
           <ModalHeader toggle={this.toggleModal}>Your Annotations</ModalHeader>
           <ModalBody>
+            {this.steps.some(
+              ({ annotationResult }) => !annotationResult.complete,
+            ) && (
+              <div className="alert alert-warning" role="alert">
+                Some annotations are incomplete!
+              </div>
+            )}
             <div className="row">
               {this.steps.map((step, i) => (
                 <div className="col-md-6" style={{ padding: '3px' }} key={i}>
                   <pre
                     dangerouslySetInnerHTML={{
                       __html: syntaxHighlightJsonStr(
-                        JSON.stringify(step.annotation, null, 2),
+                        JSON.stringify(step.annotationResult.jsonld, null, 2),
                       ),
                     }}
                     style={{
@@ -171,7 +190,9 @@ class AnnotationWebApi extends React.Component<{}, IState> {
               color="primary"
               onClick={() => {
                 copyStrIntoClipBoard(
-                  JSON.stringify(this.steps.map((s) => s.annotation)),
+                  JSON.stringify(
+                    this.steps.map((s) => s.annotationResult.jsonld),
+                  ),
                 );
                 toast.info('Copied');
               }}

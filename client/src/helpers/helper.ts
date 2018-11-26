@@ -201,10 +201,10 @@ export const joinPaths = (pathArr: string[]): string =>
 export const generateJSONLD = (
   docEleId: string,
   pathStartsWith?: string,
-): any => {
+): { jsonld: any; complete: boolean } => {
   const docEle = document.getElementById(docEleId);
   if (!docEle) {
-    return undefined;
+    return { jsonld: undefined, complete: false };
   }
   // we don't need a context anymore
   // const jsonld = {
@@ -213,11 +213,15 @@ export const generateJSONLD = (
   //     webapi: 'http://actions.semantify.it/vocab/',
   //   },
   // };
+  let complete = true;
   const jsonld = {};
   const terminals = docEle.querySelectorAll('[data-path]');
   terminals.forEach((t: HTMLElement) => {
     let { path } = t.dataset;
     const { value } = t.dataset;
+    if (path && !value) {
+      complete = false;
+    }
     if (!path || !value) {
       return;
     }
@@ -228,7 +232,7 @@ export const generateJSONLD = (
       set(jsonld, path.split(pathSeparator), value);
     }
   });
-  return jsonld;
+  return { jsonld, complete };
 };
 
 export function filterUndef<T>(ts: (T | undefined)[]): T[] {

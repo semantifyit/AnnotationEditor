@@ -42,25 +42,21 @@ class VocabSelection extends React.Component<IProps, IState> {
   public fileUpload = (e: React.ChangeEvent<any>) => {
     if (
       e.target.files.length !== 1 ||
-      !e.target.files[0].name.match('.*.json.*')
+      !e.target.files[0].name.match('^(.*.json.*|.*.ttl)$')
     ) {
+      toast.error('Only acceots filetypes .json, .jsonld, .tll');
       return;
     }
     const fileSource = e.target.files[0];
     const reader = new FileReader();
     reader.onload = ((file: any) => () => {
-      try {
-        const json = JSON.parse(file.result);
-        this.setState((state) => ({
-          fileUploadVocab: state.fileUploadVocab.concat({
-            data: json,
-            name: file.name,
-          }),
-        }));
-        toast.info('Added vocab, make sure to reload!');
-      } catch (e) {
-        alert("Couldn't parse file! Is it not json?");
-      }
+      this.setState((state) => ({
+        fileUploadVocab: state.fileUploadVocab.concat({
+          data: file.result,
+          name: fileSource.name,
+        }),
+      }));
+      toast.info('Added vocab, make sure to reload!');
     })(reader);
     reader.readAsText(fileSource);
     this.setState({ filename: fileSource.name });
@@ -101,15 +97,29 @@ class VocabSelection extends React.Component<IProps, IState> {
 
   public reloadClick = async () => {
     await this.context.vocab.addDefaultVocabs(...this.state.currentVocabs);
-    this.state.fileUploadVocab
-      .filter(({ data }) => data['@graph'])
-      .forEach(({ data, name }) => {
-        this.context.vocab.addVocab(
-          name,
-          data['@graph'],
-          'application/ld+json',
-        );
-      });
+    await Promise.all(
+      this.state.fileUploadVocab.map(async ({ data, name }) => {
+        try {
+          let result = await this.context.vocab.addVocab(
+            name,
+            data,
+            'application/ld+json',
+          );
+          if (result !== true) {
+            result = await this.context.vocab.addVocab(
+              name,
+              data,
+              'text/turtle',
+            );
+          }
+          if (result !== true) {
+            toast.error(`Error parsing the vocab:\n${name}`);
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }),
+    );
 
     this.props.reloadClick();
     this.setState({ isOpen: false });
@@ -184,7 +194,7 @@ class VocabSelection extends React.Component<IProps, IState> {
                       type="file"
                       className="custom-file-input"
                       id="customFile"
-                      accept=".json,.jsonld"
+                      accept=".json,.jsonld,.ttl"
                       onChange={this.fileUpload}
                     />
                     <label className="custom-file-label" htmlFor="customFile">

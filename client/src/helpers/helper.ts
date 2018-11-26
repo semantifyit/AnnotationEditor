@@ -85,6 +85,7 @@ export interface IRestrictionRange {
 }
 
 export interface IRestriction {
+  id: string;
   property: string;
   propertyRanges?: IRestrictionRange[];
   rangeIsIdNode: boolean;
@@ -166,6 +167,7 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   }
 
   return {
+    id: shProp['@id'],
     rangeIsIdNode: extractIds(shProp[p.shNodeKind]).includes(p.shIRI),
     property: path && path[0] && path[0]['@id'],
     propertyRanges: pRanges.length > 0 ? pRanges : undefined,

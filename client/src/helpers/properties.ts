@@ -74,3 +74,4 @@ export const shProperty = joinNS('sh', 'property');
 export const shTarget = joinNS('sh', 'target');
 export const shSelect = joinNS('sh', 'select');
 export const shTargetClass = joinNS('sh', 'targetClass');
+export const shTargetNode = joinNS('sh', 'targetNode');

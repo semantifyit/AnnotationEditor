@@ -25,6 +25,7 @@ interface IProps {
   restriction: IRestriction[];
   existingMembersIds: string[];
   removeProp(uid: string, id: string): void;
+  valueChanged(propId: string, propValue: string): void;
 }
 
 interface IState {
@@ -106,9 +107,10 @@ class PropertyNode extends React.Component<IProps, IState> {
           acc[cur.nodeId] = cur.restrictionIds;
           return acc;
         }, {});
-        // if (this.state.selectedRange === '') {
-        this.state.selectedRange = this.ranges[0];
-        // }
+        if (this.state.selectedRange === '') {
+          // without can't change range when ranges have restrictions
+          this.state.selectedRange = this.ranges[0];
+        }
       }
       const nodeIdRestrictions = restrictions.filter((r) => r.rangeIsIdNode);
       if (nodeIdRestrictions.length > 0) {
@@ -222,6 +224,9 @@ class PropertyNode extends React.Component<IProps, IState> {
                 ).filter((n) => n)}
                 existingMembersIds={this.props.existingMembersIds}
                 makeRangeIdNode={this.makeRangeIdNode}
+                valueChanged={(value) =>
+                  this.props.valueChanged(this.state.nodeId, value)
+                }
               />
             </div>
           </div>

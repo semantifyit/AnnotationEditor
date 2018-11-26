@@ -16,6 +16,7 @@ import PropertyNode from './PropertyNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
 import { set } from 'lodash';
 import { IContext, VocabContext } from '../helpers/VocabContext';
+import { flatten2DArr } from '../helpers/util';
 
 interface IProps {
   nodeId: string;
@@ -51,6 +52,7 @@ class TypeNode extends React.Component<IProps, IState> {
   public existingMembersIds: string[] = [];
   public nodeUid = uuidv1();
   public baseUID = `baseid-${joinPaths(this.props.path)}-${this.nodeUid}`;
+  public nodeRestrictionIds: string[] = [];
 
   public componentDidMount() {
     this.update();
@@ -90,7 +92,10 @@ class TypeNode extends React.Component<IProps, IState> {
     }
   }
 
-  public useRestrictions(restrictions: IRestriction[]) {
+  public useRestrictions(
+    restrictions: IRestriction[],
+    resetProperties?: string[],
+  ) {
     let properties: IProperty[] = [];
     restrictions.forEach((r) => {
       if (r.minCount) {
@@ -106,12 +111,21 @@ class TypeNode extends React.Component<IProps, IState> {
     });
 
     properties = properties.filter((p) => this.canUseAnotherProp(p.nodeId));
-    if (properties.length !== 0) {
+    // if (properties.length !== 0) { // with it it doesn't remove props on @id change
+    if (resetProperties && resetProperties.length > 0) {
+      this.setState((state) => ({
+        propertyIds: state.propertyIds
+          .filter((prop) => resetProperties.includes(prop.nodeId))
+          .concat(properties),
+      }));
+    } else {
       this.setState((state) => ({
         propertyIds: state.propertyIds.concat(properties),
       }));
-      // this.state.propertyIds = this.state.propertyIds.concat(properties);
     }
+
+    // this.state.propertyIds = this.state.propertyIds.concat(properties);
+    // }
   }
 
   public updateRestrictions(nIds?: string[]) {
@@ -211,9 +225,9 @@ class TypeNode extends React.Component<IProps, IState> {
   };
 
   public getStyleOfSelectProp = (prop: INode) => {
-    const propHasRestrictions =
-      this.restrictions.filter((r) => isEqProp(r.property, prop['@id']))
-        .length > 0;
+    const propHasRestrictions = this.restrictions.some((r) =>
+      isEqProp(r.property, prop['@id']),
+    );
     if (!this.canUseAnotherProp(prop['@id'])) {
       // this shouldn't matter, since we set the option to disabled
       return { color: 'grey', fontStyle: 'italic' };
@@ -222,6 +236,19 @@ class TypeNode extends React.Component<IProps, IState> {
       return { background: 'rgb(255,255,153)' };
     }
     return {};
+  };
+
+  public propValueChanged = (propId: string, propValue: string) => {
+    if (propId === '@id') {
+      const nodeRestrictions = this.context.vocab.getRestrictionsForNode(
+        propValue,
+      );
+      this.restrictions = this.restrictions
+        .filter(({ id }) => !this.nodeRestrictionIds.includes(id))
+        .concat(nodeRestrictions);
+      this.nodeRestrictionIds = nodeRestrictions.map((r) => r.id);
+      this.useRestrictions(nodeRestrictions, ['@id']);
+    }
   };
 
   public render() {
@@ -273,6 +300,12 @@ class TypeNode extends React.Component<IProps, IState> {
             .join(', ')}...`
         : typeTitle;
 
+    const recommendedProps = flatten2DArr(
+      propertyNodeObj.map(([, props]) => props),
+    ).filter((prop) =>
+      this.restrictions.some((r) => isEqProp(r.property, prop['@id'])),
+    );
+
     return (
       <div style={divStyle} id={this.baseUID}>
         {!this.props.isIdPropNode && (
@@ -306,6 +339,20 @@ class TypeNode extends React.Component<IProps, IState> {
                     }
                   >
                     >
+                    {recommendedProps.length > 0 && (
+                      <optgroup label="Recommended">
+                        {recommendedProps.map((prop, i) => (
+                          <option
+                            disabled={!this.canUseAnotherProp(prop['@id'])}
+                            key={i}
+                            value={prop['@id']}
+                            title={getDescriptionOfNode(prop)}
+                          >
+                            {getNameOfNode(prop)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                     {propertyNodeObj.map(([type, propArr], i) => (
                       <optgroup key={i} label={removeNS(type)}>
                         {propArr.map((prop, j) => (
@@ -375,6 +422,7 @@ class TypeNode extends React.Component<IProps, IState> {
               restriction={this.restrictions.filter(
                 (r) => isEqProp(r.property, propId.nodeId), // func call because of -input -output props
               )}
+              valueChanged={this.propValueChanged}
             />
           );
         })}

@@ -24,6 +24,7 @@ interface IProps {
   additionalRestrictionIds: string[];
   existingMembersIds: string[];
   makeRangeIdNode: boolean;
+  valueChanged(propValue: string): void;
 }
 
 interface IState {
@@ -71,8 +72,9 @@ class RangeNode extends React.Component<IProps, IState> {
       }
     }
 
-    if (this.props.existingMembersIds) {
+    if (this.props.existingMembersIds.length > 0) {
       this.state.value = this.props.existingMembersIds[0];
+      this.props.valueChanged(this.state.value);
     }
   }
 
@@ -101,6 +103,7 @@ class RangeNode extends React.Component<IProps, IState> {
       }
     });
     this.setState({ value, valueIncorrectnessReason });
+    this.props.valueChanged(value);
   }
 
   public handleTime(e: Moment, format: string) {
@@ -128,7 +131,7 @@ class RangeNode extends React.Component<IProps, IState> {
       return this.makeSelect(this.enumerations);
     }
     if (this.props.existingMembersIds.length > 0) {
-      this.state.value = this.props.existingMembersIds[0];
+      // this.state.value = this.props.existingMembersIds[0];
       return this.makeSelect(this.props.existingMembersIds);
     }
     const className = classNames({

@@ -496,4 +496,12 @@ export default class Vocab {
     this.getAllNodes().filter(
       (n) => n['@type'] && haveCommon(n['@type'], nodeIds),
     );
+
+  public getRestrictionsForNode = (nodeId: string): IRestriction[] =>
+    this.makeRestrictions(
+      this.getRestrictionNodes().filter(
+        (n) =>
+          n[p.shTargetNode] && extractIds(n[p.shTargetNode]).includes(nodeId),
+      ),
+    );
 }

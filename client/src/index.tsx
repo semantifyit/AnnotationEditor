@@ -11,6 +11,7 @@ import {
   faCog,
   faPlus,
   faSyncAlt,
+  faHome,
 } from '@fortawesome/free-solid-svg-icons';
 
 import App from './components/App';
@@ -26,6 +27,7 @@ library.add(
   faCog,
   faPlus,
   faSyncAlt,
+  faHome,
 );
 
 ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);

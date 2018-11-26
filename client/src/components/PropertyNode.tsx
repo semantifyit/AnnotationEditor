@@ -103,7 +103,7 @@ class PropertyNode extends React.Component<IProps, IState> {
         const pRange = rangeRestrictions[0].propertyRanges;
         this.ranges = pRange.map((r) => r.nodeId);
 
-        this.rangeRestrictions = pRange.reduce((acc, cur) => {
+        this.rangeRestrictions = pRange.reduce((acc: any, cur) => {
           acc[cur.nodeId] = cur.restrictionIds;
           return acc;
         }, {});

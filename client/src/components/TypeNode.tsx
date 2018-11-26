@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as uuidv1 from 'uuid/v1';
+import uuidv1 from 'uuid/v1';
 
 import { INode } from '../helpers/Vocab';
 import {
@@ -166,7 +166,7 @@ class TypeNode extends React.Component<IProps, IState> {
       .filter((r) => r.property === propId && r.minCount)
       .reduce(
         (acc, cur) =>
-          acc && (cur.minCount && cur.minCount < otherPropsWithSameId),
+          acc && (cur.minCount ? cur.minCount < otherPropsWithSameId : false),
         true,
       );
 
@@ -189,9 +189,10 @@ class TypeNode extends React.Component<IProps, IState> {
       .reduce(
         (acc, cur) =>
           acc &&
-          (cur.maxCount &&
-            cur.maxCount >
-              this.state.propertyIds.filter((p) => p.nodeId === propId).length),
+          (cur.maxCount
+            ? cur.maxCount >
+              this.state.propertyIds.filter((p) => p.nodeId === propId).length
+            : false),
         true,
       ) as boolean;
 

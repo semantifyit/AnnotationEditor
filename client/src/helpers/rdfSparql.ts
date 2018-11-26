@@ -50,13 +50,13 @@ export const jsonldMatchesQuery = async (
   );
   const queryObj = rdf.SPARQLToQuery(query, false, store);
 
-  const results = await queryStore(store, queryObj);
+  const results: any = (await queryStore(store, queryObj)) as any;
 
   const matches = results.reduce(
-    (acc, cur) =>
+    (acc: any, cur: any) =>
       acc ||
       Object.values(cur).reduce(
-        (acc2, cur2: { value: string }) => acc2 || cur2.value === topId,
+        (acc2: any, cur2: any) => acc2 || cur2.value === topId,
         false,
       ),
     false,

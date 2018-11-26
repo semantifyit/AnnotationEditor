@@ -7,18 +7,22 @@ export interface IDSMap {
   hash: string;
 }
 
+interface IDSResponce {
+  data: {
+    [dsId: string]: { name: string; hash: string };
+  };
+}
+
 export const fetchPublicDS = async (): Promise<IDSMap[]> => {
   try {
-    const response = await axios.get(
+    const response: IDSResponce = await axios.get(
       'https://semantify.it/api/domainspecification/public/map',
     );
-    return Object.entries(response.data).map(
-      ([k, v]: [string, { name: string; hash: string }]) => ({
-        id: k,
-        name: v.name,
-        hash: v.hash,
-      }),
-    );
+    return Object.entries(response.data).map(([k, v]) => ({
+      id: k,
+      name: v.name,
+      hash: v.hash,
+    }));
   } catch (e) {
     return [];
   }

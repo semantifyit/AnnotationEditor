@@ -2,7 +2,6 @@
   "extends": [
     "tslint:recommended",
     "tslint-react",
-    "tslint-config-prettier",
     "tslint-config-airbnb"
   ],
   "linterOptions": {
@@ -32,6 +31,7 @@
       {
         "SwitchCase": 1
       }
-    ]
+    ],
+    "jsx-no-multiline-js": false
   }
 }

@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
-import * as uuidv1 from 'uuid/v1';
+import uuidv1 from 'uuid/v1';
 import { generateJSONLD, joinPaths } from '../helpers/helper';
 import { VocabContext } from '../helpers/VocabContext';
 

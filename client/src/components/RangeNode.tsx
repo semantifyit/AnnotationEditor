@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Moment } from 'moment';
-import * as DateTime from 'react-datetime';
+import DateTime from 'react-datetime';
 import 'react-datetime/css/react-datetime.css';
 import classNames from 'classnames';
 
@@ -196,7 +196,7 @@ class RangeNode extends React.Component<IProps, IState> {
       case p.xsdDate:
         return (
           <DateTime
-            /*dateFormat="YYYY-MM-DD"*/ timeFormat={false}
+            timeFormat={false}
             defaultValue={new Date()}
             value={this.state.value}
             onChange={(e) =>
@@ -207,13 +207,11 @@ class RangeNode extends React.Component<IProps, IState> {
       case p.schemaDateTime:
         return (
           <DateTime
-            /*dateFormat="YYYY-MM-DD" timeFormat="HH:mm"*/ defaultValue={
-              new Date()
-            }
+            defaultValue={new Date()}
             value={this.state.value ? new Date(this.state.value) : new Date()}
-            onChange={(e: Moment) => {
-              this.setState({ value: e.toISOString() });
-            }}
+            onChange={(e) =>
+              typeof e !== 'string' && this.setState({ value: e.toISOString() })
+            }
           />
         );
       case p.schemaTime:
@@ -221,7 +219,7 @@ class RangeNode extends React.Component<IProps, IState> {
         return (
           <DateTime
             dateFormat={false}
-            /*timeFormat="HH:mm"*/ defaultValue={new Date()}
+            defaultValue={new Date()}
             value={this.state.value}
             onChange={(e) =>
               typeof e !== 'string' && this.handleTime(e, 'HH:mm')

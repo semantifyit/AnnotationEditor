@@ -216,9 +216,9 @@ export const generateJSONLD = (
   let complete = true;
   const jsonld = {};
   const terminals = docEle.querySelectorAll('[data-path]');
-  terminals.forEach((t: HTMLElement) => {
-    let { path } = t.dataset;
-    const { value } = t.dataset;
+  terminals.forEach((t: Element) => {
+    let { path } = (t as HTMLElement).dataset;
+    const { value } = (t as HTMLElement).dataset;
     if (path && !value) {
       complete = false;
     }

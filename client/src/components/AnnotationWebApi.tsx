@@ -95,6 +95,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     if (!this.state.ready) {
       return <h1>Loading ...</h1>;
     }
+    const progress = ((this.state.currentStep + 1) / this.steps.length) * 100;
     return (
       <div>
         <section
@@ -111,6 +112,19 @@ class AnnotationWebApi extends React.Component<{}, IState> {
           {this.steps[this.state.currentStep].title}{' '}
           {this.state.currentStep > 0 && `(${this.state.currentStep})`}
         </h4>
+        <br />
+        <div className="progress">
+          <div
+            className="progress-bar progress-bar-striped"
+            role="progressbar"
+            style={{
+              width: `${progress}%`,
+            }}
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        </div>
         <br />
         <div>
           {this.steps.map((step, i) => (

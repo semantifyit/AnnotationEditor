@@ -7,7 +7,7 @@ import { clone, flatten2DArr, haveCommon, uniqueArray } from './util';
 import { jsonldMatchesQuery } from './rdfSparql';
 import {
   extractIds,
-  filterUndef,
+  getDomains,
   getNameOfNode,
   IRestriction,
   isReplaceable,
@@ -23,8 +23,6 @@ export const defaultVocabs = {
   'schema-health-lifesci': 'Schema.org Health and Lifesciences',
   'schema-auto': 'Schema.org Auto',
 };
-
-export const specialCaseTerminals = [p.schemaQuantity];
 
 export interface INode {
   '@id': string;
@@ -116,7 +114,7 @@ export default class Vocab {
         }
       }
     } catch (e) {
-      console.log(e);
+      // probably JSON parse error
       return e;
     }
     return true;
@@ -142,6 +140,7 @@ export default class Vocab {
     ...vocabNames: string[]
   ): Promise<boolean> => {
     try {
+      this.vocabs = {};
       this.currentVocabs = vocabNames;
       await Promise.all(
         vocabNames.map(async (vocabName) => {
@@ -191,6 +190,7 @@ export default class Vocab {
     const cpy = clone(node);
     cpy['@id'] = `${node['@id']}-${ioType}`;
     cpy[p.rdfsLabel] = makeIdArr(`${node['rdfs:label']}-${ioType}`);
+    // io nodes only used in combination with schema, use schemaRangeIncludes
     cpy[p.schemaRangeIncludes] = makeIdArr(
       p.schemaText,
       p.schemaPropertyValueSpecification,
@@ -251,9 +251,8 @@ export default class Vocab {
       .filter(
         (n) =>
           n['@type'] &&
-          n['@type'].includes(p.rdfProperty) &&
-          n[p.schemaDomainIncludes] &&
-          extractIds(n[p.schemaDomainIncludes]).includes(type),
+          haveCommon(n['@type'], p.properties) &&
+          getDomains(n).includes(type),
       )
       .sort((a, b) => getNameOfNode(a).localeCompare(getNameOfNode(b)));
 
@@ -274,35 +273,8 @@ export default class Vocab {
 
   public isSpecialTerminalNode = (node: INode): boolean =>
     this.getSuperClasses(node['@id']).some((c) =>
-      specialCaseTerminals.includes(c),
+      p.specialCaseTerminals.includes(c),
     );
-
-  public isTerminalNode = (nodeId: string) => {
-    // maybe have a boolean in the vocab if we handle enums as nodes or as terminals
-    const xsdTerminal = [
-      p.xsdBoolean,
-      p.xsdDate,
-      p.xsdDecimal,
-      p.xsdBoolean,
-      p.xsdInteger,
-      p.xsdString,
-      p.xsdTime,
-      p.xsdAnyURI,
-    ];
-    const schemaTerminals = [
-      p.schemaText,
-      p.schemaURL,
-      p.schemaNumber,
-      p.schemaFloat,
-      p.schemaInteger,
-      p.schemaBoolean,
-      p.schemaDate,
-      p.schemaTime,
-      p.schemaDateTime,
-    ];
-    const terminals = xsdTerminal.concat(schemaTerminals, specialCaseTerminals);
-    return terminals.includes(nodeId);
-  };
 
   public getEnumValues = (nodeId: string) =>
     this.getAllNodes().filter((n) => n['@type'] && n['@type'].includes(nodeId));
@@ -350,6 +322,7 @@ export default class Vocab {
     if (!propNode) {
       return false;
     }
+    // enum nodes only used (for now) with schema, use schemaRangeIncludes
     const rangeOfNode = propNode[p.schemaRangeIncludes];
     if (!rangeOfNode || !rangeOfNode[0]) {
       return false;

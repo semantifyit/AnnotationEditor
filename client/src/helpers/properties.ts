@@ -1,4 +1,3 @@
-// import { joinNS, Namespace } from "./helper";
 export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh';
 
 export const commonNamespaces = {
@@ -30,6 +29,9 @@ export const rdfsLabel = joinNS('rdfs', 'label');
 export const rdfsComment = joinNS('rdfs', 'comment');
 export const rdfsClass = joinNS('rdfs', 'Class');
 export const rdfsSubClassOf = joinNS('rdfs', 'subClassOf');
+export const rdfsRange = joinNS('rdfs', 'range');
+export const rdfsDomain = joinNS('rdfs', 'domain');
+export const rdfsLiteral = joinNS('rdfs', 'Literal');
 
 // SCHEMA
 export const schemaBoolean = joinNS('schema', 'Boolean');
@@ -75,3 +77,42 @@ export const shTarget = joinNS('sh', 'target');
 export const shSelect = joinNS('sh', 'select');
 export const shTargetClass = joinNS('sh', 'targetClass');
 export const shTargetNode = joinNS('sh', 'targetNode');
+
+// OWL
+export const owlClass = joinNS('owl', 'Class');
+export const owlDatatypeProperty = joinNS('owl', 'DatatypeProperty');
+export const owlObjectProperty = joinNS('owl', 'Class');
+
+// Property groups
+export const ranges = [schemaRangeIncludes, rdfsRange];
+export const domains = [schemaDomainIncludes, rdfsDomain];
+export const classes = [rdfsClass, owlClass];
+export const properties = [rdfProperty, owlDatatypeProperty, owlObjectProperty];
+
+export const specialCaseTerminals = [schemaQuantity];
+
+export const terminalNodes = [
+  // XSD
+  xsdBoolean,
+  xsdDate,
+  xsdDecimal,
+  xsdBoolean,
+  xsdInteger,
+  xsdString,
+  xsdTime,
+  xsdAnyURI,
+  // RDFs
+  rdfsLiteral,
+  // Schema
+  schemaText,
+  schemaURL,
+  schemaNumber,
+  schemaFloat,
+  schemaInteger,
+  schemaBoolean,
+  schemaDate,
+  schemaTime,
+  schemaDateTime,
+  // special case schema
+  schemaQuantity,
+];

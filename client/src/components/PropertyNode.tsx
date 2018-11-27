@@ -6,6 +6,7 @@ import {
   extractIds,
   IRestriction,
   makeIdArr,
+  getRanges,
 } from '../helpers/helper';
 import { INode } from '../helpers/Vocab';
 import RangeNode from './RangeNode';
@@ -86,13 +87,13 @@ class PropertyNode extends React.Component<IProps, IState> {
       if (this.state.nodeId === '@id') {
         node = {
           '@id': '@id',
-          [p.schemaRangeIncludes]: makeIdArr(p.xsdAnyURI),
+          [p.rdfsRange]: makeIdArr(p.xsdAnyURI),
         };
       } else {
         return <h1>Node not found</h1>;
       }
     }
-    this.ranges = extractIds(node[p.schemaRangeIncludes]);
+    this.ranges = getRanges(node);
 
     if (this.props.restriction) {
       const restrictions = this.props.restriction.filter(

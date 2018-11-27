@@ -9,6 +9,7 @@ import VocabSelection from './VocabSelection';
 import { INode } from '../helpers/Vocab';
 import { IContext, VocabContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
+import { haveCommon } from '../helpers/util';
 
 interface IState {
   createdType: null | string;
@@ -25,12 +26,14 @@ class AnnotationBlank extends React.Component<{}, IState> {
     bases: null,
   };
 
+  public getBases = (): INode[] =>
+    this.context.vocab
+      .getAllNodes()
+      .filter((o) => o['@type'] && haveCommon(o['@type'], p.classes));
+
   public async componentDidMount() {
     await this.context.vocab.addDefaultVocabs('schema', 'schema-pending');
-    const bases = this.context.vocab
-      .getAllNodes()
-      .filter((o) => o['@type'] && o['@type'].includes(p.rdfsClass));
-    this.setState({ bases });
+    this.setState({ bases: this.getBases() });
   }
 
   public createBase(value: string) {
@@ -38,11 +41,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
   }
 
   public reloadPage = () => {
-    this.setState({
-      bases: this.context.vocab
-        .getAllNodes()
-        .filter((o) => o['@type'] && o['@type'].includes(p.rdfsClass)),
-    });
+    this.setState({ bases: this.getBases() });
   };
 
   public render() {

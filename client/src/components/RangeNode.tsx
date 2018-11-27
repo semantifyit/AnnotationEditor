@@ -10,9 +10,9 @@ import {
   joinPaths,
   IRestriction,
   removeNS,
+  isTerminalNode,
 } from '../helpers/helper';
 import TypeNode from './TypeNode';
-import { INode } from '../helpers/Vocab';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
 
@@ -143,6 +143,7 @@ class RangeNode extends React.Component<IProps, IState> {
       case p.xsdAnyURI:
       case p.schemaURL:
       case p.schemaText:
+      case p.rdfsLiteral:
         return (
           <div>
             <input
@@ -266,7 +267,7 @@ class RangeNode extends React.Component<IProps, IState> {
   }
 
   public render() {
-    const isTerminal = this.context.vocab.isTerminalNode(this.props.nodeId);
+    const isTerminal = isTerminalNode(this.props.nodeId);
     if (isTerminal && !this.props.makeRangeIdNode) {
       return (
         <div className="form-group">

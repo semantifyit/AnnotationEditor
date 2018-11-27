@@ -10,11 +10,11 @@ import {
   IRestriction,
   isEqProp,
   generateJSONLD,
+  nodeBelongsToNS,
 } from '../helpers/helper';
 
 import PropertyNode from './PropertyNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
-import { set } from 'lodash';
 import { IContext, VocabContext } from '../helpers/VocabContext';
 import { flatten2DArr } from '../helpers/util';
 
@@ -87,7 +87,10 @@ class TypeNode extends React.Component<IProps, IState> {
     this.existingMembersIds = this.context.vocab
       .getMembersOfTypes(this.state.nodeIds)
       .map((n) => n['@id']);
-    if (this.existingMembersIds.length > 0 || this.props.isIdPropNode) {
+    if (
+      (this.existingMembersIds.length > 0 || this.props.isIdPropNode) &&
+      nodeBelongsToNS(nodes[0], 'schema') // only add members for schema.org enumeration types
+    ) {
       this.addProperty('@id');
     }
   }
@@ -412,7 +415,9 @@ class TypeNode extends React.Component<IProps, IState> {
           return (
             <PropertyNode
               existingMembersIds={
-                propId.nodeId === '@id' ? this.existingMembersIds : []
+                propId.nodeId === '@id' && nodeBelongsToNS(nodes[0], 'schema')
+                  ? this.existingMembersIds
+                  : []
               }
               nodeId={propId.nodeId}
               uid={propId.uid}

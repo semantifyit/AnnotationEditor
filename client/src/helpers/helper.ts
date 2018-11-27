@@ -1,16 +1,7 @@
-import { set, has, get } from 'lodash';
+import { set, get } from 'lodash';
 
 import { INode, INodeValue } from './Vocab';
-import { jsonldMatchesQuery } from './rdfSparql';
-import {
-  clone,
-  flatten2DArr,
-  flatten3DArr,
-  hasP,
-  makeArray,
-  notEmpty,
-  uniqueArray,
-} from './util';
+import { flatten2DArr, flatten3DArr, makeArray, notEmpty } from './util';
 import * as p from './properties';
 
 export const makeIdArr = (...str: string[]) => str.map((s) => ({ '@id': s }));
@@ -238,3 +229,25 @@ export const generateJSONLD = (
 export function filterUndef<T>(ts: (T | undefined)[]): T[] {
   return ts.filter((t: T | undefined): t is T => !!t);
 }
+
+export const getPropertyValues = (
+  node: INode,
+  properties: string[],
+): string[] =>
+  extractIds(
+    flatten2DArr((Object.entries(node)
+      .filter(([key]) => properties.includes(key))
+      .map(([key, val]) => val) as unknown) as INodeValue[][]),
+  );
+
+export const getRanges = (node: INode): string[] =>
+  getPropertyValues(node, p.ranges);
+
+export const getDomains = (node: INode): string[] =>
+  getPropertyValues(node, p.domains);
+
+export const nodeBelongsToNS = (node: INode, ns: p.Namespace) =>
+  node['@id'].startsWith(p.commonNamespaces[ns]);
+
+export const isTerminalNode = (nodeId: string) =>
+  p.terminalNodes.includes(nodeId);

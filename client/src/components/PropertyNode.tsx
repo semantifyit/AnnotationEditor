@@ -95,6 +95,9 @@ class PropertyNode extends React.Component<IProps, IState> {
       }
     }
     this.ranges = getRanges(node);
+    if (this.ranges.length === 0) {
+      this.state.selectedRange = p.xsdString;
+    }
 
     if (this.props.restriction) {
       const restrictions = this.props.restriction.filter(

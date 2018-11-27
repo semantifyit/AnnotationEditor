@@ -44,19 +44,28 @@ class VocabSelection extends React.Component<IProps, IState> {
       e.target.files.length !== 1 ||
       !e.target.files[0].name.match('^(.*.json.*|.*.ttl)$')
     ) {
-      toast.error('Only acceots filetypes .json, .jsonld, .tll');
+      toast.error('Only accepts filetypes: .json, .jsonld, .tll');
       return;
     }
     const fileSource = e.target.files[0];
     const reader = new FileReader();
-    reader.onload = ((file: any) => () => {
+    reader.onload = ((file: any) => async () => {
       this.setState((state) => ({
         fileUploadVocab: state.fileUploadVocab.concat({
           data: file.result,
           name: fileSource.name,
         }),
       }));
-      toast.info('Added vocab, make sure to reload!');
+      const result = await this.context.vocab.addVocab(
+        fileSource.name,
+        file.result,
+      );
+      if (result !== true) {
+        toast.error(`Error parsing the vocab:\n${name}`);
+        return;
+      }
+      this.props.reloadClick();
+      toast.info('Added vocab!');
     })(reader);
     reader.readAsText(fileSource);
     this.setState({ filename: fileSource.name });
@@ -69,13 +78,19 @@ class VocabSelection extends React.Component<IProps, IState> {
         return;
       }
       const response = await axios.get(url);
-      toast.info('Added vocab, make sure to reload!');
       this.setState((state) => ({
         fileUploadVocab: state.fileUploadVocab.concat({
           data: response.data,
           name: url,
         }),
       }));
+      const result = await this.context.vocab.addVocab(url, response.data);
+      if (result !== true) {
+        toast.error(`Error parsing the vocab:\n${url}`);
+        return;
+      }
+      this.props.reloadClick();
+      toast.info('Added vocab!');
     } catch (e) {
       toast.error(`Couldn't fetch vocab:
       ${e}`);
@@ -86,43 +101,27 @@ class VocabSelection extends React.Component<IProps, IState> {
     this.setState((state) => ({ isOpen: !state.isOpen }));
   };
 
-  public switchVocab = (name: string) => {
+  public switchVocab = async (name: string) => {
     this.setState((state) => {
-      if (state.currentVocabs.includes(name)) {
-        return { currentVocabs: state.currentVocabs.filter((n) => n !== name) };
-      }
-      return { currentVocabs: state.currentVocabs.concat(name) };
+      const newDefaultVocabList = state.currentVocabs.includes(name)
+        ? state.currentVocabs.filter((n) => n !== name)
+        : state.currentVocabs.concat(name);
+      // don't wanna make the setState async
+      this.context.vocab
+        .setDefaultVocabs(...newDefaultVocabList)
+        .then(() => this.props.reloadClick());
+      return { currentVocabs: newDefaultVocabList };
     });
   };
 
-  public reloadClick = async () => {
-    await this.context.vocab.addDefaultVocabs(...this.state.currentVocabs);
-    await Promise.all(
-      this.state.fileUploadVocab.map(async ({ data, name }) => {
-        try {
-          let result = await this.context.vocab.addVocab(
-            name,
-            data,
-            'application/ld+json',
-          );
-          if (result !== true) {
-            result = await this.context.vocab.addVocab(
-              name,
-              data,
-              'text/turtle',
-            );
-          }
-          if (result !== true) {
-            toast.error(`Error parsing the vocab:\n${name}`);
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      }),
-    );
-
+  public removeVocab = (nameToRemove: string) => {
+    this.setState((state) => ({
+      fileUploadVocab: state.fileUploadVocab.filter(
+        ({ name }) => name !== nameToRemove,
+      ),
+    }));
+    this.context.vocab.removeVocab(nameToRemove);
     this.props.reloadClick();
-    this.setState({ isOpen: false });
   };
 
   public render() {
@@ -229,27 +228,22 @@ class VocabSelection extends React.Component<IProps, IState> {
                       <ul>
                         {this.state.fileUploadVocab.map(({ name }, i) => (
                           <li key={i} style={{ wordWrap: 'break-word' }}>
-                            {name}
+                            {name}{' '}
+                            <span
+                              onClick={() => this.removeVocab(name)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <FontAwesomeIcon
+                                icon="times"
+                                size="sm"
+                                color="red"
+                              />
+                            </span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  <div style={{ marginTop: '10px' }}>
-                    <Button
-                      outline={true}
-                      color="primary"
-                      disabled={
-                        arraysAreEquals(
-                          this.initialVocabSelection,
-                          this.state.currentVocabs,
-                        ) && this.state.fileUploadVocab.length === 0
-                      } // to boolean
-                      onClick={this.reloadClick}
-                    >
-                      <FontAwesomeIcon icon="sync-alt" size="lg" /> Reload
-                    </Button>
-                  </div>
                 </div>
               </div>
             )}

@@ -12,6 +12,7 @@ import {
   faPlus,
   faSyncAlt,
   faHome,
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 
 import App from './components/App';
@@ -28,6 +29,7 @@ library.add(
   faPlus,
   faSyncAlt,
   faHome,
+  faTimes,
 );
 
 ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);

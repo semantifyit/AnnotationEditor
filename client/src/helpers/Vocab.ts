@@ -76,11 +76,13 @@ const turtleToJsonLD = (turtleString: string): Promise<object[]> =>
     });
   });
 
+const vocabCache = {}; // only for default vocabs right now
+
 export default class Vocab {
   public vocabs: IVocab = {};
   public currentVocabs: string[] = [];
 
-  public addVocab = async (
+  public addVocabWithFormat = async (
     vocabName: string,
     vocabData: string | object,
     format: string,
@@ -120,6 +122,34 @@ export default class Vocab {
     return true;
   };
 
+  public addVocab = async (
+    vocabName: string,
+    vocabData: string | object,
+    format?: string,
+  ): Promise<any | true> => {
+    if (format) {
+      return this.addVocabWithFormat(vocabName, vocabData, format);
+    }
+    let result;
+    try {
+      result = await this.addVocabWithFormat(
+        vocabName,
+        vocabData,
+        'application/ld+json',
+      );
+      if (result !== true) {
+        result = await this.addVocabWithFormat(
+          vocabName,
+          vocabData,
+          'text/turtle',
+        );
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    return result;
+  };
+
   public addVocabJsonLD = (vocabName: string, nodes: INode[]): void => {
     if (!this.vocabs[vocabName]) {
       this.vocabs[vocabName] = {};
@@ -136,14 +166,22 @@ export default class Vocab {
     });
   };
 
-  public addDefaultVocabs = async (
+  public setDefaultVocabs = async (
     ...vocabNames: string[]
   ): Promise<boolean> => {
     try {
-      this.vocabs = {};
       this.currentVocabs = vocabNames;
+      delete this.vocabs.schema;
+      delete this.vocabs.webapi;
       await Promise.all(
         vocabNames.map(async (vocabName) => {
+          if (vocabCache[vocabName]) {
+            return this.addVocabWithFormat(
+              vocabName.includes('schema') ? 'schema' : 'webapi',
+              vocabCache[vocabName],
+              'application/ld+json',
+            );
+          }
           const response = await axios.get(
             `/annotation/api/vocabs/${vocabName}`,
           );
@@ -153,17 +191,31 @@ export default class Vocab {
               (n: INode) =>
                 n['@id'].startsWith('webapi') || n['@id'].startsWith('_:'),
             );
-            return this.addVocab('webapi', vocab, 'application/ld+json');
+            vocabCache[vocabName] = vocab;
+            return this.addVocabWithFormat(
+              'webapi',
+              vocab,
+              'application/ld+json',
+            );
           }
           // we remove the top level @id, which screws up jsonld expanding
           delete vocab['@id'];
-          return this.addVocab('schema', vocab, 'application/ld+json');
+          vocabCache[vocabName] = vocab;
+          return this.addVocabWithFormat(
+            'schema',
+            vocab,
+            'application/ld+json',
+          );
         }),
       );
       return true;
     } catch (e) {
       return false;
     }
+  };
+
+  public removeVocab = (vocabName: string) => {
+    delete this.vocabs[vocabName];
   };
 
   public getCurrentVocabs = (): string[] => this.currentVocabs;

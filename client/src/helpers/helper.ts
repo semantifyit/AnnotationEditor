@@ -14,13 +14,7 @@ export const removeNS = (str: string): string => {
   return lastOfNS || '';
 };
 
-export const getNameOfNode = (node: INode): string => {
-  const label = node[p.rdfsLabel];
-  if (label && label[0]['@value']) {
-    return label[0]['@value'];
-  }
-  return removeNS(node['@id']);
-};
+export const getNameOfNode = (node: INode): string => removeNS(node['@id']);
 
 export const getDescriptionOfNode = (node: INode): string => {
   const comment = node[p.rdfsComment];

@@ -47,7 +47,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   ];
 
   public async componentDidMount() {
-    await this.context.vocab.addDefaultVocabs(
+    await this.context.vocab.setDefaultVocabs(
       'schema',
       'schema-pending',
       'webapi',

@@ -32,7 +32,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
       .filter((o) => o['@type'] && haveCommon(o['@type'], p.classes));
 
   public async componentDidMount() {
-    await this.context.vocab.addDefaultVocabs('schema', 'schema-pending');
+    await this.context.vocab.setDefaultVocabs('schema');
     this.setState({ bases: this.getBases() });
   }
 

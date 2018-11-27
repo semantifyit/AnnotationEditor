@@ -29,7 +29,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
   };
 
   public async componentDidMount() {
-    await this.context.vocab.addDefaultVocabs('schema', 'schema-pending');
+    await this.context.vocab.setDefaultVocabs('schema', 'schema-pending');
     const DS = await fetchPublicDS();
     this.setState({ bases: DS });
   }

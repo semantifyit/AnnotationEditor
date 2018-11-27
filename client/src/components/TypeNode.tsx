@@ -318,7 +318,7 @@ class TypeNode extends React.Component<IProps, IState> {
             {nodes.map((n, i) => {
               const path =
                 nodes.length > 1
-                  ? joinPaths(this.props.path.concat('@type', `[${i}]`))
+                  ? joinPaths(this.props.path.concat('@type', i.toString()))
                   : joinPaths(this.props.path.concat('@type'));
               return <div key={i} data-value={n['@id']} data-path={path} />;
             })}

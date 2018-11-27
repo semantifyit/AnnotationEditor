@@ -52,6 +52,7 @@ class PropertyNode extends React.Component<IProps, IState> {
     // if the parent type node calls setState, don't re-render properties
     return (
       nextProps.nodeId !== this.props.nodeId ||
+      nextProps.arrIndex !== this.props.arrIndex ||
       this.state.nodeId !== nextState.nodeId ||
       this.state.selectedRange !== nextState.selectedRange
     );
@@ -126,7 +127,7 @@ class PropertyNode extends React.Component<IProps, IState> {
     const path =
       this.props.arrIndex === undefined
         ? this.props.path.concat(node['@id'])
-        : this.props.path.concat(node['@id'], `[${this.props.arrIndex}]`);
+        : this.props.path.concat(node['@id'], this.props.arrIndex.toString());
 
     const nameOfNode = getNameOfNode(node);
     const nameOfNodeWoIO = nameOfNode

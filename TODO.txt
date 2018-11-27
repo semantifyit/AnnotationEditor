@@ -1,5 +1,4 @@
-fix jsonld generation for arrays
-adding @id after another prop removes previous props
+adding @id after another prop removes previous props - fixed by magic??
 add @value ?
 
 - enum flag if treated as single select or as node?
@@ -9,9 +8,18 @@ remove suppressImplicitAnyIndexErrors tsconfig
 
 
 Common vocabs:
-rdf: https://www.w3.org/1999/02/22-rdf-syntax-ns#
-rdfs: https://www.w3.org/2000/01/rdf-schema#
-owl: https://www.w3.org/2002/07/owl#
-rml:http://semweb.mmlab.be/ns/rml.ttl
-rr: https://www.w3.org/ns/r2rml.ttl
+rdf:
+https://www.w3.org/1999/02/22-rdf-syntax-ns#
+
+rdfs:
+https://www.w3.org/2000/01/rdf-schema#
+
+owl:
+https://www.w3.org/2002/07/owl#
+
+rml:
+http://semweb.mmlab.be/ns/rml.ttl
+
+rr:
+https://www.w3.org/ns/r2rml.ttl
 

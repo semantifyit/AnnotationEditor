@@ -197,13 +197,7 @@ export const generateJSONLD = (
   if (!docEle) {
     return { jsonld: undefined, complete: false };
   }
-  // we don't need a context anymore
-  // const jsonld = {
-  //   '@context': {
-  //     '@vocab': 'http://schema.org/',
-  //     webapi: 'http://actions.semantify.it/vocab/',
-  //   },
-  // };
+
   let complete = true;
   const jsonld = {};
   const terminals = docEle.querySelectorAll('[data-path]');

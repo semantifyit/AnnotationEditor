@@ -15,9 +15,17 @@ const Navigation = () => (
         <a
           className="nav-link"
           href="https://semantify.it/"
+          target="_blank"
           style={{ paddingTop: '0', paddingBottom: '0' }}
         >
-          <span style={{ color: 'black', fontSize: '1.6em' }}>Powered by</span>
+          <span
+            style={{
+              fontSize: '1.6em',
+              fontStyle: 'italic',
+            }}
+          >
+            Powered by
+          </span>
           &emsp;
           <img src={logo} style={{ height: '60px' }} />
           &emsp;

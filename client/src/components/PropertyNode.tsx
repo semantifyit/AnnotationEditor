@@ -1,9 +1,9 @@
 import * as React from 'react';
+import Split from 'split.js';
 
 import {
   getNameOfNode,
   removeNS,
-  extractIds,
   IRestriction,
   makeIdArr,
   getRanges,
@@ -11,9 +11,7 @@ import {
 import { INode } from '../helpers/Vocab';
 import RangeNode from './RangeNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
-
-import Split from 'split.js';
-import { makeArray } from '../helpers/util';
+import { arraysAreEquals, makeArray } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
 
@@ -53,6 +51,7 @@ class PropertyNode extends React.Component<IProps, IState> {
     return (
       nextProps.nodeId !== this.props.nodeId ||
       nextProps.arrIndex !== this.props.arrIndex ||
+      !arraysAreEquals(nextProps.path, this.props.path) ||
       this.state.nodeId !== nextState.nodeId ||
       this.state.selectedRange !== nextState.selectedRange
     );

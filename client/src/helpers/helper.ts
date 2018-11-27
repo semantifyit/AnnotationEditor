@@ -7,7 +7,6 @@ import * as p from './properties';
 export const makeIdArr = (...str: string[]) => str.map((s) => ({ '@id': s }));
 
 export const removeNS = (str: string): string => {
-  // console.log(str);
   const lastOfUrl = str.split('/').pop();
   const lastOfURLHash = lastOfUrl ? lastOfUrl.split('#').pop() : '';
   const lastOfNS = lastOfURLHash ? lastOfURLHash.split(':').pop() : '';
@@ -186,6 +185,7 @@ export const joinPaths = (pathArr: string[]): string =>
 export const generateJSONLD = (
   docEleId: string,
   pathStartsWith?: string,
+  makeJsonldArray?: boolean,
 ): { jsonld: any; complete: boolean } => {
   const docEle = document.getElementById(docEleId);
   if (!docEle) {
@@ -193,7 +193,7 @@ export const generateJSONLD = (
   }
 
   let complete = true;
-  const jsonld = {};
+  const jsonld: any = makeJsonldArray ? [] : {};
   const terminals = docEle.querySelectorAll('[data-path]');
   terminals.forEach((t: Element) => {
     let { path } = (t as HTMLElement).dataset;

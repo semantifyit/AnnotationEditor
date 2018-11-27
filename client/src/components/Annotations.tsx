@@ -1,26 +1,26 @@
 import * as React from 'react';
-import TypeNode from './TypeNode';
-import { set } from 'lodash';
+import uuidv1 from 'uuid/v1';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import TypeNode from './TypeNode';
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
-import uuidv1 from 'uuid/v1';
-import { generateJSONLD, joinPaths } from '../helpers/helper';
+import { generateJSONLD } from '../helpers/helper';
 import { VocabContext } from '../helpers/VocabContext';
 
 interface IProps {
-  typeID: string;
+  typeIDs: { uid: string; node: string }[];
   generateButton: boolean;
+  removeAnnotation?(uid: string): void;
 }
 
 interface IState {
   modalIsOpen: boolean;
 }
 
-class Annotation extends React.Component<IProps, IState> {
+class Annotations extends React.Component<IProps, IState> {
   public static contextType = VocabContext;
   public state: IState = {
     modalIsOpen: false,
@@ -35,7 +35,11 @@ class Annotation extends React.Component<IProps, IState> {
   };
 
   public createAnnotation = () => {
-    this.jsonldResult = generateJSONLD(this.baseUID);
+    this.jsonldResult = generateJSONLD(
+      this.baseUID,
+      '',
+      this.props.typeIDs.length > 1,
+    );
     this.setState({ modalIsOpen: true });
   };
 
@@ -46,13 +50,28 @@ class Annotation extends React.Component<IProps, IState> {
   public render() {
     return (
       <div id={this.baseUID}>
-        <hr />
-        <TypeNode
-          nodeId={this.props.typeID}
-          path={[]}
-          canUseDashIOProps={false}
-          key={this.props.typeID}
-        />
+        {this.props.typeIDs.map(({ node, uid }, i) => (
+          <div key={uid}>
+            <hr />
+            {this.props.removeAnnotation && (
+              <span
+                className="float-right cursor-hand"
+                title="Remove this annotation"
+                onClick={() =>
+                  this.props.removeAnnotation &&
+                  this.props.removeAnnotation(uid)
+                }
+              >
+                <FontAwesomeIcon icon="times" size="sm" />
+              </span>
+            )}
+            <TypeNode
+              nodeId={node}
+              path={this.props.typeIDs.length > 1 ? [i.toString()] : []}
+              canUseDashIOProps={false}
+            />
+          </div>
+        ))}
         {this.props.generateButton && (
           <Button
             onClick={this.createAnnotation}
@@ -106,4 +125,4 @@ class Annotation extends React.Component<IProps, IState> {
   }
 }
 
-export default Annotation;
+export default Annotations;

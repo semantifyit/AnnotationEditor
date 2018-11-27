@@ -3,7 +3,7 @@ import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { ISingleOption } from './DropDownSelect';
-import Annotation from './Annotation';
+import Annotations from './Annotations';
 import {
   fetchDSbyId,
   fetchPublicDS,
@@ -80,7 +80,10 @@ class AnnotationTemplate extends React.Component<{}, IState> {
         <br />
         <div>
           {this.state.createdType && (
-            <Annotation typeID={this.state.createdType} generateButton={true} />
+            <Annotations
+              typeIDs={[{ node: this.state.createdType, uid: '' }]}
+              generateButton={true}
+            />
           )}
         </div>
       </div>

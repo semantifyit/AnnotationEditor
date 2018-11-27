@@ -1,9 +1,9 @@
 import * as React from 'react';
+
 import AnnotationBlank from './AnnotationBlank';
 import Vocab from '../helpers/Vocab';
 import AnnotationTemplate from './AnnotationTemplate';
 import AnnotationWebApi from './AnnotationWebApi';
-
 import { VocabContext } from '../helpers/VocabContext';
 
 interface IProps {

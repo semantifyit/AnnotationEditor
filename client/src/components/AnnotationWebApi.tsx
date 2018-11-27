@@ -1,15 +1,8 @@
 import * as React from 'react';
-import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { INode } from '../helpers/Vocab';
-import {
-  generateJSONLD,
-  getDescriptionOfNode,
-  getNameOfNode,
-} from '../helpers/helper';
-import { ISingleOption } from './DropDownSelect';
-import Annotation from './Annotation';
+import { generateJSONLD } from '../helpers/helper';
+import Annotations from './Annotations';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
@@ -133,7 +126,10 @@ class AnnotationWebApi extends React.Component<{}, IState> {
               key={i}
               id={`annotation-${i}`}
             >
-              <Annotation typeID={step.type} generateButton={false} />
+              <Annotations
+                typeIDs={[{ node: step.type, uid: '' }]}
+                generateButton={false}
+              />
             </div>
           ))}
           <div style={{ marginTop: '50px' }}>

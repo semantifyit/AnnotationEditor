@@ -2,10 +2,7 @@ import * as React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import '../styles/App.css';
-import AnnotationWebApi from './AnnotationWebApi';
-import AnnotationBlank from './AnnotationBlank';
 import Home from './Home';
-import AnnotationTemplate from './AnnotationTemplate';
 import AnnotationEditorPage from './AnnotationEditorPage';
 import Navigation from './Navigation';
 

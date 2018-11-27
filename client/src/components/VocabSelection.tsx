@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { Manager, Reference, Popper } from 'react-popper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button } from 'reactstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 
 import { defaultVocabs } from '../helpers/Vocab';
-import { arraysAreEquals, clone } from '../helpers/util';
+import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IProps {
@@ -231,7 +230,7 @@ class VocabSelection extends React.Component<IProps, IState> {
                             {name}{' '}
                             <span
                               onClick={() => this.removeVocab(name)}
-                              style={{ cursor: 'pointer' }}
+                              className="cursor-hand"
                             >
                               <FontAwesomeIcon
                                 icon="times"

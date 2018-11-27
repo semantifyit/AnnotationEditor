@@ -1,10 +1,12 @@
 import * as React from 'react';
 import Select from 'react-select';
+import { Button } from 'reactstrap';
+import uuidv1 from 'uuid/v1';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { getDescriptionOfNode, getNameOfNode } from '../helpers/helper';
 import { ISingleOption } from './DropDownSelect';
-import Annotation from './Annotation';
+import Annotations from './Annotations';
 import VocabSelection from './VocabSelection';
 import { INode } from '../helpers/Vocab';
 import { IContext, VocabContext } from '../helpers/VocabContext';
@@ -12,7 +14,7 @@ import * as p from '../helpers/properties';
 import { haveCommon } from '../helpers/util';
 
 interface IState {
-  createdType: null | string;
+  createdTypes: { uid: string; node: string }[];
   selectedValue: string;
   bases: null | INode[];
 }
@@ -21,7 +23,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
   public static contextType = VocabContext;
   public context: IContext;
   public state: IState = {
-    createdType: null,
+    createdTypes: [],
     selectedValue: '',
     bases: null,
   };
@@ -37,11 +39,19 @@ class AnnotationBlank extends React.Component<{}, IState> {
   }
 
   public createBase(value: string) {
-    this.setState({ createdType: value });
+    this.setState((state) => ({
+      createdTypes: state.createdTypes.concat({ node: value, uid: uuidv1() }),
+    }));
   }
 
   public reloadPage = () => {
     this.setState({ bases: this.getBases() });
+  };
+
+  public removeBase = (uidToRemove: string) => {
+    this.setState((state) => ({
+      createdTypes: state.createdTypes.filter(({ uid }) => uid !== uidToRemove),
+    }));
   };
 
   public render() {
@@ -74,15 +84,31 @@ class AnnotationBlank extends React.Component<{}, IState> {
                   label: getNameOfNode(c),
                   title: getDescriptionOfNode(c),
                 }))}
-              onChange={(e: ISingleOption) => this.createBase(e.value)}
+              onChange={(e: ISingleOption) =>
+                this.setState({ selectedValue: e.value })
+              }
               isSearchable={true}
             />
           </div>
+          <Button
+            color="primary"
+            disabled={this.state.selectedValue === ''}
+            onClick={() =>
+              this.state.selectedValue !== '' &&
+              this.createBase(this.state.selectedValue)
+            }
+          >
+            New
+          </Button>
         </div>
         <br />
         <div>
-          {this.state.createdType && (
-            <Annotation typeID={this.state.createdType} generateButton={true} />
+          {this.state.createdTypes.length > 0 && (
+            <Annotations
+              typeIDs={this.state.createdTypes}
+              generateButton={true}
+              removeAnnotation={this.removeBase}
+            />
           )}
         </div>
       </div>

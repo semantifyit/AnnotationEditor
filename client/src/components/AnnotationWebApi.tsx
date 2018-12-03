@@ -9,11 +9,13 @@ import { toast, ToastContainer } from 'react-toastify';
 import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
+import { saveAnnToSemantifyWebsite } from '../helpers/semantify';
 
 interface IState {
   ready: boolean;
   currentStep: number;
   modalIsOpen: boolean;
+  savedAnnotationsSemantifyUids: string[];
 }
 
 class AnnotationWebApi extends React.Component<{}, IState> {
@@ -23,6 +25,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     ready: false,
     currentStep: 0,
     modalIsOpen: false,
+    savedAnnotationsSemantifyUids: [],
   };
 
   public steps = [
@@ -48,7 +51,10 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   }
 
   public toggleModal = () => {
-    this.setState((state) => ({ modalIsOpen: !state.modalIsOpen }));
+    this.setState((state) => ({
+      modalIsOpen: !state.modalIsOpen,
+      savedAnnotationsSemantifyUids: [], // reset saved annotation list
+    }));
   };
 
   public finalize = () => {
@@ -85,6 +91,17 @@ class AnnotationWebApi extends React.Component<{}, IState> {
 
   public moveToStep = (step: number) => {
     this.setState({ currentStep: step });
+  };
+
+  public saveAnnotations = async () => {
+    const allAnn = this.steps.map((s) => s.annotationResult.jsonld);
+    const uids = await saveAnnToSemantifyWebsite(allAnn);
+    if (!uids) {
+      toast.error('Failed saving annotations to semantify.it!');
+    } else {
+      toast.success('Saved annotations!');
+      this.setState({ savedAnnotationsSemantifyUids: uids });
+    }
   };
 
   public render() {
@@ -138,7 +155,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
                 this.moveToStep(i);
               }}
             >
-              {`${i + 1}:${removeNS(type)}`}
+              {`${i + 1}: ${removeNS(type)}`}
             </a>
           );
         })}
@@ -218,8 +235,33 @@ class AnnotationWebApi extends React.Component<{}, IState> {
                 </div>
               ))}
             </div>
+            {this.state.savedAnnotationsSemantifyUids.length > 0 && (
+              <div>
+                <hr />
+                <h4>
+                  Saved Annotations to{' '}
+                  <a href="https://semantify.it" target="_blank">
+                    Semantify
+                  </a>
+                  !
+                </h4>
+                Your annotations:
+                <ul>
+                  {this.state.savedAnnotationsSemantifyUids.map((uid, i) => (
+                    <li key={i}>
+                      <a href={`https://smtfy.it/${uid}`} target="_blank">
+                        {`https://smtfy.it/${uid}`}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </ModalBody>
           <ModalFooter>
+            <Button color="info" onClick={this.saveAnnotations}>
+              <FontAwesomeIcon icon="save" size="lg" /> Save
+            </Button>{' '}
             <Button
               color="primary"
               onClick={() => {

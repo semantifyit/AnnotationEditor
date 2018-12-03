@@ -14,10 +14,32 @@ interface IDSResponce {
   };
 }
 
+interface IPostAnnotation {
+  data: {
+    UID: string;
+    id: string;
+    name: string;
+    type: string[];
+  }[];
+}
+
+const semantifyApiUrl = 'https://semantify.it/api/';
+
+// this is the instant annotation website
+// const defaultWebsite = {
+//   uid: 'Hkqtxgmkz',
+//   secret: 'ef0a64008d0490fc4764c2431ca4797b',
+// };
+// this is some website on thibault's account
+const defaultWebsite = {
+  uid: '-K82c2498',
+  secret: '343d0d070a5fbbba7e1f0b18b5d77685',
+};
+
 export const fetchPublicDS = async (): Promise<IDSMap[]> => {
   try {
     const response: IDSResponce = await axios.get(
-      'https://semantify.it/api/domainspecification/public/map',
+      `${semantifyApiUrl}domainspecification/public/map`,
     );
     return Object.entries(response.data).map(([k, v]) => ({
       id: k,
@@ -32,7 +54,7 @@ export const fetchPublicDS = async (): Promise<IDSMap[]> => {
 export const fetchDSbyId = async (dsId: string): Promise<any> => {
   try {
     const response = await axios.get(
-      `https://semantify.it/api/domainSpecification/${dsId}`,
+      `${semantifyApiUrl}domainSpecification/${dsId}`,
     );
     return response.data;
   } catch (e) {
@@ -86,13 +108,31 @@ export const transformDSToShacl = (ds: any): any => {
     uid += 1;
   });
 
-  const vocab = {
+  return {
     '@context': {
       schema: 'http://schema.org/',
       sh: 'http://www.w3.org/ns/shacl#',
     },
     '@graph': shapes,
   };
+};
 
-  return vocab;
+export const saveAnnToSemantifyWebsite = async (
+  annotations: any[],
+  websiteUID: string = defaultWebsite.uid,
+  websiteSecret: string = defaultWebsite.secret,
+): Promise<undefined | string[]> => {
+  try {
+    const response: IPostAnnotation = await axios({
+      method: 'post',
+      url: `${semantifyApiUrl}annotation/${websiteUID}`,
+      headers: {
+        'website-secret': websiteSecret,
+      },
+      data: annotations.map((annotation) => ({ content: annotation })),
+    });
+    return response.data.map((r) => r.UID);
+  } catch (e) {
+    console.log(e);
+  }
 };

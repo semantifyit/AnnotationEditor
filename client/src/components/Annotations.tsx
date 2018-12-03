@@ -3,7 +3,6 @@ import uuidv1 from 'uuid/v1';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import TypeNode from './TypeNode';
 import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';

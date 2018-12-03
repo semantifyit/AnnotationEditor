@@ -5,10 +5,7 @@ class App extends React.Component {
   public render() {
     return (
       <div>
-        <section
-          className="jumbotron text-center"
-          style={{ backgroundColor: '#fff' }}
-        >
+        <section className="jumbotron text-center">
           <div className="container">
             <h1 className="jumbotron-heading">
               Welcome to The Annotation Editor!

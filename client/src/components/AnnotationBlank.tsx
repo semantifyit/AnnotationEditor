@@ -2,7 +2,6 @@ import * as React from 'react';
 import Select from 'react-select';
 import { Button } from 'reactstrap';
 import uuidv1 from 'uuid/v1';
-import 'react-toastify/dist/ReactToastify.css';
 
 import { getDescriptionOfNode, getNameOfNode } from '../helpers/helper';
 import { ISingleOption } from './DropDownSelect';
@@ -60,10 +59,7 @@ class AnnotationBlank extends React.Component<{}, IState> {
     }
     return (
       <div>
-        <section
-          className="jumbotron text-center"
-          style={{ backgroundColor: '#fff' }}
-        >
+        <section className="jumbotron text-center">
           <div className="container">
             <h1 className="jumbotron-heading">Create your Annotation</h1>
           </div>

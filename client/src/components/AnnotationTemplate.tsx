@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Select from 'react-select';
-import 'react-toastify/dist/ReactToastify.css';
 
 import { ISingleOption } from './DropDownSelect';
 import Annotations from './Annotations';
@@ -52,10 +51,7 @@ class AnnotationTemplate extends React.Component<{}, IState> {
     }
     return (
       <div>
-        <section
-          className="jumbotron text-center"
-          style={{ backgroundColor: '#fff' }}
-        >
+        <section className="jumbotron text-center">
           <div className="container">
             <h1 className="jumbotron-heading">
               Create an annotation from a template

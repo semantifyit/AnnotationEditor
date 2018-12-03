@@ -1,5 +1,4 @@
 import * as React from 'react';
-import 'react-toastify/dist/ReactToastify.css';
 
 import { generateJSONLD } from '../helpers/helper';
 import Annotations from './Annotations';
@@ -91,10 +90,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     const progress = ((this.state.currentStep + 1) / this.steps.length) * 100;
     return (
       <div>
-        <section
-          className="jumbotron text-center"
-          style={{ backgroundColor: '#fff' }}
-        >
+        <section className="jumbotron text-center">
           <div className="container">
             <h1 className="jumbotron-heading">
               Create your Semantic API Description

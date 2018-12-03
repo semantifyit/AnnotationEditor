@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Moment } from 'moment';
 import DateTime from 'react-datetime';
-import 'react-datetime/css/react-datetime.css';
 import classNames from 'classnames';
 
 import {

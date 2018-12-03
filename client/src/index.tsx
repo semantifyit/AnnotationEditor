@@ -1,4 +1,3 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -17,7 +16,17 @@ import {
 
 import App from './components/App';
 // import registerServiceWorker from './registerServiceWorker';
+
+// for light theme
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './styles/bootstrap-override.css';
+
+// for dark theme
+// import './styles/bootstrap-darkly.min.css';
+
 import './styles/index.css';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-datetime/css/react-datetime.css';
 
 library.add(
   faAngleDown,

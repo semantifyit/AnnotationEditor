@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { generateJSONLD } from '../helpers/helper';
+import { generateJSONLD, removeNS } from '../helpers/helper';
 import Annotations from './Annotations';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -83,6 +83,10 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     }
   };
 
+  public moveToStep = (step: number) => {
+    this.setState({ currentStep: step });
+  };
+
   public render() {
     if (!this.state.ready) {
       return <h1>Loading ...</h1>;
@@ -114,6 +118,30 @@ class AnnotationWebApi extends React.Component<{}, IState> {
             aria-valuemax={100}
           />
         </div>
+        <br />
+        {this.steps.map(({ type }, i) => {
+          const style: any = {
+            marginRight: '40px',
+            fontSize: '1.3em',
+          };
+          if (this.state.currentStep === i) {
+            style.backgroundColor = 'rgb(194, 216, 252)';
+          }
+          return (
+            <a
+              key={i}
+              href="#"
+              className="cursor-hand"
+              style={style}
+              onClick={(e) => {
+                e.preventDefault();
+                this.moveToStep(i);
+              }}
+            >
+              {`${i + 1}:${removeNS(type)}`}
+            </a>
+          );
+        })}
         <br />
         <div>
           {this.steps.map((step, i) => (

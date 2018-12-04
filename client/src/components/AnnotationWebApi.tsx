@@ -64,7 +64,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     this.setState({ modalIsOpen: true });
   };
 
-  public nextStep = () => {
+  public validAnnCompleteConfirmation = () => {
     const currentAnnotationIsComplete = generateJSONLD(
       `annotation-${this.state.currentStep}`,
     ).complete;
@@ -76,6 +76,10 @@ class AnnotationWebApi extends React.Component<{}, IState> {
         return;
       }
     }
+  };
+
+  public nextStep = () => {
+    this.validAnnCompleteConfirmation();
     this.setState((state) => {
       if (state.currentStep === this.steps.length - 1) {
         this.steps.push(clone(this.steps[this.steps.length - 1]));
@@ -90,6 +94,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   };
 
   public moveToStep = (step: number) => {
+    this.validAnnCompleteConfirmation();
     this.setState({ currentStep: step });
   };
 

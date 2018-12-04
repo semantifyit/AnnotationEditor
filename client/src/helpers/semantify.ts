@@ -85,7 +85,7 @@ export const transformDSToShacl = (ds: any): any => {
         'sh:maxCount': property['dsv:multipleValuesAllowed'] ? 1 : undefined,
         'sh:or': {
           '@list': property['dsv:expectedType'].map((rangeProp: any) => {
-            const inner = {
+            const inner: any = {
               'sh:class': { '@id': `schema:${rangeProp['schema:name']}` },
             };
             if (rangeProp['@type'] === 'dsv:RestrictedClass') {
@@ -134,6 +134,7 @@ export const saveAnnToSemantifyWebsite = async (
     return response.data.map((r) => r.UID);
   } catch (e) {
     console.log(e);
+    return undefined;
   }
 };
 

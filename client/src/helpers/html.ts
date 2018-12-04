@@ -8,6 +8,9 @@ export const copyStrIntoClipBoard = (str: string) => {
   document.body.removeChild(dummy);
 };
 
+type colorType = 'number' | 'key' | 'string' | 'boolean' | 'null';
+let a = 12;
+
 export const syntaxHighlightJsonStr = (jsonStr: string) => {
   const colorMatch = {
     number: '#ba6702',
@@ -23,7 +26,7 @@ export const syntaxHighlightJsonStr = (jsonStr: string) => {
   return json.replace(
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     (match: any) => {
-      let cls = 'number';
+      let cls: colorType = 'number';
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
           cls = 'key';

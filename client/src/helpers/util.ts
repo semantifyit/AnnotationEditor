@@ -1,3 +1,5 @@
+export type Optional<T> = T | undefined;
+
 export const arraysAreEquals = <T>(arr1: T[], arr2: T[]): boolean =>
   JSON.stringify(arr1.sort()) === JSON.stringify(arr2.sort());
 

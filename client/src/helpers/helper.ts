@@ -1,7 +1,13 @@
 import { set, get } from 'lodash';
 
 import { INode, INodeValue } from './Vocab';
-import { flatten2DArr, flatten3DArr, makeArray, notEmpty } from './util';
+import {
+  flatten2DArr,
+  flatten3DArr,
+  makeArray,
+  notEmpty,
+  Optional,
+} from './util';
 import * as p from './properties';
 
 export const makeIdArr = (...str: string[]) => str.map((s) => ({ '@id': s }));
@@ -16,7 +22,7 @@ export const removeNS = (str: string): string => {
 export const getNameOfNode = (node: INode): string => removeNS(node['@id']);
 
 export const getDescriptionOfNode = (node: INode): string => {
-  const comment = node[p.rdfsComment];
+  const comment = node[p.rdfsComment] as Optional<INodeValue[]>;
   if (comment && comment[0] && comment[0]['@value']) {
     return stripHtml(comment[0]['@value']);
   }
@@ -35,7 +41,7 @@ export const extractIds = (o: any) =>
     .map((n: INode) => n['@id']);
 
 export const isTextNode = (node: INode) => {
-  const shClass = node[p.shClass];
+  const shClass = node[p.shClass] as Optional<INodeValue[]>;
   return shClass && shClass[0] && shClass[0]['@id'] === p.schemaText;
 };
 
@@ -118,11 +124,11 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   if (nodeOrs && nodeOrs.length > 0) {
     const orRestrNodes = filterUndef(
       nodeOrs
-        .filter((n) => n['@list'])
         .map((n) => n['@list'])
-        .map((n: INode[]) =>
+        .filter((n) => n && typeof n[0] !== 'string')
+        .map((n) =>
           filterUndef(
-            n
+            (n as INode[])
               .map((listItem) => makePropertyRestrictionObj(listItem))
               .map((listItemRestr) => listItemRestr.propertyRanges),
           ),
@@ -133,22 +139,26 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
     }
   }
 
-  const minCount = shProp[p.shMinCount];
-  const maxCount = shProp[p.shMaxCount];
-  const maxInclusive = shProp[p.shMaxInclusive];
-  const minInclusive = shProp[p.shMinInclusive];
-  const valueIn = shProp[p.shIn];
-  const defaultValue = shProp[p.shDefaultValue];
-  const path = shProp[p.shPath];
-  const pattern = shProp[p.shPattern];
+  const minCount = shProp[p.shMinCount] as INodeValue[];
+  const maxCount = shProp[p.shMaxCount] as INodeValue[];
+  const maxInclusive = shProp[p.shMaxInclusive] as INodeValue[];
+  const minInclusive = shProp[p.shMinInclusive] as INodeValue[];
+  const valueIn = shProp[p.shIn] as INodeValue[];
+  const defaultValue = shProp[p.shDefaultValue] as INodeValue[];
+  const path = shProp[p.shPath] as INode[]; // since it must have an @id prop
+  const pattern = shProp[p.shPattern] as INodeValue[];
   let valueInValues: string[] = [];
   if (valueIn && Array.isArray(valueIn)) {
-    valueInValues = flatten2DArr(
-      (valueIn as INodeValue[])
-        .filter((v) => v['@list'])
-        .map((v) => v['@list'].map((i: INodeValue) => i['@value'])),
+    valueInValues = filterUndef(
+      flatten2DArr(
+        (valueIn as INodeValue[])
+          .filter((v) => v['@list'])
+          .map((v) => v['@list'])
+          .map((v) => (v as INodeValue[]).map((i: INodeValue) => i['@value'])),
+      ),
     );
   }
+  const a = path[0]['@id'];
 
   return {
     id: shProp['@id'],
@@ -158,17 +168,25 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
     defaultValue: defaultValue && defaultValue[0] && defaultValue[0]['@id'],
     valueIn: valueInValues.length > 0 ? valueInValues : undefined,
     minCount:
-      minCount && minCount[0]['@value'] && parseInt(minCount[0]['@value'], 10),
+      (minCount &&
+        minCount[0]['@value'] &&
+        parseInt(minCount[0]['@value'], 10)) ||
+      undefined, // or undef since the value can be and empty string
     maxCount:
-      maxCount && maxCount[0]['@value'] && parseInt(maxCount[0]['@value'], 10),
+      (maxCount &&
+        maxCount[0]['@value'] &&
+        parseInt(maxCount[0]['@value'], 10)) ||
+      undefined,
     minInclusive:
-      minInclusive &&
-      minInclusive[0]['@value'] &&
-      parseInt(minInclusive[0]['@value'], 10),
+      (minInclusive &&
+        minInclusive[0]['@value'] &&
+        parseInt(minInclusive[0]['@value'], 10)) ||
+      undefined,
     maxInclusive:
-      maxInclusive &&
-      maxInclusive[0]['@value'] &&
-      parseInt(maxInclusive[0]['@value'], 10),
+      (maxInclusive &&
+        maxInclusive[0]['@value'] &&
+        parseInt(maxInclusive[0]['@value'], 10)) ||
+      undefined,
     pattern: pattern && pattern[0]['@value'],
   };
 };

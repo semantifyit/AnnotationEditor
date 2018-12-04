@@ -13,10 +13,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "strictPropertyInitialization": false,
-    "suppressImplicitAnyIndexErrors": true,
     "jsx": "preserve",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "noImplicitReturns": true,
+    "strictPropertyInitialization": false
   },
   "include": [
     "src"

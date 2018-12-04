@@ -3,7 +3,7 @@ import jsonld from 'jsonld';
 import axios from 'axios';
 
 import * as p from './properties';
-import { clone, flatten2DArr, haveCommon, uniqueArray } from './util';
+import { clone, flatten2DArr, haveCommon, Optional, uniqueArray } from './util';
 import { jsonldMatchesQuery } from './rdfSparql';
 import {
   extractIds,
@@ -24,10 +24,14 @@ export const defaultVocabs = {
   'schema-auto': 'Schema.org Auto',
 };
 
-export interface INode {
+export interface IIdNode {
+  '@id': string;
+}
+
+export interface INode extends IIdNode {
   '@id': string;
   '@type'?: string[];
-  [key: string]: INodeValue[] | string | string[] | undefined;
+  [key: string]: IIdNode[] | INodeValue[] | string | string[] | undefined;
   // any other property, we need the other types for typescript (https://github.com/Microsoft/TypeScript/issues/17867)
 }
 export interface INodeValue {
@@ -35,6 +39,7 @@ export interface INodeValue {
   '@value'?: string;
   '@type'?: string;
   '@language'?: string;
+  '@list'?: INodeValue[];
 }
 
 interface ISingleVocab {
@@ -76,7 +81,7 @@ const turtleToJsonLD = (turtleString: string): Promise<object[]> =>
     });
   });
 
-const vocabCache = {}; // only for default vocabs right now
+const vocabCache: IVocab = {}; // only for default vocabs right now
 
 export default class Vocab {
   public vocabs: IVocab = {};
@@ -309,10 +314,13 @@ export default class Vocab {
       .sort((a, b) => getNameOfNode(a).localeCompare(getNameOfNode(b)));
 
   public getPropertyNodeForType = (type: string): IPropNodes =>
-    this.getSuperClasses(type).reduce((acc, cur) => {
-      acc[cur] = this.getTypePropertyNodeForType(cur);
-      return acc;
-    }, {});
+    this.getSuperClasses(type).reduce(
+      (acc: { [key: string]: INode[] }, cur) => {
+        acc[cur] = this.getTypePropertyNodeForType(cur);
+        return acc;
+      },
+      {},
+    );
 
   public getPropertyNodeForTypes = (types: string[]): IPropNodes =>
     types.reduce(
@@ -351,7 +359,7 @@ export default class Vocab {
   public replaceBlankNodes = <T>(obj: T): T =>
     typeof obj === 'object'
       ? isReplaceable(obj)
-        ? this.replaceBlankNodes(this.getNode(obj['@id']))
+        ? this.replaceBlankNodes(this.getNode((obj as any)['@id']))
         : Object.entries(obj).reduce(
             (acc, [k, v]) => {
               if (typeof v === 'object') {
@@ -375,7 +383,7 @@ export default class Vocab {
       return false;
     }
     // enum nodes only used (for now) with schema, use schemaRangeIncludes
-    const rangeOfNode = propNode[p.schemaRangeIncludes];
+    const rangeOfNode = propNode[p.schemaRangeIncludes] as Optional<IIdNode[]>;
     if (!rangeOfNode || !rangeOfNode[0]) {
       return false;
     }
@@ -423,8 +431,10 @@ export default class Vocab {
           ) {
             return [];
           }
-          const nodeKind = populatedNote[p.shNodeKind];
-          if (nodeKind && nodeKind[0] && nodeKind[0]['@id'][p.shIRI]) {
+          const nodeKind = populatedNote[p.shNodeKind] as Optional<
+            INodeValue[]
+          >;
+          if (nodeKind && nodeKind[0] && nodeKind[0]['@id'] === p.shIRI) {
             propertyRestrictionNodes.push({
               [p.shPath]: [{ '@id': '@id' }],
               [p.shMinCount]: [{ '@value': '1' }],
@@ -448,11 +458,16 @@ export default class Vocab {
       .map(this.replaceBlankNodes)
       .map((n) => {
         const nodeCpy = clone(n);
-        const nodeTarget = nodeCpy[p.shTarget];
-        if (nodeTarget && nodeTarget.length > 0) {
+        const nodeTarget = nodeCpy[p.shTarget] as Optional<INodeValue[]>;
+        if (
+          nodeTarget &&
+          nodeTarget.length > 0 &&
+          nodeTarget[0]['@type'] &&
+          nodeTarget[0]['@type'][0]
+        ) {
           return {
             node: this.replaceBlankNodes(nodeCpy),
-            target: this.getNode(nodeTarget[0] && nodeTarget[0]['@type'][0]),
+            target: this.getNode(nodeTarget[0]['@type'][0]),
           };
         }
         return undefined;
@@ -465,7 +480,9 @@ export default class Vocab {
       sparqlRestrictionNodes
         .filter((n) => n && n.target && n.target[p.shSelect])
         .map(async (restrictionNode) => {
-          const originQuery = restrictionNode.target[p.shSelect];
+          const originQuery = restrictionNode.target[p.shSelect] as Optional<
+            INodeValue[]
+          >;
           let sparqlQuery = `PREFIX schema: <http://schema.org/>
             ${originQuery && originQuery[0] && originQuery[0]['@value']}`;
 

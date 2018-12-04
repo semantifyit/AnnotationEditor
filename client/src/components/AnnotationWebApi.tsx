@@ -64,22 +64,22 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     this.setState({ modalIsOpen: true });
   };
 
-  public validAnnCompleteConfirmation = () => {
+  public validAnnCompleteConfirmation = (): boolean => {
     const currentAnnotationIsComplete = generateJSONLD(
       `annotation-${this.state.currentStep}`,
     ).complete;
     if (!currentAnnotationIsComplete) {
-      const proceed = confirm(
+      return confirm(
         'Your annotation has some empty fields, are you sure you want to continue?',
       );
-      if (!proceed) {
-        return;
-      }
     }
+    return true;
   };
 
   public nextStep = () => {
-    this.validAnnCompleteConfirmation();
+    if (!this.validAnnCompleteConfirmation()) {
+      return;
+    }
     this.setState((state) => {
       if (state.currentStep === this.steps.length - 1) {
         this.steps.push(clone(this.steps[this.steps.length - 1]));
@@ -94,7 +94,9 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   };
 
   public moveToStep = (step: number) => {
-    this.validAnnCompleteConfirmation();
+    if (!this.validAnnCompleteConfirmation()) {
+      return;
+    }
     this.setState({ currentStep: step });
   };
 

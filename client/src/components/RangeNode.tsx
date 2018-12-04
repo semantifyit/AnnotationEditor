@@ -68,6 +68,7 @@ class RangeNode extends React.Component<IProps, IState> {
       );
       if (valueInRestriction.length > 0 && valueInRestriction[0].valueIn) {
         this.enumerations = valueInRestriction[0].valueIn;
+        this.state.value = valueInRestriction[0].valueIn[0];
       }
     }
 

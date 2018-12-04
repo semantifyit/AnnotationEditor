@@ -22,7 +22,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run validate:ts && npm run validate:tslint"
+      "pre-push": "npm run validate:ts && npm run validate:tslint"
     }
   },
   "dependencies": {

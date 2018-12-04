@@ -9,7 +9,6 @@ export const copyStrIntoClipBoard = (str: string) => {
 };
 
 type colorType = 'number' | 'key' | 'string' | 'boolean' | 'null';
-let a = 12;
 
 export const syntaxHighlightJsonStr = (jsonStr: string) => {
   const colorMatch = {

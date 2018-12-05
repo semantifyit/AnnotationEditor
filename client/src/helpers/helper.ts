@@ -158,7 +158,6 @@ export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
       ),
     );
   }
-  const a = path[0]['@id'];
 
   return {
     id: shProp['@id'],

@@ -25,6 +25,7 @@ interface IProps {
   canUseDashIOProps: boolean;
   additionalRestrictionIds?: string[];
   isIdPropNode?: boolean;
+  changedType?(newTypes: string[]): void;
 }
 
 interface IProperty {
@@ -83,15 +84,16 @@ class TypeNode extends React.Component<IProps, IState> {
 
     // restrictions
     this.updateRestrictions();
-
-    this.existingMembersIds = this.context.vocab
-      .getMembersOfTypes(this.state.nodeIds)
-      .map((n) => n['@id']);
-    if (
-      (this.existingMembersIds.length > 0 || this.props.isIdPropNode) &&
-      nodeBelongsToNS(nodes[0], 'schema') // only add members for schema.org enumeration types
-    ) {
-      this.addProperty('@id');
+    if (nodes.some((n) => this.context.vocab.isEnumNode(n))) {
+      this.existingMembersIds = this.context.vocab
+        .getMembersOfTypes(this.state.nodeIds)
+        .map((n) => n['@id']);
+      if (
+        /*this.existingMembersIds.length > 0 ||  this.props.isIdPropNode && */ // also add @id for enums without members (e.g. businessFunction)
+        nodeBelongsToNS(nodes[0], 'schema') // only add members for schema.org enumeration types
+      ) {
+        this.addProperty('@id');
+      }
     }
   }
 
@@ -101,7 +103,12 @@ class TypeNode extends React.Component<IProps, IState> {
   ) {
     let properties: IProperty[] = [];
     restrictions.forEach((r) => {
-      if (r.minCount) {
+      // only add if it doesn't already have that property (or minCount amount)
+      if (
+        r.minCount &&
+        this.state.propertyIds.filter(({ nodeId }) => nodeId === r.property)
+          .length < r.minCount
+      ) {
         for (let i = 0; i < r.minCount; i += 1) {
           // maybe use foreach or smth
           properties.push({
@@ -226,6 +233,9 @@ class TypeNode extends React.Component<IProps, IState> {
       const newNodeIds = e.map((o) => o.value);
       this.setState({ nodeIds: newNodeIds });
       this.updateRestrictions(newNodeIds);
+      if (this.props.changedType) {
+        this.props.changedType(newNodeIds);
+      }
     }
   };
 

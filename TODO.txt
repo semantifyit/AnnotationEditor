@@ -1,10 +1,13 @@
-adding @id after another prop removes previous props - fixed by magic??
-add @value ?
+Bugfixes
+- switching @type reloads new shacl props
 
+future TODOs
+- webapi fill in documentation.url with semantify url.
+
+Improvements/Ideas
+add @value ?
 - enum flag if treated as single select or as node?
 - range selection maybe without bootstrap row-col
-
-remove suppressImplicitAnyIndexErrors tsconfig
 
 
 Common vocabs:

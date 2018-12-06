@@ -13,6 +13,7 @@ interface IProps {
   typeIDs: { uid: string; node: string }[];
   generateButton: boolean;
   removeAnnotation?(uid: string): void;
+  changedType?(newTypes: string[]): void;
 }
 
 interface IState {
@@ -68,6 +69,7 @@ class Annotations extends React.Component<IProps, IState> {
               nodeId={node}
               path={this.props.typeIDs.length > 1 ? [i.toString()] : []}
               canUseDashIOProps={false}
+              changedType={this.props.changedType}
             />
           </div>
         ))}

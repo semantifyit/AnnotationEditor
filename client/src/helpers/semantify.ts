@@ -139,8 +139,8 @@ export const saveAnnToSemantifyWebsite = async (
 };
 
 const defaultGraphDB = {
-  repositoryId: 'annotation-editor',
-  url: 'http://localhost:7200', // http://graphdb.sti2.at:8080/
+  repositoryId: 'sdo-webapi',
+  url: 'https://graphdb.sti2.at/', // http://localhost:7200'
 };
 
 export const saveToGraphDb = async (annotations: any): Promise<boolean> => {

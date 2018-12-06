@@ -32,11 +32,13 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     {
       title: 'Step 1: Create a WebApi Annotation',
       type: p.schemaWebAPI,
+      typeTitle: p.schemaWebAPI,
       annotationResult: { jsonld: null, complete: false },
     },
     {
       title: 'Step 2: Create Action Annotation',
       type: p.schemaAction,
+      typeTitle: p.schemaAction,
       annotationResult: { jsonld: null, complete: false },
     },
   ];
@@ -102,13 +104,20 @@ class AnnotationWebApi extends React.Component<{}, IState> {
 
   public saveAnnotations = async () => {
     const allAnn = this.steps.map((s) => s.annotationResult.jsonld);
-    const uids = await saveAnnToSemantifyWebsite(allAnn);
+    // since all actions should be bundled into one annotation on semantify we merge them
+    const annToSend = [allAnn[0], allAnn.slice(1)];
+    const uids = await saveAnnToSemantifyWebsite(annToSend);
     if (!uids) {
       toast.error('Failed saving annotations to semantify.it!');
     } else {
       toast.success('Saved annotations!');
       this.setState({ savedAnnotationsSemantifyUids: uids });
     }
+  };
+
+  public annChangeType = (types: string[]) => {
+    this.steps[this.state.currentStep].typeTitle = types.join(', ');
+    this.forceUpdate(); // since steps aren't in the state (they probably should be)
   };
 
   public render() {
@@ -143,7 +152,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
           />
         </div>
         <br />
-        {this.steps.map(({ type }, i) => {
+        {this.steps.map(({ typeTitle }, i) => {
           const style: any = {
             marginRight: '40px',
             fontSize: '1.3em',
@@ -162,7 +171,10 @@ class AnnotationWebApi extends React.Component<{}, IState> {
                 this.moveToStep(i);
               }}
             >
-              {`${i + 1}: ${removeNS(type)}`}
+              {`${i + 1}: ${typeTitle
+                .split(', ')
+                .map((t) => removeNS(t))
+                .join(', ')}`}
             </a>
           );
         })}
@@ -177,6 +189,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
               <Annotations
                 typeIDs={[{ node: step.type, uid: '' }]}
                 generateButton={false}
+                changedType={this.annChangeType}
               />
             </div>
           ))}

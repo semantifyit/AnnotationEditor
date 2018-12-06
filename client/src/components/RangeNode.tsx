@@ -47,7 +47,10 @@ class RangeNode extends React.Component<IProps, IState> {
     const node = context.vocab.getNode(this.props.nodeId);
     if (node && context.vocab.isEnumNode(node)) {
       const vocab = context.vocab;
-      this.state.value = vocab.getEnumValues(node['@id'])[0]['@id'];
+      const enums = vocab.getEnumValues(node['@id']);
+      if (enums.length > 0) {
+        this.state.value = enums[0]['@id'];
+      }
     }
 
     if (this.props.restriction) {
@@ -231,6 +234,25 @@ class RangeNode extends React.Component<IProps, IState> {
         const node = this.context.vocab.getNode(nodeId);
         if (node && this.context.vocab.isEnumNode(node)) {
           const enumValues = this.context.vocab.getEnumValues(node['@id']);
+          if (enumValues.length === 0) {
+            // copy pasta from xsdString TODO extract function
+            return (
+              <div>
+                <input
+                  type="text"
+                  className={className}
+                  placeholder={removeNS(nodeId)}
+                  value={this.state.value}
+                  onChange={(e) => this.handleChange(e)}
+                />
+                {this.state.valueIncorrectnessReason && (
+                  <small style={{ color: 'red' }}>
+                    {this.state.valueIncorrectnessReason}
+                  </small>
+                )}
+              </div>
+            );
+          }
           return (
             <div className="input-group">
               <select

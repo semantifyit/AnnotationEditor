@@ -5,6 +5,7 @@ import '../styles/App.css';
 import Home from './Home';
 import AnnotationEditorPage from './AnnotationEditorPage';
 import Navigation from './Navigation';
+import Mapping from './Mapping/Mapping';
 
 class App extends React.Component {
   public render() {
@@ -16,27 +17,20 @@ class App extends React.Component {
             className="container"
             style={{ marginBottom: '200px', width: '100%' }}
           >
-            <Route
-              exact={true}
-              path="/"
-              className="btn btn-primary my-2"
-              component={Home}
-            />
+            <Route exact={true} path="/" component={Home} />
             <Route
               path="/blank/"
-              className="btn btn-primary my-2"
               render={() => <AnnotationEditorPage type="blank" />}
             />
             <Route
               path="/template/"
-              className="btn btn-primary my-2"
               render={() => <AnnotationEditorPage type="template" />}
             />
             <Route
               path="/webApi/"
-              className="btn btn-primary my-2"
               render={() => <AnnotationEditorPage type="webapi" />}
             />
+            <Route path="/mapping/" component={Mapping} />
           </div>
         </>
       </Router>

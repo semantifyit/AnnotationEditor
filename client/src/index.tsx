@@ -13,6 +13,7 @@ import {
   faHome,
   faTimes,
   faSave,
+  faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 
 import App from './components/App';
@@ -24,7 +25,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/bootstrap-override.css';
 
 // for dark theme
-(window as any).theme = 'dark';
+// (window as any).theme = 'dark';
 // import './styles/bootstrap-darkly.min.css';
 
 import './styles/index.css';
@@ -43,6 +44,7 @@ library.add(
   faHome,
   faTimes,
   faSave,
+  faInfoCircle,
 );
 
 ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);

@@ -34,5 +34,6 @@
     ],
     "jsx-no-multiline-js": false
   },
-  "no-null-keyword": true
+  "no-null-keyword": true,
+  "variable-name": false
 }

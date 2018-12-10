@@ -45,6 +45,7 @@
     "n3": "^1.0.1",
     "rdflib": "^0.19.1",
     "react": "^16.6.3",
+    "react-ace": "^6.2.0",
     "react-datetime": "^2.15.0",
     "react-dom": "^16.5.2",
     "react-onclickoutside": "^6.7.1",

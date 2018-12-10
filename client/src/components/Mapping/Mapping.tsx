@@ -8,7 +8,7 @@ import { Alert, FormGroup, Input, Label } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import InfoQueryModal from './InfoQuery';
-import requestHeaders from './requestHeaders.json';
+import requestHeaders from './requestHeaders';
 
 const langTools = brace.acequire('ace/ext/language_tools');
 const headerCompleter = {

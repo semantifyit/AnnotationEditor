@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es2018", "dom"],
+    "lib": ["es2018", "dom", "webworker"],
     "target": "es5",
     "allowJs": true,
     "skipLibCheck": false,
@@ -16,7 +16,7 @@
     "jsx": "preserve",
     "downlevelIteration": true,
     "noImplicitReturns": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
   },
   "include": [
     "src"

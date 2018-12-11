@@ -59,6 +59,12 @@ const testAnnotation = {
 
 const annotationCompleter = getAnnotationCompleter(testAnnotation, '-input');
 
+interface IMappingEditors {
+  query?: any;
+  header?: any;
+  payload?: any;
+}
+
 interface IProps {
   annotation: any;
 }
@@ -100,6 +106,8 @@ class Mapping extends React.Component<IProps, IState> {
     payloadType: 'json',
   };
 
+  public editors: IMappingEditors = {};
+
   public annotation: any = testAnnotation;
   public inputProps: string[] = Object.keys(
     flattenObject(testAnnotation, '$'),
@@ -133,8 +141,17 @@ class Mapping extends React.Component<IProps, IState> {
     this.setState({ payloadType: e.target.value });
   };
 
-  public addInputValue = (v: string, location: string) => {
-    // TODO
+  public addInputValue = (
+    value: string,
+    location: 'query' | 'header' | 'payload',
+  ) => {
+    console.log(value);
+    console.log(location);
+    // this.editors[location].setValue(value);
+    this.editors[location].session.insert(
+      this.editors[location].getCursorPosition(),
+      value,
+    );
   };
 
   public render() {
@@ -192,9 +209,17 @@ class Mapping extends React.Component<IProps, IState> {
               </Col>
             </Row>
             <FormGroup>
-              <Label for="editor-query">
-                URL Query Parameter: <InfoQuery />
-              </Label>
+              <div style={{ paddingBottom: '5px' }}>
+                <div className="float-right" style={{ marginLeft: '5px' }}>
+                  <AddInput
+                    inputValues={this.inputProps}
+                    addValue={(v) => this.addInputValue(v, 'query')}
+                  />
+                </div>
+                <Label for="editor-query" style={{ padding: 0 }}>
+                  URL Query Parameter: <InfoQuery />
+                </Label>
+              </div>
               <div style={{ border: '1px solid lightgrey' }}>
                 <AceEditor
                   mode="json"
@@ -208,8 +233,9 @@ class Mapping extends React.Component<IProps, IState> {
                   width="100%"
                   value={this.state.queryValue}
                   enableBasicAutocompletion={true}
-                  onLoad={(e: any) => {
-                    e.completers = [annotationCompleter];
+                  onLoad={(editor: any) => {
+                    this.editors.query = editor;
+                    editor.completers = [annotationCompleter];
                   }}
                 />
                 {!this.state.queryValid && (
@@ -220,7 +246,17 @@ class Mapping extends React.Component<IProps, IState> {
               </div>
             </FormGroup>
             <FormGroup>
-              <Label for="editor-query">Header Properties:</Label>
+              <div style={{ paddingBottom: '5px' }}>
+                <div className="float-right" style={{ marginLeft: '5px' }}>
+                  <AddInput
+                    inputValues={this.inputProps}
+                    addValue={(v) => this.addInputValue(v, 'header')}
+                  />
+                </div>
+                <Label for="editor-query" style={{ padding: 0 }}>
+                  Header Properties:
+                </Label>
+              </div>
               <div style={{ border: '1px solid lightgrey' }}>
                 <AceEditor
                   mode="json"
@@ -234,8 +270,9 @@ class Mapping extends React.Component<IProps, IState> {
                   value={this.state.headerValue}
                   enableBasicAutocompletion={true}
                   setOptions={{ enableSnippets: true }}
-                  onLoad={(e: any) => {
-                    e.completers = [
+                  onLoad={(editor: any) => {
+                    this.editors.header = editor;
+                    editor.completers = [
                       annotationCompleter,
                       requestHeaderCompleter,
                     ];
@@ -249,7 +286,7 @@ class Mapping extends React.Component<IProps, IState> {
               </div>
             </FormGroup>
             <FormGroup>
-              <div>
+              <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
                   <AddInput
                     inputValues={this.inputProps}
@@ -296,10 +333,10 @@ class Mapping extends React.Component<IProps, IState> {
                   setOptions={{
                     enableSnippets: this.state.payloadType === 'json',
                   }}
-                  onLoad={(e: any) => {
-                    e.completers = [annotationCompleter];
+                  onLoad={(editor: any) => {
+                    this.editors.payload = editor;
+                    editor.completers = [annotationCompleter];
                   }}
-                  minLines={10}
                 />
               </div>
             </FormGroup>

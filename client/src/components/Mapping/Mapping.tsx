@@ -1,44 +1,66 @@
 import React from 'react';
 import brace from 'brace';
 import AceEditor from 'react-ace';
+
 import 'brace/mode/json';
+import 'brace/snippets/json';
+import 'brace/mode/xml';
+import 'brace/snippets/xml';
+import 'brace/mode/yaml';
+import 'brace/snippets/yaml';
+import 'brace/mode/graphqlschema';
+import 'brace/snippets/graphqlschema';
+
 import 'brace/theme/tomorrow';
 import 'brace/ext/language_tools';
-import { Alert, FormGroup, Input, Label } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Alert, Button, Col, FormGroup, Input, Label, Row } from 'reactstrap';
 
-import InfoQueryModal from './InfoQuery';
-import requestHeaders from './requestHeaders';
+import InfoQuery from './InfoQuery';
+import { getAnnotationCompleter, requestHeaderCompleter } from './completers';
+import './snippets';
+import { syntaxHighlightJsonStr } from '../../helpers/html';
+import AddInput from './AddInput';
+import { flattenObject } from '../../helpers/util';
 
-const langTools = brace.acequire('ace/ext/language_tools');
-const headerCompleter = {
-  getCompletions: (
-    editor: any,
-    session: any,
-    pos: any,
-    prefix: any,
-    callback: any,
-  ) => {
-    console.log(editor);
-    console.log(session);
-    console.log(pos);
-    console.log(prefix);
-    callback(
-      null,
-      requestHeaders.map((word) => ({
-        caption: word,
-        value: word,
-        meta: 'static',
-      })),
-    );
+// const langTools = brace.acequire('ace/ext/language_tools');
+
+const testAnnotation = {
+  '@context': { '@vocab': 'http://schema.org/' },
+  '@type': 'SearchAction',
+  actionStatus: {
+    '@id': 'http://schema.org/PotentialActionStatus',
+    '@type': 'ActionStatusType',
+  },
+  description: 'Searches for room-availability for this hotel',
+  name: 'Search for rooms and its offers',
+  object: {
+    '@type': 'LodgingReservation',
+    'checkinTime-input': 'required',
+    'checkoutTime-input': 'required',
+    'numAdults-input': 'required',
+    'numChildren-input': 'required',
+    reservationFor: {
+      '@type': 'Person',
+      'name-input': {
+        '@type': 'PropertyValueSpecification',
+        valueRequired: 'true',
+      },
+    },
+  },
+  result: { '@type': ['Offer', 'LodgingReservation'] },
+  target: {
+    '@type': 'EntryPoint',
+    contentType: 'application/ld+json',
+    encodingType: 'application/ld+json',
+    httpMethod: 'POST',
+    urlTemplate: 'https://actions.semantify.it/api/easybooking/search/3896',
   },
 };
 
-langTools.addCompleter(headerCompleter);
+const annotationCompleter = getAnnotationCompleter(testAnnotation, '-input');
 
 interface IProps {
   annotation: any;
-  infoModalOpen: boolean;
 }
 
 interface IState {
@@ -48,9 +70,8 @@ interface IState {
   queryValid: boolean;
   headerValue: string;
   headerValid: boolean;
-  bodyValue: string;
-  bodyValid: boolean;
-  infoModalOpen: boolean;
+  payloadValue: string;
+  payloadType: 'json' | 'xml' | 'yaml' | 'graphqlschema';
 }
 
 const isOneLevelStringJSON = (obj: any): boolean => {
@@ -71,14 +92,18 @@ class Mapping extends React.Component<IProps, IState> {
   public state: IState = {
     httpMethod: 'GET',
     urlVal: '',
-    queryValue: '{\n\t\n}',
+    queryValue: '{\n    \n}',
     queryValid: true,
-    headerValue: '{\n\t\n}',
+    headerValue: '{\n    \n}',
     headerValid: true,
-    bodyValue: '{\n\t\n}',
-    bodyValid: true,
-    infoModalOpen: false,
+    payloadValue: '{\n    \n}',
+    payloadType: 'json',
   };
+
+  public annotation: any = testAnnotation;
+  public inputProps: string[] = Object.keys(
+    flattenObject(testAnnotation, '$'),
+  ).filter((k) => k.endsWith('-input'));
 
   public onChangeQuery = (value: string, event: any) => {
     this.setState({
@@ -94,14 +119,22 @@ class Mapping extends React.Component<IProps, IState> {
     });
   };
 
+  public onChangePayload = (value: string, event: any) => {
+    this.setState({
+      payloadValue: value,
+    });
+  };
+
   public changeHTTPMethod = (e: any) => {
     this.setState({ httpMethod: e.target.value });
   };
 
-  public toggleInfoModal = () => {
-    this.setState((state) => ({
-      infoModalOpen: !state.infoModalOpen,
-    }));
+  public changePayloadType = (e: any) => {
+    this.setState({ payloadType: e.target.value });
+  };
+
+  public addInputValue = (v: string, location: string) => {
+    // TODO
   };
 
   public render() {
@@ -111,79 +144,167 @@ class Mapping extends React.Component<IProps, IState> {
           Create your Mapping
         </h1>
         <h2>1.Request</h2>
-        <FormGroup>
-          <Label for="httpSelectMethod">HTTP Method:</Label>
-          <Input
-            type="select"
-            name="select"
-            id="httpSelectMethod"
-            onChange={this.changeHTTPMethod}
-          >
-            <option>GET</option>
-            <option>POST</option>
-            <option>PUT</option>
-            <option>PATCH</option>
-            <option>DELETE</option>
-          </Input>
-        </FormGroup>
-        <FormGroup>
-          <Label for="baseUrl">Base URL</Label>
-          <Input
-            type="text"
-            name="url"
-            id="baseUrl"
-            placeholder="https://..."
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label for="editor-query">
-            URL Query Parameter{' '}
-            <span className="cursor-hand" onClick={this.toggleInfoModal}>
-              <FontAwesomeIcon
-                className="cursor-hand"
-                icon="info-circle"
-                size="sm"
-                color="lightblue"
-              />
-            </span>
-          </Label>
-          <AceEditor
-            mode="json"
-            theme="tomorrow"
-            onChange={this.onChangeQuery}
-            name="editor-query"
-            editorProps={{ $blockScrolling: true }}
-            fontSize={14}
-            height="100px"
-            width="100%"
-            value={this.state.queryValue}
-          />
-          {!this.state.queryValid && (
-            <Alert color="warning">Your object contains non string keys!</Alert>
-          )}
-        </FormGroup>
-        <InfoQueryModal
-          isOpen={this.state.infoModalOpen}
-          toggleModal={this.toggleInfoModal}
-        />
-        <FormGroup>
-          <Label for="editor-query">Header Properties</Label>
-          <AceEditor
-            mode="json"
-            theme="tomorrow"
-            onChange={this.onChangeHeader}
-            name="editor-query"
-            editorProps={{ $blockScrolling: true }}
-            fontSize={14}
-            height="100px"
-            width="100%"
-            value={this.state.headerValue}
-            enableBasicAutocompletion={true}
-          />
-          {!this.state.headerValid && (
-            <Alert color="warning">Your object contains non string keys!</Alert>
-          )}
-        </FormGroup>
+        <Row>
+          <Col md="4">
+            <pre
+              dangerouslySetInnerHTML={{
+                __html: syntaxHighlightJsonStr(
+                  JSON.stringify(testAnnotation, null, 2),
+                ),
+              }}
+              style={{
+                borderRadius: '4px',
+                border: '1px solid lightgrey',
+                fontSize: '13px',
+                padding: '10px',
+              }}
+            />
+          </Col>
+          <Col md="8">
+            <Row>
+              <Col md="4" style={{ paddingLeft: 0 }}>
+                <FormGroup>
+                  <Label for="httpSelectMethod">HTTP Method:</Label>
+                  <Input
+                    type="select"
+                    name="select"
+                    id="httpSelectMethod"
+                    onChange={this.changeHTTPMethod}
+                  >
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                  </Input>
+                </FormGroup>
+              </Col>
+              <Col md="8" style={{ paddingRight: 0 }}>
+                <FormGroup>
+                  <Label for="baseUrl">Base URL:</Label>
+                  <Input
+                    type="text"
+                    name="url"
+                    id="baseUrl"
+                    placeholder="https://..."
+                  />
+                </FormGroup>
+              </Col>
+            </Row>
+            <FormGroup>
+              <Label for="editor-query">
+                URL Query Parameter: <InfoQuery />
+              </Label>
+              <div style={{ border: '1px solid lightgrey' }}>
+                <AceEditor
+                  mode="json"
+                  theme="tomorrow"
+                  onChange={this.onChangeQuery}
+                  name="editor-query"
+                  editorProps={{ $blockScrolling: Infinity }}
+                  fontSize={14}
+                  setOptions={{ enableSnippets: true }}
+                  height="100px"
+                  width="100%"
+                  value={this.state.queryValue}
+                  enableBasicAutocompletion={true}
+                  onLoad={(e: any) => {
+                    e.completers = [annotationCompleter];
+                  }}
+                />
+                {!this.state.queryValid && (
+                  <Alert color="warning">
+                    Your object contains non string keys!
+                  </Alert>
+                )}
+              </div>
+            </FormGroup>
+            <FormGroup>
+              <Label for="editor-query">Header Properties:</Label>
+              <div style={{ border: '1px solid lightgrey' }}>
+                <AceEditor
+                  mode="json"
+                  theme="tomorrow"
+                  onChange={this.onChangeHeader}
+                  name="editor-query"
+                  editorProps={{ $blockScrolling: Infinity }}
+                  fontSize={14}
+                  height="100px"
+                  width="100%"
+                  value={this.state.headerValue}
+                  enableBasicAutocompletion={true}
+                  setOptions={{ enableSnippets: true }}
+                  onLoad={(e: any) => {
+                    e.completers = [
+                      annotationCompleter,
+                      requestHeaderCompleter,
+                    ];
+                  }}
+                />
+                {!this.state.headerValid && (
+                  <Alert color="warning">
+                    Your object contains non string keys!
+                  </Alert>
+                )}
+              </div>
+            </FormGroup>
+            <FormGroup>
+              <div>
+                <div className="float-right" style={{ marginLeft: '5px' }}>
+                  <AddInput
+                    inputValues={this.inputProps}
+                    addValue={(v) => this.addInputValue(v, 'payload')}
+                  />
+                </div>
+                <Input
+                  type="select"
+                  bsSize="sm"
+                  className="float-right"
+                  style={{ width: '100px' }}
+                  onChange={this.changePayloadType}
+                >
+                  <option value="json">JSON</option>
+                  <option value="xml">XML</option>
+                  <option value="yaml">YAML</option>
+                  <option value="graphqlschema">GraphQL</option>
+                </Input>
+                <Label for="editor-query" style={{ padding: 0 }}>
+                  Payload:
+                </Label>
+              </div>
+              <div
+                style={{
+                  border: '1px solid lightgrey',
+                  resize: 'vertical',
+                  height: '400px',
+                  minHeight: '100px',
+                  overflow: 'auto',
+                  paddingBottom: '10px',
+                }}
+              >
+                <AceEditor
+                  mode={this.state.payloadType}
+                  theme="tomorrow"
+                  onChange={this.onChangePayload}
+                  name="editor-query"
+                  editorProps={{ $blockScrolling: Infinity }}
+                  fontSize={14}
+                  width="100%"
+                  height="100%"
+                  value={this.state.payloadValue}
+                  enableBasicAutocompletion={true}
+                  setOptions={{
+                    enableSnippets: this.state.payloadType === 'json',
+                  }}
+                  onLoad={(e: any) => {
+                    e.completers = [annotationCompleter];
+                  }}
+                  minLines={10}
+                />
+              </div>
+            </FormGroup>
+          </Col>
+        </Row>
       </div>
     );
   }

@@ -24,3 +24,19 @@ export const uniqueArray = <T>(arr: T[]): T[] => [...new Set(arr)];
 export const makeArray = (o: any) => (Array.isArray(o) ? o : [o]);
 
 export const hasP = Object.prototype.hasOwnProperty;
+
+// https://github.com/30-seconds/30-seconds-of-code#flattenobject
+export const flattenObject = (
+  obj: any,
+  prefix: string = '',
+  separator: string = '.',
+) =>
+  Object.keys(obj).reduce((acc: any, k) => {
+    const pre = prefix.length ? prefix + separator : '';
+    if (typeof obj[k] === 'object') {
+      Object.assign(acc, flattenObject(obj[k], pre + k));
+    } else {
+      acc[pre + k] = obj[k];
+    }
+    return acc;
+  }, {});

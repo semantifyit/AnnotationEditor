@@ -40,3 +40,13 @@ export const flattenObject = (
     }
     return acc;
   }, {});
+
+export const isDefined = <T>(t: T | undefined): t is T => !!t;
+
+export const parseJwt = (token: string) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};

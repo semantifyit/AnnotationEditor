@@ -9,13 +9,12 @@ import { toast, ToastContainer } from 'react-toastify';
 import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
-import { saveAnnToSemantifyWebsite } from '../helpers/semantify';
+
+import SaveAnnotationsWebApi from './SaveAnnotationsWebApi';
 
 interface IState {
   ready: boolean;
   currentStep: number;
-  modalIsOpen: boolean;
-  savedAnnotationsSemantifyUids: string[];
 }
 
 class AnnotationWebApi extends React.Component<{}, IState> {
@@ -24,8 +23,6 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   public state: IState = {
     ready: false,
     currentStep: 0,
-    modalIsOpen: false,
-    savedAnnotationsSemantifyUids: [],
   };
 
   public steps = [
@@ -51,20 +48,6 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     );
     this.setState({ ready: true });
   }
-
-  public toggleModal = () => {
-    this.setState((state) => ({
-      modalIsOpen: !state.modalIsOpen,
-      savedAnnotationsSemantifyUids: [], // reset saved annotation list
-    }));
-  };
-
-  public finalize = () => {
-    this.steps.forEach((step, i) => {
-      this.steps[i].annotationResult = generateJSONLD(`annotation-${i}`);
-    });
-    this.setState({ modalIsOpen: true });
-  };
 
   public validAnnCompleteConfirmation = (): boolean => {
     const currentAnnotationIsComplete = generateJSONLD(
@@ -100,19 +83,6 @@ class AnnotationWebApi extends React.Component<{}, IState> {
       return;
     }
     this.setState({ currentStep: step });
-  };
-
-  public saveAnnotations = async () => {
-    const allAnn = this.steps.map((s) => s.annotationResult.jsonld);
-    // since all actions should be bundled into one annotation on semantify we merge them
-    const annToSend = [allAnn[0], allAnn.slice(1)];
-    const uids = await saveAnnToSemantifyWebsite(annToSend);
-    if (!uids) {
-      toast.error('Failed saving annotations to semantify.it!');
-    } else {
-      toast.success('Saved annotations!');
-      this.setState({ savedAnnotationsSemantifyUids: uids });
-    }
   };
 
   public annChangeType = (types: string[]) => {
@@ -211,95 +181,14 @@ class AnnotationWebApi extends React.Component<{}, IState> {
                 </div>
               )}
             </Button>
-            <Button
-              onClick={this.finalize}
-              color="success"
-              className="float-right"
-              size="lg"
-              disabled={this.state.currentStep !== this.steps.length - 1}
-            >
-              Finalize
-            </Button>
+            <div className="float-right">
+              <SaveAnnotationsWebApi
+                isDisabled={this.state.currentStep !== this.steps.length - 1}
+                annotationDOMIds={this.steps.map((_, i) => `annotation-${i}`)}
+              />
+            </div>
           </div>
         </div>
-        <Modal
-          isOpen={this.state.modalIsOpen}
-          toggle={this.toggleModal}
-          size="lg"
-        >
-          <ModalHeader toggle={this.toggleModal}>Your Annotations</ModalHeader>
-          <ModalBody>
-            {this.steps.some(
-              ({ annotationResult }) => !annotationResult.complete,
-            ) && (
-              <div className="alert alert-warning" role="alert">
-                Some annotations are incomplete!
-              </div>
-            )}
-            <div className="row">
-              {this.steps.map((step, i) => (
-                <div className="col-md-6" style={{ padding: '3px' }} key={i}>
-                  <pre
-                    dangerouslySetInnerHTML={{
-                      __html: syntaxHighlightJsonStr(
-                        JSON.stringify(step.annotationResult.jsonld, null, 2),
-                      ),
-                    }}
-                    style={{
-                      borderRadius: '4px',
-                      border: '1px solid lightgrey',
-                      fontSize: '13px',
-                      padding: '10px',
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            {this.state.savedAnnotationsSemantifyUids.length > 0 && (
-              <div>
-                <hr />
-                <h4>
-                  Saved Annotations to{' '}
-                  <a href="https://semantify.it" target="_blank">
-                    Semantify
-                  </a>
-                  !
-                </h4>
-                Your annotations:
-                <ul>
-                  {this.state.savedAnnotationsSemantifyUids.map((uid, i) => (
-                    <li key={i}>
-                      <a href={`https://smtfy.it/${uid}`} target="_blank">
-                        {`https://smtfy.it/${uid}`}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button color="info" onClick={this.saveAnnotations}>
-              <FontAwesomeIcon icon="save" size="lg" /> Save
-            </Button>{' '}
-            <Button
-              color="primary"
-              onClick={() => {
-                copyStrIntoClipBoard(
-                  JSON.stringify(
-                    this.steps.map((s) => s.annotationResult.jsonld),
-                  ),
-                );
-                toast.info('Copied');
-              }}
-            >
-              <FontAwesomeIcon icon="copy" size="lg" /> Copy All
-            </Button>{' '}
-            <Button color="secondary" onClick={this.toggleModal}>
-              Close
-            </Button>
-          </ModalFooter>
-        </Modal>
         <ToastContainer hideProgressBar={true} autoClose={3000} />
       </div>
     );

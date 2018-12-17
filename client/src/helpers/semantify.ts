@@ -1,11 +1,23 @@
 import axios from 'axios';
 
-import { makeArray } from './util';
+import { makeArray, parseJwt } from './util';
 
 export interface IDSMap {
   id: string;
   name: string;
   hash: string;
+}
+
+export interface ISemantifyWebsite {
+  uid: string;
+  secret: string;
+  name?: string;
+  domain?: string;
+}
+
+export interface ISemantifyUser {
+  username: string;
+  token: string;
 }
 
 interface IDSResponce {
@@ -25,16 +37,16 @@ interface IPostAnnotation {
 
 const semantifyApiUrl = 'https://semantify.it/api/';
 
-// this is the instant annotation website
-// const defaultWebsite = {
-//   uid: 'Hkqtxgmkz',
-//   secret: 'ef0a64008d0490fc4764c2431ca4797b',
-// };
-// this is some website on thibault's account
+// this is some test website
 const defaultWebsite = {
-  uid: '-K82c2498',
-  secret: '343d0d070a5fbbba7e1f0b18b5d77685',
+  uid: 'EUrd5iMwn',
+  secret: '6e1b0db9ae54e22953280bd2e539b5ac',
 };
+// this is some website on thibault's account
+// const defaultWebsite = {
+//   uid: '-K82c2498',
+//   secret: '343d0d070a5fbbba7e1f0b18b5d77685',
+// };
 
 export const fetchPublicDS = async (): Promise<IDSMap[]> => {
   try {
@@ -119,15 +131,14 @@ export const transformDSToShacl = (ds: any): any => {
 
 export const saveAnnToSemantifyWebsite = async (
   annotations: any[],
-  websiteUID: string = defaultWebsite.uid,
-  websiteSecret: string = defaultWebsite.secret,
+  website: ISemantifyWebsite = defaultWebsite,
 ): Promise<undefined | string[]> => {
   try {
     const response: IPostAnnotation = await axios({
       method: 'post',
-      url: `${semantifyApiUrl}annotation/${websiteUID}`,
+      url: `${semantifyApiUrl}annotation/${website.uid}`,
       headers: {
-        'website-secret': websiteSecret,
+        'website-secret': website.secret,
       },
       data: annotations.map((annotation) => ({ content: annotation })),
     });
@@ -138,27 +149,45 @@ export const saveAnnToSemantifyWebsite = async (
   }
 };
 
-const defaultGraphDB = {
-  repositoryId: 'sdo-webapi',
-  url: 'https://graphdb.sti2.at/', // http://localhost:7200'
-};
+interface ISemantifyJWT {
+  username: string;
+  _id: string;
+}
 
-export const saveToGraphDb = async (annotations: any): Promise<boolean> => {
+interface ISemantifyUserLoginResponce {
+  token: string;
+  username: string;
+  websiteList: ISemantifyWebsite[];
+}
+
+export const loginSemantifyUser = async (
+  username: string,
+  password: string,
+): Promise<ISemantifyUserLoginResponce | undefined> => {
   try {
-    await axios({
-      method: 'post',
-      url: `${defaultGraphDB.url}/repositories/${
-        defaultGraphDB.repositoryId
-      }/statements`,
-      headers: {
-        Accept: 'application/ld+json',
-        'Content-Type': 'application/ld+json',
-      },
-      data: annotations,
+    const respLogin = await axios.post(`${semantifyApiUrl}login`, {
+      password,
+      identifier: username,
     });
-    return true;
+    const { token, message } = respLogin.data;
+    if (!token || message !== 'ok') {
+      return;
+    }
+    const user: ISemantifyJWT = parseJwt(token);
+
+    const respWebsites = await axios({
+      url: `${semantifyApiUrl}website`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      token,
+      username: user.username,
+      websiteList: respWebsites.data,
+    };
   } catch (e) {
-    console.log(e);
-    return false;
+    return;
   }
 };

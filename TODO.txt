@@ -1,3 +1,5 @@
+Switch semantify default website
+
 Bugfixes
 - switching @type reloads new shacl props
 

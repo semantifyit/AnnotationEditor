@@ -50,3 +50,12 @@ export const parseJwt = (token: string) => {
     return null;
   }
 };
+
+export const stringIsValidJSON = (str: string): boolean => {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};

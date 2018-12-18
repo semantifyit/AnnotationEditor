@@ -4,11 +4,9 @@ import { FormGroup, Input, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
 
 /* tslint:disable-next-line:variable-name */
-const InfoQuery = () => (
-  <InfoBtnModal title="Info URL Query Parameter">
-    Add your query parameters as a json structure. Use only strings as values,
-    otherwise a warning message will appear. The object will then be mapped to
-    some url string.
+const InfoPath = () => (
+  <InfoBtnModal title="Info URL Path">
+    Add your the path of your url using an Array of strings.
     <br />
     <br />
     For example:
@@ -30,29 +28,36 @@ const InfoQuery = () => (
         />
       </FormGroup>
       <FormGroup>
-        <Label for="editor-query-info">URL Query Parameter:</Label>
+        <Label for="editor-query-info">URL Path:</Label>
         <AceEditor
           name="editor-query-info"
           mode="json"
           theme="tomorrow"
           fontSize={14}
-          maxLines={4}
+          height="30px"
           readOnly={true}
           highlightActiveLine={false}
           editorProps={{ $blockScrolling: true }}
-          value={'{\n\t"location": "Innsbruck",\n\t"people": "20"\n}'}
+          value={'["users", "info"]'}
           style={{ border: '1px solid lightgrey' }}
         />
       </FormGroup>
     </div>
     <br />
     Will be mapped to: <br />
-    <b>{'http://example.com/api?location=Innsbruck&people=20'}</b>
+    <b>{'http://example.com/api/users/info'}</b>
     <br />
     <br />
-    Similar to the URL path, all values will be mapped to encode URI special
-    characters (see Url Path hint)
+    All values will be mapped to encode URI special characters using the
+    JavaScript <i>encodeURIComponent</i> function, thus e.g. <br />
+    <b>Österreich, Tirol</b> <br />
+    will become
+    <br />
+    <b>%C3%96sterreich%2C%20Tirol</b>
+    <br />
+    <br />
+    Try out your mapping in the Tryout section.
   </InfoBtnModal>
 );
 
-export default InfoQuery;
+export default InfoPath;

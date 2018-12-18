@@ -3,12 +3,16 @@ import AceEditor from 'react-ace';
 import { FormGroup, Input, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
 
+const editorValue = `{
+    "Content-Type": "application/json",
+    "Authorization": "token abcd"
+}`;
+
 /* tslint:disable-next-line:variable-name */
-const InfoQuery = () => (
-  <InfoBtnModal title="Info URL Query Parameter">
-    Add your query parameters as a json structure. Use only strings as values,
-    otherwise a warning message will appear. The object will then be mapped to
-    some url string.
+const InfoHeader = () => (
+  <InfoBtnModal title="Info Header Properties">
+    Add your Header properties as JSON key-value pairs. You can use Ctrl+Space
+    to get a list of common request headers.
     <br />
     <br />
     For example:
@@ -21,15 +25,6 @@ const InfoQuery = () => (
       }}
     >
       <FormGroup>
-        <Label for="baseUrl-info">Base URL:</Label>
-        <Input
-          value={'http://example.com/api'}
-          id="baseUrl-info"
-          disabled={true}
-          style={{ backgroundColor: 'white' }}
-        />
-      </FormGroup>
-      <FormGroup>
         <Label for="editor-query-info">URL Query Parameter:</Label>
         <AceEditor
           name="editor-query-info"
@@ -40,19 +35,17 @@ const InfoQuery = () => (
           readOnly={true}
           highlightActiveLine={false}
           editorProps={{ $blockScrolling: true }}
-          value={'{\n\t"location": "Innsbruck",\n\t"people": "20"\n}'}
+          value={editorValue}
           style={{ border: '1px solid lightgrey' }}
         />
       </FormGroup>
     </div>
     <br />
-    Will be mapped to: <br />
-    <b>{'http://example.com/api?location=Innsbruck&people=20'}</b>
-    <br />
-    <br />
-    Similar to the URL path, all values will be mapped to encode URI special
-    characters (see Url Path hint)
+    Will result in the following raw headers: <br />
+    <pre style={{ margin: 0 }}>
+      {'Content-Type: application/json\nAuthorization: token abcd'}
+    </pre>
   </InfoBtnModal>
 );
 
-export default InfoQuery;
+export default InfoHeader;

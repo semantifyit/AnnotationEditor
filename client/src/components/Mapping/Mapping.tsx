@@ -20,7 +20,10 @@ import { getAnnotationCompleter, requestHeaderCompleter } from './completers';
 import './snippets';
 import { syntaxHighlightJsonStr } from '../../helpers/html';
 import AddInput from './AddInput';
-import { flattenObject } from '../../helpers/util';
+import { flattenObject, stringIsValidJSON } from '../../helpers/util';
+import InfoPath from './InfoPath';
+import InfoHeader from './InfoHeader';
+import InfoPayload from './InfoPayload';
 
 // const langTools = brace.acequire('ace/ext/language_tools');
 
@@ -60,6 +63,7 @@ const testAnnotation = {
 const annotationCompleter = getAnnotationCompleter(testAnnotation, '-input');
 
 interface IMappingEditors {
+  path?: any;
   query?: any;
   header?: any;
   payload?: any;
@@ -72,6 +76,8 @@ interface IProps {
 interface IState {
   httpMethod: string;
   urlVal: string;
+  pathValue: string;
+  pathValid: boolean;
   queryValue: string;
   queryValid: boolean;
   headerValue: string;
@@ -80,24 +86,21 @@ interface IState {
   payloadType: 'json' | 'xml' | 'yaml' | 'graphqlschema';
 }
 
-const isOneLevelStringJSON = (obj: any): boolean => {
-  let valid = true;
-  try {
-    const json = JSON.parse(obj);
-    valid = Object.values(json).reduce(
-      (acc, cur) => typeof cur === 'string' && acc,
-      true,
-    ) as boolean;
-  } catch (e) {
-    // don't care
-  }
-  return valid;
-};
+const isOneLevelStringJSON = (obj: string): boolean =>
+  !stringIsValidJSON(obj) ||
+  Object.values(JSON.parse(obj)).every((e) => typeof e === 'string');
+
+const isArrayOfStrings = (obj: string): boolean =>
+  !stringIsValidJSON(obj) ||
+  (Array.isArray(JSON.parse(obj)) &&
+    JSON.parse(obj).every((e: any) => typeof e === 'string'));
 
 class Mapping extends React.Component<IProps, IState> {
   public state: IState = {
     httpMethod: 'GET',
     urlVal: '',
+    pathValue: '[\n    \n]',
+    pathValid: true,
     queryValue: '{\n    \n}',
     queryValid: true,
     headerValue: '{\n    \n}',
@@ -112,6 +115,13 @@ class Mapping extends React.Component<IProps, IState> {
   public inputProps: string[] = Object.keys(
     flattenObject(testAnnotation, '$'),
   ).filter((k) => k.endsWith('-input'));
+
+  public onChangePath = (value: string, event: any) => {
+    this.setState({
+      pathValue: value,
+      pathValid: isArrayOfStrings(value),
+    });
+  };
 
   public onChangeQuery = (value: string, event: any) => {
     this.setState({
@@ -143,10 +153,10 @@ class Mapping extends React.Component<IProps, IState> {
 
   public addInputValue = (
     value: string,
-    location: 'query' | 'header' | 'payload',
+    location: 'path' | 'query' | 'header' | 'payload',
   ) => {
-    console.log(value);
-    console.log(location);
+    // console.log(value);
+    // console.log(location);
     // this.editors[location].setValue(value);
     this.editors[location].session.insert(
       this.editors[location].getCursorPosition(),
@@ -213,6 +223,43 @@ class Mapping extends React.Component<IProps, IState> {
                 <div className="float-right" style={{ marginLeft: '5px' }}>
                   <AddInput
                     inputValues={this.inputProps}
+                    addValue={(v) => this.addInputValue(v, 'path')}
+                  />
+                </div>
+                <Label for="editor-path" style={{ padding: 0 }}>
+                  URL Path: <InfoPath />
+                </Label>
+              </div>
+              <div style={{ border: '1px solid lightgrey' }}>
+                <AceEditor
+                  mode="json"
+                  theme="tomorrow"
+                  onChange={this.onChangePath}
+                  name="editor-path"
+                  editorProps={{ $blockScrolling: Infinity }}
+                  fontSize={14}
+                  setOptions={{ enableSnippets: true }}
+                  height="100px"
+                  width="100%"
+                  value={this.state.pathValue}
+                  enableBasicAutocompletion={true}
+                  onLoad={(editor: any) => {
+                    this.editors.path = editor;
+                    editor.completers = [annotationCompleter];
+                  }}
+                />
+                {!this.state.pathValid && (
+                  <Alert color="warning">
+                    Your mapping isn't a array of strings (see hint)
+                  </Alert>
+                )}
+              </div>
+            </FormGroup>
+            <FormGroup>
+              <div style={{ paddingBottom: '5px' }}>
+                <div className="float-right" style={{ marginLeft: '5px' }}>
+                  <AddInput
+                    inputValues={this.inputProps}
                     addValue={(v) => this.addInputValue(v, 'query')}
                   />
                 </div>
@@ -254,7 +301,7 @@ class Mapping extends React.Component<IProps, IState> {
                   />
                 </div>
                 <Label for="editor-query" style={{ padding: 0 }}>
-                  Header Properties:
+                  Header Properties: <InfoHeader />
                 </Label>
               </div>
               <div style={{ border: '1px solid lightgrey' }}>
@@ -306,7 +353,7 @@ class Mapping extends React.Component<IProps, IState> {
                   <option value="graphqlschema">GraphQL</option>
                 </Input>
                 <Label for="editor-query" style={{ padding: 0 }}>
-                  Payload:
+                  Payload: <InfoPayload />
                 </Label>
               </div>
               <div

@@ -5,9 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ToastContainer, toast } from 'react-toastify';
 
 import TypeNode from './TypeNode';
-import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
+import { copyStrIntoClipBoard } from '../helpers/html';
 import { generateJSONLD } from '../helpers/helper';
 import { VocabContext } from '../helpers/VocabContext';
+import JSONBox from './AnnotationBox';
 
 interface IProps {
   typeIDs: { uid: string; node: string }[];
@@ -91,19 +92,7 @@ class Annotations extends React.Component<IProps, IState> {
                 annotation!
               </div>
             )}
-            <pre
-              dangerouslySetInnerHTML={{
-                __html: syntaxHighlightJsonStr(
-                  JSON.stringify(this.jsonldResult.jsonld, null, 2),
-                ),
-              }}
-              style={{
-                borderRadius: '4px',
-                border: '1px solid lightgrey',
-                fontSize: '13px',
-                padding: '10px',
-              }}
-            />
+            <JSONBox object={this.jsonldResult.jsonld} />
           </ModalBody>
           <ModalFooter>
             <Button

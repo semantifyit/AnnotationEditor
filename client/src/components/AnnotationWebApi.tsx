@@ -1,16 +1,14 @@
 import * as React from 'react';
-
-import { generateJSONLD, removeNS } from '../helpers/helper';
-import Annotations from './Annotations';
-import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
+import { Button } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+
+import Annotations from './Annotations';
+import SaveAnnotationsWebApi from './SaveAnnotationsWebApi';
+import { generateJSONLD, removeNS } from '../helpers/helper';
 import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
-
-import SaveAnnotationsWebApi from './SaveAnnotationsWebApi';
 
 interface IState {
   ready: boolean;

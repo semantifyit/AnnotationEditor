@@ -21,3 +21,10 @@
 .cursor-hand {
   cursor: pointer;
 }
+
+.annotation-box {
+  border-radius: 4px;
+  border: 1px solid lightgrey;
+  font-size: 13px;
+  padding: 10px;
+}

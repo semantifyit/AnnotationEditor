@@ -1,6 +1,4 @@
 import * as React from 'react';
-
-import { copyStrIntoClipBoard, syntaxHighlightJsonStr } from '../helpers/html';
 import {
   Button,
   FormGroup,
@@ -13,6 +11,7 @@ import {
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toast } from 'react-toastify';
+
 import {
   ISemantifyUser,
   ISemantifyWebsite,
@@ -20,6 +19,7 @@ import {
   saveAnnToSemantifyWebsite,
 } from '../helpers/semantify';
 import { generateJSONLD } from '../helpers/helper';
+import { copyStrIntoClipBoard } from '../helpers/html';
 import {
   getSemantifyDefaultWebsite,
   getSemantifyUser,
@@ -28,6 +28,7 @@ import {
   setSemantifyDefaultWebsite,
   setSemantifyUser,
 } from '../helpers/storage';
+import JSONBox from './AnnotationBox';
 
 interface IProps {
   isDisabled: boolean;
@@ -168,19 +169,7 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
             <div className="row">
               {this.state.annotations.map((ann, i) => (
                 <div className="col-md-6" style={{ padding: '3px' }} key={i}>
-                  <pre
-                    dangerouslySetInnerHTML={{
-                      __html: syntaxHighlightJsonStr(
-                        JSON.stringify(ann.jsonld, null, 2),
-                      ),
-                    }}
-                    style={{
-                      borderRadius: '4px',
-                      border: '1px solid lightgrey',
-                      fontSize: '13px',
-                      padding: '10px',
-                    }}
-                  />
+                  <JSONBox object={ann.jsonld} />
                 </div>
               ))}
             </div>

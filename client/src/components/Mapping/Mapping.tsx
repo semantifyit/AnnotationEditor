@@ -24,6 +24,7 @@ import { flattenObject, stringIsValidJSON } from '../../helpers/util';
 import InfoPath from './InfoPath';
 import InfoHeader from './InfoHeader';
 import InfoPayload from './InfoPayload';
+import InfoUsingInput from './InfoUsingInput';
 
 // const langTools = brace.acequire('ace/ext/language_tools');
 
@@ -171,6 +172,9 @@ class Mapping extends React.Component<IProps, IState> {
           Create your Mapping
         </h1>
         <h2>1.Request</h2>
+        <div className="float-right">
+          <InfoUsingInput />
+        </div>
         <Row>
           <Col md="4">
             <pre

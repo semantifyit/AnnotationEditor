@@ -1,9 +1,12 @@
 import React from 'react';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { SizeProp } from '@fortawesome/fontawesome-svg-core';
 
 interface IProps {
   title: string;
+  btnSize?: SizeProp;
+  btnColor?: string;
 }
 
 interface IState {
@@ -28,8 +31,8 @@ class InfoBtnModal extends React.Component<IProps, IState> {
           <FontAwesomeIcon
             className="cursor-hand"
             icon="info-circle"
-            size="sm"
-            color="lightblue"
+            size={this.props.btnSize || 'sm'}
+            color={this.props.btnColor || 'lightblue'}
           />
         </span>
         <Modal

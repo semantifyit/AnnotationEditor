@@ -1,0 +1,1 @@
+export { requestMapping } from './mapper';

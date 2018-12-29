@@ -1,0 +1,31 @@
+{
+  "name": "api-mapping",
+  "version": "1.0.0",
+  "description": "Maps schema.org actions to api calls",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "testRegex": "^.+\\.test\\.ts$"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "Thibault Gerrier",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^23.3.10",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.5"
+  }
+}

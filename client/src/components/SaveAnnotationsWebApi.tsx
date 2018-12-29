@@ -28,7 +28,7 @@ import {
   setSemantifyDefaultWebsite,
   setSemantifyUser,
 } from '../helpers/storage';
-import JSONBox from './AnnotationBox';
+import JSONBox from './JSONBox';
 
 interface IProps {
   isDisabled: boolean;

@@ -1,8 +1,7 @@
 import React from 'react';
 import { syntaxHighlightJsonStr } from '../helpers/html';
 
-/* tslint:disable-next-line:variable-name */
-const JSONBox = ({ object }: { object: any }) => (
+const JSONBox = ({ object }: { object: object }) => (
   <pre
     dangerouslySetInnerHTML={{
       __html: syntaxHighlightJsonStr(JSON.stringify(object, null, 2)),

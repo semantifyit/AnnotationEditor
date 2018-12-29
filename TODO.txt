@@ -5,6 +5,7 @@ Bugfixes
 
 future TODOs
 - webapi fill in documentation.url with semantify url.
+- check null usage, change "no-null-keyword": true in tslint.json
 
 Improvements/Ideas
 add @value ?

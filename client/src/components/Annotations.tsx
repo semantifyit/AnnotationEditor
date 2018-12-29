@@ -8,7 +8,7 @@ import TypeNode from './TypeNode';
 import { copyStrIntoClipBoard } from '../helpers/html';
 import { generateJSONLD } from '../helpers/helper';
 import { VocabContext } from '../helpers/VocabContext';
-import JSONBox from './AnnotationBox';
+import JSONBox from './JSONBox';
 
 interface IProps {
   typeIDs: { uid: string; node: string }[];

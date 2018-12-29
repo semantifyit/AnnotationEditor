@@ -13,7 +13,7 @@ import 'brace/snippets/graphqlschema';
 
 import 'brace/theme/tomorrow';
 import 'brace/ext/language_tools';
-import { Alert, Button, Col, FormGroup, Input, Label, Row } from 'reactstrap';
+import { Alert, Col, FormGroup, Input, Label, Row } from 'reactstrap';
 
 import InfoQuery from './InfoQuery';
 import { getAnnotationCompleter, requestHeaderCompleter } from './completers';

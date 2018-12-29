@@ -1,9 +1,8 @@
 import React from 'react';
 import AceEditor from 'react-ace';
-import { FormGroup, Input, Label } from 'reactstrap';
+import { FormGroup, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
-import { syntaxHighlightJsonStr } from '../../helpers/html';
-import JSONBox from '../AnnotationBox';
+import JSONBox from '../JSONBox';
 
 const editorValue = JSON.stringify(
   {
@@ -28,7 +27,6 @@ const apiCallPayload = {
   categoryID: '123',
 };
 
-/* tslint:disable-next-line:variable-name */
 const InfoUsingInput = () => (
   <InfoBtnModal
     title="Info Header Properties"

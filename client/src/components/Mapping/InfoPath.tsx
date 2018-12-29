@@ -3,7 +3,6 @@ import AceEditor from 'react-ace';
 import { FormGroup, Input, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
 
-/* tslint:disable-next-line:variable-name */
 const InfoPath = () => (
   <InfoBtnModal title="Info URL Path">
     Add your the path of your url using an Array of strings.

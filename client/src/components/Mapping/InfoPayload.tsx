@@ -1,6 +1,4 @@
 import React from 'react';
-import AceEditor from 'react-ace';
-import { FormGroup, Input, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
 
 const editorValue = JSON.stringify(
@@ -19,7 +17,6 @@ const editorValue = JSON.stringify(
   4,
 );
 
-/* tslint:disable-next-line:variable-name */
 const InfoPayload = () => (
   <InfoBtnModal title="Info Payload">
     Add the payload / body the api expects. Use the input fields using the $ dot

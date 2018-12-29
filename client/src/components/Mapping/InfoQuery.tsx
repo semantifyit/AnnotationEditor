@@ -3,7 +3,6 @@ import AceEditor from 'react-ace';
 import { FormGroup, Input, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
 
-/* tslint:disable-next-line:variable-name */
 const InfoQuery = () => (
   <InfoBtnModal title="Info URL Query Parameter">
     Add your query parameters as a json structure. Use only strings as values,

@@ -1,6 +1,6 @@
 import React from 'react';
 import AceEditor from 'react-ace';
-import { FormGroup, Input, Label } from 'reactstrap';
+import { FormGroup, Label } from 'reactstrap';
 import InfoBtnModal from './InfoBtnModal';
 
 const editorValue = `{
@@ -8,7 +8,6 @@ const editorValue = `{
     "Authorization": "token abcd"
 }`;
 
-/* tslint:disable-next-line:variable-name */
 const InfoHeader = () => (
   <InfoBtnModal title="Info Header Properties">
     Add your Header properties as JSON key-value pairs. You can use Ctrl+Space

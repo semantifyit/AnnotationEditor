@@ -25,6 +25,12 @@
       "pre-push": "npm run validate:ts && npm run validate:tslint"
     }
   },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all",
+    "arrowParens": "always",
+    "tabWidth": 2
+  },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.6",
     "@fortawesome/free-solid-svg-icons": "^5.4.1",
@@ -60,7 +66,7 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.2.6",
-    "@types/jest": "^23.3.3",
+    "@types/jest": "^23.3.10",
     "@types/lodash": "^4.14.117",
     "@types/node": "^10.11.4",
     "@types/react": "^16.4.16",

@@ -16,7 +16,7 @@
       "ts",
       "js"
     ],
-    "testRegex": "^.+\\.test\\.ts$"
+    "testRegex": "^.+\\.(test|spec)\\.ts$"
   },
   "files": [
     "dist"

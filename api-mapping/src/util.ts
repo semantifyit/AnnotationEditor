@@ -41,3 +41,42 @@ export const isNodeJs = (): boolean => typeof window === 'undefined';
 export const isBrowser = (): boolean =>
   // @ts-ignore
   ![typeof window, typeof document].includes('undefined');
+
+export const mergeDiff = (...objects: any[]) =>
+  objects.reduce((acc, cur) => {
+    // if (typeof cur === 'object') {
+    Object.entries(cur).forEach(([k, v]) => {
+      if (acc[k]) {
+        if (Array.isArray(acc[k])) {
+          acc[k].push(v);
+        } else {
+          acc[k] = [acc[k], v];
+        }
+      } else {
+        acc[k] = v;
+      }
+    });
+    return acc;
+  }, {});
+
+export const mergeSame = (...objects: any[]) =>
+  objects.reduce((acc, cur) => {
+    if (typeof cur === 'object') {
+      Object.entries(cur).forEach(([k, v]) => {
+        if (acc[k]) {
+          acc[k] = mergeSame(acc[k], v);
+        } else {
+          acc[k] = v;
+        }
+      });
+      return acc;
+    }
+    if (Array.isArray(acc)) {
+      acc.push(cur);
+      return acc;
+    }
+    if (Object.keys(acc).length === 0) {
+      return [cur];
+    }
+    return [acc, cur];
+  }, {});

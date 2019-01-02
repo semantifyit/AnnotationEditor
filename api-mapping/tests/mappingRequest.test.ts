@@ -1,6 +1,6 @@
 import { requestMapping } from '../src/mapper';
 
-describe('mapping github issue create', () => {
+describe('mapping request github issue create', () => {
   const mapping = {
     url: 'https://api.github.com',
     path: ['repos', '$.object.author.name', '$.object.name', 'issues'],
@@ -58,7 +58,7 @@ describe('mapping github issue create', () => {
   });
 });
 
-describe('mapping github issue list', () => {
+describe('mapping request github issue list', () => {
   const mapping = {
     url: 'https://api.github.com',
     path: ['repos', '$.object.author.name', '$.object.name', 'issues'],

@@ -1,4 +1,4 @@
-import { deepMapValues, get, URLJoin } from './util';
+import { deepMapValues, get, mergeDiff, mergeSame, URLJoin } from './util';
 
 describe('util', () => {
   it('deepMapValues', () => {
@@ -89,5 +89,33 @@ describe('util', () => {
     ).toEqual('http://www.google.com/asd');
 
     expect(URLJoin('http://www.google.com')).toEqual('http://www.google.com');
+  });
+
+  it('merge', () => {
+    expect(mergeDiff({ a: 1, b: 2 }, { c: 4 })).toEqual({ a: 1, b: 2, c: 4 });
+    expect(mergeDiff({ a: 1, b: 2 }, { a: 3, c: 4 })).toEqual({
+      a: [1, 3],
+      b: 2,
+      c: 4,
+    });
+    expect(
+      mergeDiff({ a: { a: 1, b: 2 } }, { a: { d: 5, e: 6 }, c: 4 }),
+    ).toEqual({
+      a: [{ a: 1, b: 2 }, { d: 5, e: 6 }],
+      c: 4,
+    });
+    expect(
+      mergeDiff({ a: { a: 1 } }, { a: { a: 2 } }, { a: { a: 3 } }),
+    ).toEqual({ a: [{ a: 1 }, { a: 2 }, { a: 3 }] });
+
+    expect(mergeSame({ a: { b: 1 } }, { a: { c: { d: 4 } } })).toEqual({
+      a: { b: 1, c: { d: 4 } },
+    });
+  });
+
+  it('merge same', () => {
+    expect(
+      mergeSame({ result: { genre: 'bug' } }, { result: { genre: 'test' } }),
+    ).toEqual({ result: { genre: ['bug', 'test'] } });
   });
 });

@@ -1,10 +1,10 @@
 import React from 'react';
 import AceEditor from 'react-ace';
 import { FormGroup, Input, Label } from 'reactstrap';
-import InfoBtnModal from './InfoBtnModal';
+import ButtonModal from './ButtonModal';
 
 const InfoQuery = () => (
-  <InfoBtnModal title="Info URL Query Parameter">
+  <ButtonModal modalTitle="Info URL Query Parameter" triggerType="icon">
     Add your query parameters as a json structure. Use only strings as values,
     otherwise a warning message will appear. The object will then be mapped to
     some url string.
@@ -51,7 +51,7 @@ const InfoQuery = () => (
     <br />
     Similar to the URL path, all values will be mapped to encode URI special
     characters (see Url Path hint)
-  </InfoBtnModal>
+  </ButtonModal>
 );
 
 export default InfoQuery;

@@ -4,16 +4,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SizeProp } from '@fortawesome/fontawesome-svg-core';
 
 interface IProps {
-  title: string;
+  modalTitle: string;
+  triggerType: 'icon' | 'button';
   btnSize?: SizeProp;
   btnColor?: string;
+  btnTitle?: string;
 }
 
 interface IState {
   modalOpen: boolean;
 }
 
-class InfoBtnModal extends React.Component<IProps, IState> {
+class ButtonModal extends React.Component<IProps, IState> {
   public state: IState = {
     modalOpen: false,
   };
@@ -27,21 +29,32 @@ class InfoBtnModal extends React.Component<IProps, IState> {
   public render() {
     return (
       <>
-        <span className="cursor-hand" onClick={this.toggleModal}>
-          <FontAwesomeIcon
-            className="cursor-hand"
-            icon="info-circle"
-            size={this.props.btnSize || 'sm'}
-            color={this.props.btnColor || 'lightblue'}
-          />
-        </span>
+        {this.props.triggerType === 'button' ? (
+          <Button
+            color={this.props.btnColor || 'primary'}
+            size={this.props.btnSize || 'md'}
+            onClick={this.toggleModal}
+          >
+            {this.props.btnTitle}
+          </Button>
+        ) : (
+          <span className="cursor-hand" onClick={this.toggleModal}>
+            <FontAwesomeIcon
+              className="cursor-hand"
+              icon="info-circle"
+              size={this.props.btnSize || 'sm'}
+              color={this.props.btnColor || 'lightblue'}
+            />
+          </span>
+        )}
+
         <Modal
           isOpen={this.state.modalOpen}
           toggle={this.toggleModal}
           size="lg"
         >
           <ModalHeader toggle={this.toggleModal}>
-            {this.props.title}
+            {this.props.modalTitle}
           </ModalHeader>
           <ModalBody>{this.props.children}</ModalBody>
           <ModalFooter>
@@ -55,4 +68,4 @@ class InfoBtnModal extends React.Component<IProps, IState> {
   }
 }
 
-export default InfoBtnModal;
+export default ButtonModal;

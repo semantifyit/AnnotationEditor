@@ -30,11 +30,15 @@ export const flattenObject = (
   obj: any,
   prefix: string = '',
   separator: string = '.',
+  upToType?: string,
 ) =>
   Object.keys(obj).reduce((acc: any, k) => {
     const pre = prefix.length ? prefix + separator : '';
-    if (typeof obj[k] === 'object') {
-      Object.assign(acc, flattenObject(obj[k], pre + k));
+    if (
+      typeof obj[k] === 'object' &&
+      !(upToType && obj[k]['@type'] === upToType)
+    ) {
+      Object.assign(acc, flattenObject(obj[k], pre + k, separator, upToType));
     } else {
       acc[pre + k] = obj[k];
     }
@@ -59,3 +63,14 @@ export const stringIsValidJSON = (str: string): boolean => {
     return false;
   }
 };
+
+export const removeUndef = (obj: object): any =>
+  Object.entries(obj).reduce(
+    (acc, [k, v]) => {
+      if (v !== undefined) {
+        acc[k] = v;
+      }
+      return acc;
+    },
+    {} as any,
+  );

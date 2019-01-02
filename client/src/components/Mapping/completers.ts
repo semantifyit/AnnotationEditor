@@ -43,6 +43,7 @@ export const getAnnotationCompleter = (
         null,
         Object.keys(flattenedAnn)
           .filter((k) => k.endsWith(inputOutput))
+          .map((k) => k.replace(inputOutput, ''))
           .map((word) => ({
             caption: word,
             value: word,

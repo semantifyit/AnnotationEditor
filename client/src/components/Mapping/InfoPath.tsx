@@ -1,10 +1,10 @@
 import React from 'react';
 import AceEditor from 'react-ace';
 import { FormGroup, Input, Label } from 'reactstrap';
-import InfoBtnModal from './InfoBtnModal';
+import ButtonModal from './ButtonModal';
 
 const InfoPath = () => (
-  <InfoBtnModal title="Info URL Path">
+  <ButtonModal modalTitle="Info URL Path" triggerType="icon">
     Add your the path of your url using an Array of strings.
     <br />
     <br />
@@ -56,7 +56,7 @@ const InfoPath = () => (
     <br />
     <br />
     Try out your mapping in the Tryout section.
-  </InfoBtnModal>
+  </ButtonModal>
 );
 
 export default InfoPath;

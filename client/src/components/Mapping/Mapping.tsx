@@ -18,13 +18,18 @@ import { Alert, Col, FormGroup, Input, Label, Row } from 'reactstrap';
 import InfoQuery from './InfoQuery';
 import { getAnnotationCompleter, requestHeaderCompleter } from './completers';
 import './snippets';
-import { syntaxHighlightJsonStr } from '../../helpers/html';
 import AddInput from './AddInput';
 import { flattenObject, stringIsValidJSON } from '../../helpers/util';
 import InfoPath from './InfoPath';
 import InfoHeader from './InfoHeader';
 import InfoPayload from './InfoPayload';
 import InfoUsingInput from './InfoUsingInput';
+import TextRequest from './TestRequest';
+import JSONBox from '../JSONBox';
+import {
+  IPropertyValueSpecification,
+  transformPropertyValueSpecification,
+} from '../../helpers/helper';
 
 // const langTools = brace.acequire('ace/ext/language_tools');
 
@@ -41,8 +46,14 @@ const testAnnotation = {
     '@type': 'LodgingReservation',
     'checkinTime-input': 'required',
     'checkoutTime-input': 'required',
-    'numAdults-input': 'required',
-    'numChildren-input': 'required',
+    'numAdults-input': {
+      '@type': 'PropertyValueSpecification',
+      valuePattern: '^[0-9]*$',
+    },
+    'numChildren-input': {
+      '@type': 'PropertyValueSpecification',
+      maxValue: '10',
+    },
     reservationFor: {
       '@type': 'Person',
       'name-input': {
@@ -113,9 +124,20 @@ class Mapping extends React.Component<IProps, IState> {
   public editors: IMappingEditors = {};
 
   public annotation: any = testAnnotation;
-  public inputProps: string[] = Object.keys(
-    flattenObject(testAnnotation, '$'),
-  ).filter((k) => k.endsWith('-input'));
+  public inputProps: {
+    path: string;
+    pvs: IPropertyValueSpecification;
+  }[] = Object.entries(
+    flattenObject(testAnnotation, '$', undefined, 'PropertyValueSpecification'),
+  )
+    .filter(([k]) => k.endsWith('-input'))
+    .sort(([k1], [k2]) => k1.localeCompare(k2))
+    .map(([k, v]) => ({
+      path: k.replace('-input', ''),
+      pvs: transformPropertyValueSpecification(v as
+        | string
+        | IPropertyValueSpecification),
+    }));
 
   public onChangePath = (value: string, event: any) => {
     this.setState({
@@ -166,6 +188,7 @@ class Mapping extends React.Component<IProps, IState> {
   };
 
   public render() {
+    const inputPropsKeys = this.inputProps.map((p) => p.path);
     return (
       <div>
         <h1 className="text-center" style={{ marginTop: '40px' }}>
@@ -177,19 +200,8 @@ class Mapping extends React.Component<IProps, IState> {
         </div>
         <Row>
           <Col md="4">
-            <pre
-              dangerouslySetInnerHTML={{
-                __html: syntaxHighlightJsonStr(
-                  JSON.stringify(testAnnotation, null, 2),
-                ),
-              }}
-              style={{
-                borderRadius: '4px',
-                border: '1px solid lightgrey',
-                fontSize: '13px',
-                padding: '10px',
-              }}
-            />
+            <JSONBox object={testAnnotation} />
+            <TextRequest inputProps={this.inputProps} />
           </Col>
           <Col md="8">
             <Row>
@@ -226,7 +238,7 @@ class Mapping extends React.Component<IProps, IState> {
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
                   <AddInput
-                    inputValues={this.inputProps}
+                    inputValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'path')}
                   />
                 </div>
@@ -263,7 +275,7 @@ class Mapping extends React.Component<IProps, IState> {
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
                   <AddInput
-                    inputValues={this.inputProps}
+                    inputValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'query')}
                   />
                 </div>
@@ -300,7 +312,7 @@ class Mapping extends React.Component<IProps, IState> {
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
                   <AddInput
-                    inputValues={this.inputProps}
+                    inputValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'header')}
                   />
                 </div>
@@ -340,7 +352,7 @@ class Mapping extends React.Component<IProps, IState> {
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
                   <AddInput
-                    inputValues={this.inputProps}
+                    inputValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'payload')}
                   />
                 </div>

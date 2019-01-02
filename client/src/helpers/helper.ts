@@ -7,6 +7,7 @@ import {
   makeArray,
   notEmpty,
   Optional,
+  removeUndef,
 } from './util';
 import * as p from './properties';
 
@@ -256,3 +257,65 @@ export const nodeBelongsToNS = (node: INode, ns: p.Namespace) =>
 
 export const isTerminalNode = (nodeId: string) =>
   p.terminalNodes.includes(nodeId);
+
+export interface IPropertyValueSpecification {
+  defaultValue?: string;
+  maxValue?: number;
+  minValue?: number;
+  multipleValues?: boolean;
+  valueMaxLength?: number;
+  valueMinLength?: number;
+  valuePattern?: string;
+  valueRequired?: boolean;
+}
+
+export const getPVSMatchFromRegex = (str: string): undefined | string => {
+  const match = str.match(/default=(\S*)/);
+  if (match && match.length > 2) {
+    return match[1];
+  }
+  return;
+};
+
+export const transformPropertyValueSpecification = (
+  pvs: string | IPropertyValueSpecification,
+): IPropertyValueSpecification => {
+  if (typeof pvs === 'string') {
+    return removeUndef({
+      defaultValue: getPVSMatchFromRegex('default'),
+      maxValue: Number(getPVSMatchFromRegex('max')),
+      minValue: Number(getPVSMatchFromRegex('min')),
+      multipleValues: getPVSMatchFromRegex('multiple'),
+      valueMaxLength: Number(getPVSMatchFromRegex('maxlength')),
+      valueMinLength: Number(getPVSMatchFromRegex('minlength')),
+      valuePattern: getPVSMatchFromRegex('pattern'),
+      valueRequired: pvs.includes('required'),
+    });
+  }
+  return pvs;
+};
+
+export const validatePVS = (
+  str: string,
+  pvs: IPropertyValueSpecification,
+): string | undefined => {
+  if (pvs.valueRequired && str === '') {
+    return 'Value is required';
+  }
+  if (pvs.maxValue && Number(str) > pvs.maxValue) {
+    return `Value cannot be bigger then ${pvs.maxValue}.`;
+  }
+  if (pvs.minValue && Number(str) < pvs.minValue) {
+    return `Value cannot be bigger then ${pvs.minValue}.`;
+  }
+  if (pvs.valueMaxLength && str.length > pvs.valueMaxLength) {
+    return `Value cannot be longer then ${pvs.valueMaxLength} characters.`;
+  }
+  if (pvs.valueMinLength && str.length < pvs.valueMinLength) {
+    return `Value cannot be shorter then ${pvs.valueMinLength} characters.`;
+  }
+  if (pvs.valuePattern && !new RegExp(pvs.valuePattern).test(str)) {
+    return `Value doesn't match pattern ${pvs.valuePattern}.`;
+  }
+  return;
+};

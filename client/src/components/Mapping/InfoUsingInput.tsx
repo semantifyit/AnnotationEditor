@@ -1,7 +1,7 @@
 import React from 'react';
 import AceEditor from 'react-ace';
 import { FormGroup, Label } from 'reactstrap';
-import InfoBtnModal from './InfoBtnModal';
+import ButtonModal from './ButtonModal';
 import JSONBox from '../JSONBox';
 
 const editorValue = JSON.stringify(
@@ -28,8 +28,9 @@ const apiCallPayload = {
 };
 
 const InfoUsingInput = () => (
-  <InfoBtnModal
-    title="Info Header Properties"
+  <ButtonModal
+    modalTitle="Using input Properties"
+    triggerType="icon"
     btnSize="lg"
     btnColor="dodgerblue"
   >
@@ -96,7 +97,7 @@ const InfoUsingInput = () => (
     <br />
     Will result in the following Payload/Body for the API call:
     <JSONBox object={apiCallPayload} />
-  </InfoBtnModal>
+  </ButtonModal>
 );
 
 export default InfoUsingInput;

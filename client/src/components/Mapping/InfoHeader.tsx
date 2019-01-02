@@ -1,7 +1,7 @@
 import React from 'react';
 import AceEditor from 'react-ace';
 import { FormGroup, Label } from 'reactstrap';
-import InfoBtnModal from './InfoBtnModal';
+import ButtonModal from './ButtonModal';
 
 const editorValue = `{
     "Content-Type": "application/json",
@@ -9,7 +9,7 @@ const editorValue = `{
 }`;
 
 const InfoHeader = () => (
-  <InfoBtnModal title="Info Header Properties">
+  <ButtonModal modalTitle="Info Header Properties" triggerType="icon">
     Add your Header properties as JSON key-value pairs. You can use Ctrl+Space
     to get a list of common request headers.
     <br />
@@ -44,7 +44,7 @@ const InfoHeader = () => (
     <pre style={{ margin: 0 }}>
       {'Content-Type: application/json\nAuthorization: token abcd'}
     </pre>
-  </InfoBtnModal>
+  </ButtonModal>
 );
 
 export default InfoHeader;

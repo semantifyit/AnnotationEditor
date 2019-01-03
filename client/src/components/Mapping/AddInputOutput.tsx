@@ -19,13 +19,14 @@ import 'brace/mode/javascript';
 import { RunJavaScriptFunction } from './runJavaScript';
 
 interface IProps {
-  inputValues: string[];
+  io: 'input' | 'output';
+  ioValues: string[];
   addValue(value: string): void;
 }
 
 interface IState {
   modalOpen: boolean;
-  inputValue: string;
+  selectedIOValue: string;
   showJSTransform: boolean;
   jsValue: string;
   useJSFunction: boolean;
@@ -37,7 +38,7 @@ interface IState {
 class AddInput extends React.Component<IProps, IState> {
   public state: IState = {
     modalOpen: false,
-    inputValue: this.props.inputValues[0],
+    selectedIOValue: this.props.ioValues[0],
     showJSTransform: false,
     jsValue:
       '//input is your input string (typeof string)\nfunction transform(input) {\n    return input;\n}',
@@ -50,7 +51,7 @@ class AddInput extends React.Component<IProps, IState> {
   public testJSFunction = new RunJavaScriptFunction();
 
   public addInput = () => {
-    let val = this.state.inputValue;
+    let val = this.state.selectedIOValue;
     // console.log(this.state.jsValue);
     const filteredJS = this.state.jsValue
       .replace(/\/\/.*\n/g, ' ')
@@ -70,7 +71,7 @@ class AddInput extends React.Component<IProps, IState> {
   };
 
   public changeInputValue = (e: any) => {
-    this.setState({ inputValue: e.target.value });
+    this.setState({ selectedIOValue: e.target.value });
   };
 
   public onChangeJS = (val: string, e: any) => {
@@ -104,23 +105,25 @@ class AddInput extends React.Component<IProps, IState> {
     return (
       <>
         <Button color="primary" size="sm" onClick={this.toggleModal}>
-          Add Input field
+          Add {this.props.io} field
         </Button>
         <Modal
           isOpen={this.state.modalOpen}
           toggle={this.toggleModal}
           size="lg"
         >
-          <ModalHeader toggle={this.toggleModal}>Add input field</ModalHeader>
+          <ModalHeader toggle={this.toggleModal}>
+            Add {this.props.io} field
+          </ModalHeader>
           <ModalBody>
-            Choose a value from the list of "-input" properties:
+            Choose a value from the list of "-{this.props.io}" properties:
             <Input
               type="select"
               name="select"
               onChange={this.changeInputValue}
-              value={this.state.inputValue}
+              value={this.state.selectedIOValue}
             >
-              {this.props.inputValues.map((val, i) => (
+              {this.props.ioValues.map((val, i) => (
                 <option key={i}>{val}</option>
               ))}
             </Input>

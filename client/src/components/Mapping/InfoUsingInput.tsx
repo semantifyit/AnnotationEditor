@@ -31,7 +31,7 @@ const InfoUsingInput = () => (
   <ButtonModal
     modalTitle="Using input Properties"
     triggerType="icon"
-    btnSize="lg"
+    btnSize="sm"
     btnColor="dodgerblue"
   >
     In this page you define the mapping between your schema.org Action and the

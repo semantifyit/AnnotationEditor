@@ -16,9 +16,13 @@ import 'brace/ext/language_tools';
 import { Alert, Col, FormGroup, Input, Label, Row } from 'reactstrap';
 
 import InfoQuery from './InfoQuery';
-import { getAnnotationCompleter, requestHeaderCompleter } from './completers';
+import {
+  getAnnotationCompleter,
+  requestHeaderCompleter,
+  responseHeaderCompleter,
+} from './completers';
 import './snippets';
-import AddInput from './AddInput';
+import AddInputOutput from './AddInputOutput';
 import { flattenObject, stringIsValidJSON } from '../../helpers/util';
 import InfoPath from './InfoPath';
 import InfoHeader from './InfoHeader';
@@ -27,9 +31,13 @@ import InfoUsingInput from './InfoUsingInput';
 import TextRequest from './TestRequest';
 import JSONBox from '../JSONBox';
 import {
+  getIOProps,
   IPropertyValueSpecification,
   transformPropertyValueSpecification,
 } from '../../helpers/helper';
+import InfoUsingOutput from './InfoUsingOutput';
+import InfoHeaderResponse from './InfoHeaderResponse';
+import InfoPayloadResponse from './InfoPayloadResponse';
 
 // const langTools = brace.acequire('ace/ext/language_tools');
 
@@ -62,7 +70,11 @@ const testAnnotation = {
       },
     },
   },
-  result: { '@type': ['Offer', 'LodgingReservation'] },
+  result: {
+    '@type': ['Offer', 'LodgingReservation'],
+    'name-output': 'required',
+    'description-output': 'required',
+  },
   target: {
     '@type': 'EntryPoint',
     contentType: 'application/ld+json',
@@ -72,13 +84,22 @@ const testAnnotation = {
   },
 };
 
-const annotationCompleter = getAnnotationCompleter(testAnnotation, '-input');
+const annotationInputCompleter = getAnnotationCompleter(
+  testAnnotation,
+  '-input',
+);
+const annotationOutputCompleter = getAnnotationCompleter(
+  testAnnotation,
+  '-output',
+);
 
 interface IMappingEditors {
   path?: any;
   query?: any;
   header?: any;
   payload?: any;
+  headerResponse?: any;
+  payloadResponse?: any;
 }
 
 interface IProps {
@@ -99,6 +120,11 @@ interface IState {
   headerValidJSON: boolean;
   payloadValue: string;
   payloadValidJSON: boolean;
+  headerResponseValue: string;
+  headerResponseValid: boolean;
+  headerResponseValidJSON: boolean;
+  payloadResponseValue: string;
+  payloadResponseValidJSON: boolean;
   payloadType: 'json' | 'xml' | 'yaml' | 'graphqlschema';
 }
 
@@ -126,26 +152,19 @@ class Mapping extends React.Component<IProps, IState> {
     headerValidJSON: true,
     payloadValue: '{\n    \n}',
     payloadValidJSON: true,
+    headerResponseValue: '{\n    \n}',
+    headerResponseValid: true,
+    headerResponseValidJSON: true,
+    payloadResponseValue: '{\n    \n}',
+    payloadResponseValidJSON: true,
     payloadType: 'json',
   };
 
   public editors: IMappingEditors = {};
 
   public annotation: any = testAnnotation;
-  public inputProps: {
-    path: string;
-    pvs: IPropertyValueSpecification;
-  }[] = Object.entries(
-    flattenObject(testAnnotation, '$', undefined, 'PropertyValueSpecification'),
-  )
-    .filter(([k]) => k.endsWith('-input'))
-    .sort(([k1], [k2]) => k1.localeCompare(k2))
-    .map(([k, v]) => ({
-      path: k.replace('-input', ''),
-      pvs: transformPropertyValueSpecification(v as
-        | string
-        | IPropertyValueSpecification),
-    }));
+  public inputProps = getIOProps(testAnnotation, 'input');
+  public outputProps = getIOProps(testAnnotation, 'output');
 
   public onChangePath = (value: string, event: any) => {
     this.setState({
@@ -178,6 +197,21 @@ class Mapping extends React.Component<IProps, IState> {
     });
   };
 
+  public onChangeHeadersResponse = (value: string, event: any) => {
+    this.setState({
+      headerResponseValue: value,
+      headerResponseValid: isOneLevelStringJSON(value),
+      headerResponseValidJSON: stringIsValidJSON(value),
+    });
+  };
+
+  public onChangePayloadResponse = (value: string, event: any) => {
+    this.setState({
+      payloadResponseValue: value,
+      payloadResponseValidJSON: stringIsValidJSON(value),
+    });
+  };
+
   public changeHTTPMethod = (e: any) => {
     this.setState({ httpMethod: e.target.value });
   };
@@ -188,7 +222,13 @@ class Mapping extends React.Component<IProps, IState> {
 
   public addInputValue = (
     value: string,
-    location: 'path' | 'query' | 'header' | 'payload',
+    location:
+      | 'path'
+      | 'query'
+      | 'header'
+      | 'payload'
+      | 'headerResponse'
+      | 'payloadResponse',
   ) => {
     // console.log(value);
     // console.log(location);
@@ -201,6 +241,7 @@ class Mapping extends React.Component<IProps, IState> {
 
   public render() {
     const inputPropsKeys = this.inputProps.map((p) => p.path);
+    const outputPropKeys = this.outputProps.map((p) => p.path);
     const mappingIsValid =
       this.state.pathValid &&
       this.state.pathValidJSON &&
@@ -226,12 +267,14 @@ class Mapping extends React.Component<IProps, IState> {
         <h1 className="text-center" style={{ marginTop: '40px' }}>
           Create your Mapping
         </h1>
-        <h2>1.Request</h2>
-        <div className="float-right">
-          <InfoUsingInput />
-        </div>
+        <h2>
+          <span>1.Request</span>
+          <div className="float-right">
+            <InfoUsingInput />
+          </div>
+        </h2>
         <Row>
-          <Col md="4">
+          <Col md="4" style={{ paddingLeft: 0 }}>
             <JSONBox object={testAnnotation} />
             <div
               title={
@@ -247,7 +290,7 @@ class Mapping extends React.Component<IProps, IState> {
               />
             </div>
           </Col>
-          <Col md="8">
+          <Col md="8" style={{ paddingRight: 0 }}>
             <Row>
               <Col md="4" style={{ paddingLeft: 0 }}>
                 <FormGroup>
@@ -282,8 +325,9 @@ class Mapping extends React.Component<IProps, IState> {
             <FormGroup>
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
-                  <AddInput
-                    inputValues={inputPropsKeys}
+                  <AddInputOutput
+                    io="input"
+                    ioValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'path')}
                   />
                 </div>
@@ -306,7 +350,7 @@ class Mapping extends React.Component<IProps, IState> {
                   enableBasicAutocompletion={true}
                   onLoad={(editor: any) => {
                     this.editors.path = editor;
-                    editor.completers = [annotationCompleter];
+                    editor.completers = [annotationInputCompleter];
                   }}
                 />
                 {!this.state.pathValid && (
@@ -319,8 +363,9 @@ class Mapping extends React.Component<IProps, IState> {
             <FormGroup>
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
-                  <AddInput
-                    inputValues={inputPropsKeys}
+                  <AddInputOutput
+                    io="input"
+                    ioValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'query')}
                   />
                 </div>
@@ -343,7 +388,7 @@ class Mapping extends React.Component<IProps, IState> {
                   enableBasicAutocompletion={true}
                   onLoad={(editor: any) => {
                     this.editors.query = editor;
-                    editor.completers = [annotationCompleter];
+                    editor.completers = [annotationInputCompleter];
                   }}
                 />
                 {!this.state.queryValid && (
@@ -356,8 +401,9 @@ class Mapping extends React.Component<IProps, IState> {
             <FormGroup>
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
-                  <AddInput
-                    inputValues={inputPropsKeys}
+                  <AddInputOutput
+                    io="input"
+                    ioValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'header')}
                   />
                 </div>
@@ -381,7 +427,7 @@ class Mapping extends React.Component<IProps, IState> {
                   onLoad={(editor: any) => {
                     this.editors.header = editor;
                     editor.completers = [
-                      annotationCompleter,
+                      annotationInputCompleter,
                       requestHeaderCompleter,
                     ];
                   }}
@@ -396,8 +442,9 @@ class Mapping extends React.Component<IProps, IState> {
             <FormGroup>
               <div style={{ paddingBottom: '5px' }}>
                 <div className="float-right" style={{ marginLeft: '5px' }}>
-                  <AddInput
-                    inputValues={inputPropsKeys}
+                  <AddInputOutput
+                    io="input"
+                    ioValues={inputPropsKeys}
                     addValue={(v) => this.addInputValue(v, 'payload')}
                   />
                 </div>
@@ -443,13 +490,95 @@ class Mapping extends React.Component<IProps, IState> {
                   }}
                   onLoad={(editor: any) => {
                     this.editors.payload = editor;
-                    editor.completers = [annotationCompleter];
+                    editor.completers = [annotationInputCompleter];
                   }}
+                  cursorStart={0}
                 />
               </div>
             </FormGroup>
           </Col>
         </Row>
+        <hr />
+        <h2>
+          <span>2. Response</span>
+          <div className="float-right">
+            <InfoUsingOutput />
+          </div>
+        </h2>
+        <FormGroup>
+          <div style={{ paddingBottom: '5px' }}>
+            <div className="float-right" style={{ marginLeft: '5px' }}>
+              <AddInputOutput
+                io="output"
+                ioValues={outputPropKeys}
+                addValue={(v) => this.addInputValue(v, 'headerResponse')}
+              />
+            </div>
+            <Label for="editor-header-response" style={{ padding: 0 }}>
+              General + Header Response: <InfoHeaderResponse />
+            </Label>
+          </div>
+          <div style={{ border: '1px solid lightgrey' }}>
+            <AceEditor
+              mode="json"
+              theme="tomorrow"
+              onChange={this.onChangeHeadersResponse}
+              name="editor-header-response"
+              editorProps={{ $blockScrolling: Infinity }}
+              fontSize={14}
+              height="100px"
+              width="100%"
+              value={this.state.headerResponseValue}
+              enableBasicAutocompletion={true}
+              setOptions={{ enableSnippets: true }}
+              onLoad={(editor: any) => {
+                this.editors.headerResponse = editor;
+                editor.completers = [
+                  annotationOutputCompleter,
+                  responseHeaderCompleter,
+                ];
+              }}
+            />
+            {!this.state.headerResponseValid && (
+              <Alert color="warning">
+                Your object contains non string keys!
+              </Alert>
+            )}
+          </div>
+        </FormGroup>
+        <FormGroup>
+          <div style={{ paddingBottom: '5px' }}>
+            <div className="float-right" style={{ marginLeft: '5px' }}>
+              <AddInputOutput
+                io="output"
+                ioValues={outputPropKeys}
+                addValue={(v) => this.addInputValue(v, 'headerResponse')}
+              />
+            </div>
+            <Label for="editor-payload-response" style={{ padding: 0 }}>
+              Response Payload: <InfoPayloadResponse />
+            </Label>
+          </div>
+          <div style={{ border: '1px solid lightgrey' }}>
+            <AceEditor
+              mode="json"
+              theme="tomorrow"
+              onChange={this.onChangePayloadResponse}
+              name="editor-payload-response"
+              editorProps={{ $blockScrolling: Infinity }}
+              fontSize={14}
+              height="100px"
+              width="100%"
+              value={this.state.payloadResponseValue}
+              enableBasicAutocompletion={true}
+              setOptions={{ enableSnippets: true }}
+              onLoad={(editor: any) => {
+                this.editors.headerResponse = editor;
+                editor.completers = [annotationOutputCompleter];
+              }}
+            />
+          </div>
+        </FormGroup>
       </div>
     );
   }

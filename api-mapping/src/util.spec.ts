@@ -51,6 +51,9 @@ describe('util', () => {
   });
 
   it('URLJoin', () => {
+    expect(URLJoin('a')).toEqual('a');
+    expect(URLJoin('a', undefined, undefined)).toEqual('a');
+
     expect(
       URLJoin('http://www.google.com', 'a', '/b/cd', '?foo=123', '?bar=foo'),
     ).toEqual('http://www.google.com/a/b/cd?foo=123&bar=foo');

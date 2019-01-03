@@ -4,6 +4,7 @@ import { INode, INodeValue } from './Vocab';
 import {
   flatten2DArr,
   flatten3DArr,
+  flattenObject,
   makeArray,
   notEmpty,
   Optional,
@@ -319,3 +320,22 @@ export const validatePVS = (
   }
   return;
 };
+
+export const getIOProps = (
+  annotation: object,
+  io: 'input' | 'output',
+): {
+  path: string;
+  pvs: IPropertyValueSpecification;
+}[] =>
+  Object.entries(
+    flattenObject(annotation, '$', undefined, 'PropertyValueSpecification'),
+  )
+    .filter(([k]) => k.endsWith(`-${io}`))
+    .sort(([k1], [k2]) => k1.localeCompare(k2))
+    .map(([k, v]) => ({
+      path: k.replace(`-${io}`, ''),
+      pvs: transformPropertyValueSpecification(v as
+        | string
+        | IPropertyValueSpecification),
+    }));

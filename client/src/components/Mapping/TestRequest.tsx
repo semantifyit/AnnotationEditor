@@ -98,7 +98,7 @@ class TestRequest extends React.Component<IProps, IState> {
         triggerType="button"
         modalTitle="Test your Request mapping"
         btnTitle="Test your Request mapping"
-        btnColor="info"
+        btnColor="primary"
         disabled={this.props.disabled}
       >
         <h5>Enter values for the -input fields of your Action:</h5>
@@ -168,6 +168,7 @@ class TestRequest extends React.Component<IProps, IState> {
             ) : (
               <i style={{ color: 'grey' }}>No headers</i>
             )}
+            <br />
             <br />
             Body:
             {mappingOutput.body && !isEmptyObject(mappingOutput.body) ? (

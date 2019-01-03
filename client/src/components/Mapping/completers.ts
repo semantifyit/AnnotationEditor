@@ -1,4 +1,5 @@
 import requestHeaders from './requestHeaders';
+import responseHeaders from './responceHeaders';
 import { flattenObject } from '../../helpers/util';
 
 interface ICompleter {
@@ -14,23 +15,23 @@ interface ICompleter {
   ): void;
 }
 
-export const requestHeaderCompleter: ICompleter = {
+const makeCompleter = (values: string[]): ICompleter => ({
   getCompletions: (editor, session, pos, prefix, callback) => {
-    // console.log(editor);
-    // console.log(session);
-    console.log(pos);
-    console.log(prefix);
-    console.log(editor.getValue());
     callback(
       null,
-      requestHeaders.map((word) => ({
+      values.map((word) => ({
         caption: word,
         value: word,
         meta: 'header',
       })),
     );
   },
-};
+});
+
+export const requestHeaderCompleter: ICompleter = makeCompleter(requestHeaders);
+export const responseHeaderCompleter: ICompleter = makeCompleter(
+  responseHeaders,
+);
 
 export const getAnnotationCompleter = (
   ann: any,

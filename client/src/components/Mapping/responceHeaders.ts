@@ -1,4 +1,7 @@
 export default [
+  'statusCode',
+  'statusMessage',
+  'responseTime',
   'Access-Control-Allow-Origin',
   'Access-Control-Allow-Credentials',
   'Access-Control-Expose-Headers',

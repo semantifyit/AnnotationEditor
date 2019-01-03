@@ -1,22 +1,6 @@
 import React from 'react';
 import ButtonModal from './ButtonModal';
 
-const editorValue = JSON.stringify(
-  {
-    eventName: 'Birthday Party',
-    members: [
-      {
-        name: 'John Doe',
-      },
-      {
-        name: 'Jimmy Joe',
-      },
-    ],
-  },
-  null,
-  4,
-);
-
 const InfoPayload = () => (
   <ButtonModal modalTitle="Info Payload" triggerType="icon">
     Add the payload / body the api expects. Use the input fields using the $ dot

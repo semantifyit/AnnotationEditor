@@ -74,3 +74,6 @@ export const removeUndef = (obj: object): any =>
     },
     {} as any,
   );
+
+export const isEmptyObject = (obj: object): boolean =>
+  Object.keys(obj).length === 0;

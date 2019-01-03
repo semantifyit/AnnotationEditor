@@ -8,19 +8,38 @@ export interface RequestMapping {
   headers?: StringObj;
   body?: object;
 }
-interface RequestParams {
+export interface RequestOutput {
   url: string;
   headers?: StringObj;
   body?: object;
 }
-interface Options {
+declare type evalMethod = 'eval' | 'vm-runInNewContext';
+interface RequestOptions {
   type?: 'json';
   locator?: 'simple' | 'json-path';
-  evalMethod?: 'eval' | 'new-thread' | 'safe-eval' | 'vm-runInNewContext';
+  evalMethod?: evalMethod;
 }
 export declare const requestMapping: (
   inputAction: object,
   mapping: RequestMapping,
-  options?: Options,
-) => RequestParams;
+  options?: RequestOptions,
+) => RequestOutput;
+interface ResponseObj {
+  status?: number;
+  statusText?: string;
+  headers?: StringObj;
+  body?: any;
+}
+interface ResponseMapping {
+  headers?: StringObj;
+  body?: object;
+}
+interface ResponseOptions {
+  evalMethod?: evalMethod;
+}
+export declare const responseMapping: (
+  inputResponse: ResponseObj,
+  mapping: ResponseMapping,
+  options?: ResponseOptions,
+) => object;
 export {};

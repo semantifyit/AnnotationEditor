@@ -12,7 +12,7 @@ export interface RequestMapping {
   body?: object;
 }
 
-interface RequestParams {
+export interface RequestOutput {
   url: string;
   headers?: StringObj;
   body?: object;
@@ -81,7 +81,7 @@ export const requestMapping = (
   inputAction: object,
   mapping: RequestMapping,
   options: RequestOptions = defaultRequestOptions,
-): RequestParams => {
+): RequestOutput => {
   const transformValue = (val: any): any =>
     typeof val === 'string' && val.startsWith('$')
       ? useInputValue(inputAction, val, options)
@@ -93,7 +93,7 @@ export const requestMapping = (
   const queryString =
     newObj.query &&
     Object.entries(newObj.query).map(
-      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+      ([k, v]) => `?${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
     );
   const url = URLJoin(newObj.url, path, queryString);
 

@@ -90,11 +90,15 @@ interface IState {
   urlVal: string;
   pathValue: string;
   pathValid: boolean;
+  pathValidJSON: boolean;
   queryValue: string;
   queryValid: boolean;
+  queryValidJSON: boolean;
   headerValue: string;
   headerValid: boolean;
+  headerValidJSON: boolean;
   payloadValue: string;
+  payloadValidJSON: boolean;
   payloadType: 'json' | 'xml' | 'yaml' | 'graphqlschema';
 }
 
@@ -113,11 +117,15 @@ class Mapping extends React.Component<IProps, IState> {
     urlVal: '',
     pathValue: '[\n    \n]',
     pathValid: true,
+    pathValidJSON: true,
     queryValue: '{\n    \n}',
     queryValid: true,
+    queryValidJSON: true,
     headerValue: '{\n    \n}',
     headerValid: true,
+    headerValidJSON: true,
     payloadValue: '{\n    \n}',
+    payloadValidJSON: true,
     payloadType: 'json',
   };
 
@@ -143,6 +151,7 @@ class Mapping extends React.Component<IProps, IState> {
     this.setState({
       pathValue: value,
       pathValid: isArrayOfStrings(value),
+      pathValidJSON: stringIsValidJSON(value),
     });
   };
 
@@ -150,6 +159,7 @@ class Mapping extends React.Component<IProps, IState> {
     this.setState({
       queryValue: value,
       queryValid: isOneLevelStringJSON(value),
+      queryValidJSON: stringIsValidJSON(value),
     });
   };
 
@@ -157,12 +167,14 @@ class Mapping extends React.Component<IProps, IState> {
     this.setState({
       headerValue: value,
       headerValid: isOneLevelStringJSON(value),
+      headerValidJSON: stringIsValidJSON(value),
     });
   };
 
   public onChangePayload = (value: string, event: any) => {
     this.setState({
       payloadValue: value,
+      payloadValidJSON: stringIsValidJSON(value),
     });
   };
 
@@ -189,6 +201,26 @@ class Mapping extends React.Component<IProps, IState> {
 
   public render() {
     const inputPropsKeys = this.inputProps.map((p) => p.path);
+    const mappingIsValid =
+      this.state.pathValid &&
+      this.state.pathValidJSON &&
+      this.state.queryValid &&
+      this.state.queryValidJSON &&
+      this.state.headerValid &&
+      this.state.headerValidJSON &&
+      this.state.payloadValidJSON &&
+      this.state.urlVal !== '';
+    let requestMapping;
+    if (mappingIsValid) {
+      requestMapping = {
+        // method: this.state.httpMethod,
+        url: this.state.urlVal,
+        path: JSON.parse(this.state.pathValue),
+        query: JSON.parse(this.state.queryValue),
+        headers: JSON.parse(this.state.headerValue),
+        body: JSON.parse(this.state.payloadValue),
+      };
+    }
     return (
       <div>
         <h1 className="text-center" style={{ marginTop: '40px' }}>
@@ -201,7 +233,19 @@ class Mapping extends React.Component<IProps, IState> {
         <Row>
           <Col md="4">
             <JSONBox object={testAnnotation} />
-            <TextRequest inputProps={this.inputProps} />
+            <div
+              title={
+                mappingIsValid
+                  ? 'Test your mapping with input data'
+                  : 'Make sure your mappings are valid or filled in properly!'
+              }
+            >
+              <TextRequest
+                inputProps={this.inputProps}
+                disabled={!mappingIsValid}
+                requestMapping={requestMapping}
+              />
+            </div>
           </Col>
           <Col md="8">
             <Row>
@@ -230,6 +274,7 @@ class Mapping extends React.Component<IProps, IState> {
                     name="url"
                     id="baseUrl"
                     placeholder="https://..."
+                    onChange={(e) => this.setState({ urlVal: e.target.value })}
                   />
                 </FormGroup>
               </Col>

@@ -36,7 +36,12 @@ export const getAnnotationCompleter = (
   ann: any,
   inputOutput: string,
 ): ICompleter => {
-  const flattenedAnn = flattenObject(ann, '$');
+  const flattenedAnn = flattenObject(
+    ann,
+    '$',
+    undefined,
+    'PropertyValueSpecification',
+  );
   return {
     getCompletions: (editor, session, pos, prefix, callback) => {
       callback(

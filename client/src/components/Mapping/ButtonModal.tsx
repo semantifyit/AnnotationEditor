@@ -9,6 +9,7 @@ interface IProps {
   btnSize?: SizeProp;
   btnColor?: string;
   btnTitle?: string;
+  disabled?: boolean;
 }
 
 interface IState {
@@ -34,6 +35,7 @@ class ButtonModal extends React.Component<IProps, IState> {
             color={this.props.btnColor || 'primary'}
             size={this.props.btnSize || 'md'}
             onClick={this.toggleModal}
+            disabled={this.props.disabled}
           >
             {this.props.btnTitle}
           </Button>

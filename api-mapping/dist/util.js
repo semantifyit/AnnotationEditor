@@ -38,3 +38,54 @@ exports.isNodeJs = function () { return typeof window === 'undefined'; };
 exports.isBrowser = function () {
     return ![typeof window, typeof document].includes('undefined');
 };
+exports.mergeDiff = function () {
+    var objects = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        objects[_i] = arguments[_i];
+    }
+    return objects.reduce(function (acc, cur) {
+        Object.entries(cur).forEach(function (_a) {
+            var k = _a[0], v = _a[1];
+            if (acc[k]) {
+                if (Array.isArray(acc[k])) {
+                    acc[k].push(v);
+                }
+                else {
+                    acc[k] = [acc[k], v];
+                }
+            }
+            else {
+                acc[k] = v;
+            }
+        });
+        return acc;
+    }, {});
+};
+exports.mergeSame = function () {
+    var objects = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        objects[_i] = arguments[_i];
+    }
+    return objects.reduce(function (acc, cur) {
+        if (typeof cur === 'object') {
+            Object.entries(cur).forEach(function (_a) {
+                var k = _a[0], v = _a[1];
+                if (acc[k]) {
+                    acc[k] = exports.mergeSame(acc[k], v);
+                }
+                else {
+                    acc[k] = v;
+                }
+            });
+            return acc;
+        }
+        if (Array.isArray(acc)) {
+            acc.push(cur);
+            return acc;
+        }
+        if (Object.keys(acc).length === 0) {
+            return [cur];
+        }
+        return [acc, cur];
+    }, {});
+};

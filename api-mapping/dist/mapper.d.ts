@@ -1,5 +1,5 @@
-interface StringObj {
-  [key: string]: string;
+interface StringObj<T = string> {
+  [key: string]: T;
 }
 export interface RequestMapping {
   url: string;
@@ -25,12 +25,10 @@ export declare const requestMapping: (
   options?: RequestOptions,
 ) => RequestOutput;
 interface ResponseObj {
-  status?: number;
-  statusText?: string;
-  headers?: StringObj;
+  headers?: StringObj<string | number>;
   body?: any;
 }
-interface ResponseMapping {
+export interface ResponseMapping {
   headers?: StringObj;
   body?: object;
 }

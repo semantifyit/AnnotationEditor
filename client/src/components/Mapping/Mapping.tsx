@@ -38,6 +38,7 @@ import {
 import InfoUsingOutput from './InfoUsingOutput';
 import InfoHeaderResponse from './InfoHeaderResponse';
 import InfoPayloadResponse from './InfoPayloadResponse';
+import TestResponse from './TestResponse';
 
 // const langTools = brace.acequire('ace/ext/language_tools');
 
@@ -242,17 +243,17 @@ class Mapping extends React.Component<IProps, IState> {
   public render() {
     const inputPropsKeys = this.inputProps.map((p) => p.path);
     const outputPropKeys = this.outputProps.map((p) => p.path);
-    const mappingIsValid =
+    const requestMappingIsValid =
       this.state.pathValid &&
       this.state.pathValidJSON &&
       this.state.queryValid &&
       this.state.queryValidJSON &&
       this.state.headerValid &&
       this.state.headerValidJSON &&
-      this.state.payloadValidJSON &&
-      this.state.urlVal !== '';
+      this.state.payloadValidJSON;
+    // is.state.urlVal !== '';
     let requestMapping;
-    if (mappingIsValid) {
+    if (requestMappingIsValid) {
       requestMapping = {
         // method: this.state.httpMethod,
         url: this.state.urlVal,
@@ -262,6 +263,39 @@ class Mapping extends React.Component<IProps, IState> {
         body: JSON.parse(this.state.payloadValue),
       };
     }
+    const responseMappingIsValid =
+      this.state.headerResponseValid &&
+      this.state.headerResponseValidJSON &&
+      this.state.payloadResponseValidJSON;
+    let responseMapping;
+    if (responseMappingIsValid) {
+      responseMapping = {
+        headers: JSON.parse(this.state.headerResponseValue),
+        body: JSON.parse(this.state.payloadResponseValue),
+      };
+    }
+
+    const unusedInputProps = this.inputProps
+      .map(({ path }) => path)
+      .filter(
+        (path) =>
+          !(
+            this.state.pathValue +
+            this.state.queryValue +
+            this.state.headerValue +
+            this.state.payloadValue
+          ).includes(path),
+      );
+
+    const unusedOutputProps = this.outputProps
+      .map(({ path }) => path)
+      .filter(
+        (path) =>
+          !(
+            this.state.headerResponseValue + this.state.payloadResponseValue
+          ).includes(path),
+      );
+
     return (
       <div>
         <h1 className="text-center" style={{ marginTop: '40px' }}>
@@ -278,14 +312,14 @@ class Mapping extends React.Component<IProps, IState> {
             <JSONBox object={testAnnotation} />
             <div
               title={
-                mappingIsValid
-                  ? 'Test your mapping with input data'
-                  : 'Make sure your mappings are valid or filled in properly!'
+                requestMappingIsValid
+                  ? 'Test your request mapping with input data'
+                  : 'Make sure your request mappings are valid or filled in properly!'
               }
             >
               <TextRequest
                 inputProps={this.inputProps}
-                disabled={!mappingIsValid}
+                disabled={!requestMappingIsValid}
                 requestMapping={requestMapping}
               />
             </div>
@@ -407,7 +441,7 @@ class Mapping extends React.Component<IProps, IState> {
                     addValue={(v) => this.addInputValue(v, 'header')}
                   />
                 </div>
-                <Label for="editor-query" style={{ padding: 0 }}>
+                <Label for="editor-headers" style={{ padding: 0 }}>
                   Header Properties: <InfoHeader />
                 </Label>
               </div>
@@ -416,7 +450,7 @@ class Mapping extends React.Component<IProps, IState> {
                   mode="json"
                   theme="tomorrow"
                   onChange={this.onChangeHeader}
-                  name="editor-query"
+                  name="editor-headers"
                   editorProps={{ $blockScrolling: Infinity }}
                   fontSize={14}
                   height="100px"
@@ -464,25 +498,16 @@ class Mapping extends React.Component<IProps, IState> {
                   Payload: <InfoPayload />
                 </Label>
               </div>
-              <div
-                style={{
-                  border: '1px solid lightgrey',
-                  resize: 'vertical',
-                  height: '400px',
-                  minHeight: '100px',
-                  overflow: 'auto',
-                  paddingBottom: '10px',
-                }}
-              >
+              <div style={{ border: '1px solid lightgrey' }}>
                 <AceEditor
                   mode={this.state.payloadType}
                   theme="tomorrow"
                   onChange={this.onChangePayload}
-                  name="editor-query"
+                  name="editor-payload"
                   editorProps={{ $blockScrolling: Infinity }}
                   fontSize={14}
                   width="100%"
-                  height="100%"
+                  height="400px"
                   value={this.state.payloadValue}
                   enableBasicAutocompletion={true}
                   setOptions={{
@@ -498,6 +523,12 @@ class Mapping extends React.Component<IProps, IState> {
             </FormGroup>
           </Col>
         </Row>
+        {unusedInputProps.length > 0 && (
+          <Alert color="warning">
+            Your mapping isn't using theses input properties:{' '}
+            {unusedInputProps.join(', ')}
+          </Alert>
+        )}
         <hr />
         <h2>
           <span>2. Response</span>
@@ -567,7 +598,7 @@ class Mapping extends React.Component<IProps, IState> {
               name="editor-payload-response"
               editorProps={{ $blockScrolling: Infinity }}
               fontSize={14}
-              height="100px"
+              height="400px"
               width="100%"
               value={this.state.payloadResponseValue}
               enableBasicAutocompletion={true}
@@ -579,6 +610,24 @@ class Mapping extends React.Component<IProps, IState> {
             />
           </div>
         </FormGroup>
+        {unusedOutputProps.length > 0 && (
+          <Alert color="warning">
+            Your mapping isn't using theses output properties:{' '}
+            {unusedOutputProps.join(', ')}
+          </Alert>
+        )}
+        <div
+          title={
+            requestMappingIsValid
+              ? 'Test your response mapping with data'
+              : 'Make sure your response mappings are valid or filled in properly!'
+          }
+        >
+          <TestResponse
+            disabled={!responseMappingIsValid}
+            responseMapping={responseMapping}
+          />
+        </div>
       </div>
     );
   }

@@ -122,7 +122,7 @@ class TestRequest extends React.Component<IProps, IState> {
           </Col>
           <Col md={6}>
             <AceEditor
-              name="editor-test-requesz"
+              name="editor-test-request"
               mode="json"
               theme="tomorrow"
               onChange={this.onChangeEditor}
@@ -153,7 +153,11 @@ class TestRequest extends React.Component<IProps, IState> {
             <h5>Mapping output:</h5>
             Url:
             <br />
-            <b>{mappingOutput.url}</b>
+            {mappingOutput.url !== '' ? (
+              <b>{mappingOutput.url}</b>
+            ) : (
+              <i style={{ color: 'grey' }}>No Url</i>
+            )}
             <br />
             <br />
             Headers:
@@ -166,11 +170,12 @@ class TestRequest extends React.Component<IProps, IState> {
                 </div>
               ))
             ) : (
-              <i style={{ color: 'grey' }}>No headers</i>
+              <i style={{ color: 'grey' }}>No Headers</i>
             )}
             <br />
             <br />
             Body:
+            <br />
             {mappingOutput.body && !isEmptyObject(mappingOutput.body) ? (
               <JSONBox object={mappingOutput.body} />
             ) : (

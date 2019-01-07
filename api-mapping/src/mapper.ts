@@ -1,7 +1,7 @@
 import { deepMapValues, get, mergeDiff, mergeSame, URLJoin } from './util';
 
-interface StringObj {
-  [key: string]: string;
+interface StringObj<T = string> {
+  [key: string]: T;
 }
 
 export interface RequestMapping {
@@ -105,13 +105,11 @@ export const requestMapping = (
 };
 
 interface ResponseObj {
-  status?: number;
-  statusText?: string;
-  headers?: StringObj;
+  headers?: StringObj<string | number>; // number for statusCode
   body?: any;
 }
 
-interface ResponseMapping {
+export interface ResponseMapping {
   headers?: StringObj;
   body?: object;
 }

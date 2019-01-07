@@ -33,10 +33,10 @@ describe('simple response mapping', () => {
 
 describe('mapping response github issue list', () => {
   const mapping = {
-    //headers: {
-    status:
-      '$.actionStatus |> (c => c === "200" ? "http://schema.org/CompletedActionStatus" : "http://schema.org/FailedActionStatus")',
-    //},
+    headers: {
+      statusCode:
+        '$.actionStatus |> (c => c === "200" ? "http://schema.org/CompletedActionStatus" : "http://schema.org/FailedActionStatus")',
+    },
     body: [
       {
         url: '$.result.url',
@@ -65,12 +65,15 @@ describe('mapping response github issue list', () => {
       },
     ],
   };
+  console.log(JSON.stringify(mapping, null, 4));
   it('success', () => {
     const response = JSON.parse(
       fs.readFileSync('./tests/data/github-issue-list-response.json', 'utf-8'),
     );
     const responseObj = {
-      status: 200,
+      headers: {
+        statusCode: 200,
+      },
       body: response,
     };
     const expectedAction = {
@@ -135,7 +138,9 @@ describe('mapping response github issue list', () => {
 
   it('fail', () => {
     const responseObj = {
-      status: 404,
+      headers: {
+        statusCode: 404,
+      },
       body: {
         message: 'Not Found',
         documentation_url:

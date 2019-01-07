@@ -1,1 +1,1 @@
-export { requestMapping } from './mapper';
+export { requestMapping, responseMapping } from './mapper';

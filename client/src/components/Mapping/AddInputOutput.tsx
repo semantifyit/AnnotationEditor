@@ -105,7 +105,7 @@ class AddInput extends React.Component<IProps, IState> {
     return (
       <>
         <Button color="primary" size="sm" onClick={this.toggleModal}>
-          Add {this.props.io} field
+          Insert {this.props.io} field
         </Button>
         <Modal
           isOpen={this.state.modalOpen}

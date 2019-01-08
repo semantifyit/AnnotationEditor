@@ -36,7 +36,7 @@ class TestResponse extends React.Component<IProps, IState> {
     });
   };
 
-  public runRequestMapping = () => {
+  public runResponseMapping = () => {
     if (!this.props.responseMapping) {
       alert('There is some error with your mapping!');
       return;
@@ -63,6 +63,11 @@ class TestResponse extends React.Component<IProps, IState> {
         btnTitle="Test your Response mapping"
         btnColor="info"
         disabled={this.props.disabled}
+        tooltip={
+          this.props.disabled
+            ? 'Make sure your response mappings are valid or filled in properly!'
+            : 'Test your response mapping with data'
+        }
       >
         <h5>Enter a sample API response:</h5>
         Headers + general:
@@ -97,7 +102,7 @@ class TestResponse extends React.Component<IProps, IState> {
         <br />
         <Button
           color="primary"
-          onClick={this.runRequestMapping}
+          onClick={this.runResponseMapping}
           disabled={runMappingDisabled}
           title={
             runMappingDisabled

@@ -99,7 +99,8 @@ exports.removeUndef = function (obj) {
     }, {});
 };
 exports.isEmptyObject = function (obj) {
-    return !obj ||
+    return obj === null ||
+        obj === undefined ||
         (Array.isArray(obj) && obj.length === 0) ||
         (typeof obj === 'object' && Object.keys(obj).length === 0);
 };

@@ -10,6 +10,7 @@ interface IProps {
   btnColor?: string;
   btnTitle?: string;
   disabled?: boolean;
+  tooltip?: string;
 }
 
 interface IState {
@@ -32,6 +33,7 @@ class ButtonModal extends React.Component<IProps, IState> {
       <>
         {this.props.triggerType === 'button' ? (
           <Button
+            title={this.props.tooltip || ''}
             color={this.props.btnColor || 'primary'}
             size={this.props.btnSize || 'md'}
             onClick={this.toggleModal}

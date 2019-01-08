@@ -1,8 +1,9 @@
 import React from 'react';
 import { set } from 'lodash';
 import axios, { AxiosResponse } from 'axios';
-import { requestMapping } from 'api-mapping';
+import { requestMapping, responseMapping } from 'api-mapping';
 import {
+  Alert,
   Button,
   Col,
   FormFeedback,
@@ -14,8 +15,16 @@ import {
 import ButtonModal from './ButtonModal';
 import { IPropertyValueSpecification, validatePVS } from '../../helpers/helper';
 import AceEditor from 'react-ace';
-import { isEmptyObject, stringIsValidJSON } from '../../helpers/util';
-import { RequestMapping, RequestOutput } from 'api-mapping/dist/mapper';
+import {
+  isEmptyObject,
+  removeNewLines,
+  stringIsValidJSON,
+} from '../../helpers/util';
+import {
+  RequestMapping,
+  RequestOutput,
+  ResponseMapping,
+} from 'api-mapping/dist/mapper';
 import JSONBox from '../JSONBox';
 
 interface IProps {
@@ -25,6 +34,8 @@ interface IProps {
   }[];
   requestMapping: RequestMapping | undefined;
   requestMethod: string;
+  testWithResponseMapping?: boolean;
+  responseMapping?: ResponseMapping;
   disabled: boolean;
 }
 
@@ -35,6 +46,8 @@ interface IState {
   mappingOutput: RequestOutput | undefined;
   apiResponse: undefined | AxiosResponse;
   apiResponseErr?: boolean;
+  responseMappingOutput?: object;
+  errorMsg?: string;
 }
 
 class TestRequest extends React.Component<IProps, IState> {
@@ -94,39 +107,71 @@ class TestRequest extends React.Component<IProps, IState> {
     // console.log(mappingOutput);
 
     this.setState({ mappingOutput });
+    // console.log(mappingOutput);
+    if (this.props.testWithResponseMapping) {
+      if (mappingOutput.url !== '') {
+        this.callAPI(mappingOutput);
+        this.setState({ errorMsg: '' });
+      } else {
+        this.setState({ errorMsg: "Can't call API, url is empty" });
+      }
+    }
   };
 
-  public callAPI = async () => {
-    if (!this.state.mappingOutput) {
+  public callAPI = async (mappingOutput = this.state.mappingOutput) => {
+    if (!mappingOutput) {
       alert("Mapping output empty, shouldn't happen");
       return;
     }
     try {
       const response = await axios({
         method: this.props.requestMethod,
-        url: this.state.mappingOutput.url,
-        headers: this.state.mappingOutput.headers,
-        data: this.state.mappingOutput.body,
+        url: mappingOutput.url,
+        headers: mappingOutput.headers,
+        data: mappingOutput.body,
       });
       this.setState({
         apiResponse: response,
       });
+      if (this.props.testWithResponseMapping) {
+        this.doResponseMapping(response);
+      }
       // console.log(response.data);
     } catch (e) {
-      // console.log('Err');
-      // console.log(e);
+      console.log('Err');
+      console.log(e);
       // console.log(typeof e);
       // console.log(JSON.stringify(e, null, 2));
       if (e.response) {
         this.setState({
           apiResponse: e.response,
+          errorMsg: 'API returned non success status',
         });
       } else {
         this.setState({
-          apiResponseErr: true,
+          errorMsg: removeNewLines(`Some error occurred while calling the API, probably a CORS
+                error. (You can check your network tab for more information).
+                You might want to try to call the API via our back-end (dropdown
+                on "Call API" button).`),
         });
       }
     }
+  };
+
+  public doResponseMapping = (response: AxiosResponse) => {
+    if (!this.props.responseMapping) {
+      return;
+    }
+
+    const input = {
+      headers: response.headers,
+      body: response.data,
+    };
+    const responseMappingOutput = responseMapping(
+      input,
+      this.props.responseMapping,
+    );
+    this.setState({ responseMappingOutput });
   };
 
   public render() {
@@ -134,14 +179,22 @@ class TestRequest extends React.Component<IProps, IState> {
       !this.state.inputsValid.every((v) => v === undefined) &&
       stringIsValidJSON(this.state.editorValue);
     const { mappingOutput, apiResponse } = this.state;
+    const title = this.props.testWithResponseMapping
+      ? 'Test your full mapping'
+      : 'Test your Request mapping';
 
     return (
       <ButtonModal
         triggerType="button"
-        modalTitle="Test your Request mapping"
-        btnTitle="Test your Request mapping"
-        btnColor="info"
+        modalTitle={title}
+        btnTitle={title}
+        btnColor={this.props.testWithResponseMapping ? 'success' : 'info'}
         disabled={this.props.disabled}
+        tooltip={
+          this.props.disabled
+            ? 'Make sure your request mappings are valid or filled in properly!'
+            : 'Test your request mapping with input data'
+        }
       >
         <h5>Enter values for the -input fields of your Action:</h5>
         <Row>
@@ -189,10 +242,14 @@ class TestRequest extends React.Component<IProps, IState> {
         >
           Run your mapping!
         </Button>
-        {mappingOutput && (
+        {mappingOutput && !this.props.testWithResponseMapping && (
           <div>
             <hr />
-            <h5>Mapping output:</h5>
+            <h5>
+              {this.props.testWithResponseMapping
+                ? 'API Call:'
+                : 'Mapping output:'}
+            </h5>
             Url:
             <br />
             {mappingOutput.url !== '' ? (
@@ -228,7 +285,7 @@ class TestRequest extends React.Component<IProps, IState> {
             <Button
               color="primary"
               disabled={mappingOutput.url === ''}
-              onClick={this.callAPI}
+              onClick={() => this.callAPI()}
             >
               Call API
             </Button>
@@ -258,14 +315,18 @@ class TestRequest extends React.Component<IProps, IState> {
               </div>
             )}
             <br />
-            {this.state.apiResponseErr && (
-              <>
-                Some error occurred while calling the API, probably a CORS
-                error. (You can check your network tab for more information).
-                You might want to try to call the API via our back-end (dropdown
-                on "Call API" button).
-              </>
-            )}
+          </div>
+        )}
+        {this.state.errorMsg && (
+          <Alert color="danger" style={{ marginTop: '15px' }}>
+            {this.state.errorMsg}
+          </Alert>
+        )}
+        {this.state.responseMappingOutput && (
+          <div>
+            <hr />
+            <h5>Mapping output:</h5>
+            <JSONBox object={this.state.responseMappingOutput} />
           </div>
         )}
       </ButtonModal>

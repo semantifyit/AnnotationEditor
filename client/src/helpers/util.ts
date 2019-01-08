@@ -77,3 +77,5 @@ export const removeUndef = (obj: object): any =>
 
 export const isEmptyObject = (obj: object): boolean =>
   Object.keys(obj).length === 0;
+
+export const removeNewLines = (str: string): string => str.replace(/\n/g, '');

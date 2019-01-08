@@ -93,6 +93,7 @@ export const removeUndef = <T>(obj: T): T =>
   );
 
 export const isEmptyObject = (obj: any): boolean =>
-  !obj ||
+  obj === null ||
+  obj === undefined ||
   (Array.isArray(obj) && obj.length === 0) ||
   (typeof obj === 'object' && Object.keys(obj).length === 0);

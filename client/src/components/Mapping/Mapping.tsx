@@ -310,20 +310,12 @@ class Mapping extends React.Component<IProps, IState> {
         <Row>
           <Col md="4" style={{ paddingLeft: 0 }}>
             <JSONBox object={testAnnotation} />
-            <div
-              title={
-                requestMappingIsValid
-                  ? 'Test your request mapping with input data'
-                  : 'Make sure your request mappings are valid or filled in properly!'
-              }
-            >
-              <TestRequest
-                inputProps={this.inputProps}
-                disabled={!requestMappingIsValid}
-                requestMapping={requestMapping}
-                requestMethod={this.state.httpMethod}
-              />
-            </div>
+            <TestRequest
+              inputProps={this.inputProps}
+              disabled={!requestMappingIsValid}
+              requestMapping={requestMapping}
+              requestMethod={this.state.httpMethod}
+            />
           </Col>
           <Col md="8" style={{ paddingRight: 0 }}>
             <Row>
@@ -617,18 +609,23 @@ class Mapping extends React.Component<IProps, IState> {
             {unusedOutputProps.join(', ')}
           </Alert>
         )}
-        <div
-          title={
-            requestMappingIsValid
-              ? 'Test your response mapping with data'
-              : 'Make sure your response mappings are valid or filled in properly!'
-          }
-        >
-          <TestResponse
-            disabled={!responseMappingIsValid}
-            responseMapping={responseMapping}
-          />
-        </div>
+        <TestResponse
+          disabled={!responseMappingIsValid}
+          responseMapping={responseMapping}
+        />
+        <br />
+        <br />
+        When you have tested your request mapping and response mapping
+        individually, make sure to test your full mapping:
+        <br />
+        <TestRequest
+          testWithResponseMapping={true}
+          inputProps={this.inputProps}
+          disabled={!(requestMappingIsValid && responseMappingIsValid)}
+          requestMapping={requestMapping}
+          requestMethod={this.state.httpMethod}
+          responseMapping={responseMapping}
+        />
       </div>
     );
   }

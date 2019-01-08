@@ -23,76 +23,20 @@ import {
 } from './completers';
 import './snippets';
 import AddInputOutput from './AddInputOutput';
-import { flattenObject, stringIsValidJSON } from '../../helpers/util';
+import { stringIsValidJSON } from '../../helpers/util';
 import InfoPath from './InfoPath';
 import InfoHeader from './InfoHeader';
 import InfoPayload from './InfoPayload';
 import InfoUsingInput from './InfoUsingInput';
 import TestRequest from './TestRequest';
 import JSONBox from '../JSONBox';
-import {
-  getIOProps,
-  IPropertyValueSpecification,
-  transformPropertyValueSpecification,
-} from '../../helpers/helper';
+import { getIOProps } from '../../helpers/helper';
 import InfoUsingOutput from './InfoUsingOutput';
 import InfoHeaderResponse from './InfoHeaderResponse';
 import InfoPayloadResponse from './InfoPayloadResponse';
 import TestResponse from './TestResponse';
 
 // const langTools = brace.acequire('ace/ext/language_tools');
-
-const testAnnotation = {
-  '@context': { '@vocab': 'http://schema.org/' },
-  '@type': 'SearchAction',
-  actionStatus: {
-    '@id': 'http://schema.org/PotentialActionStatus',
-    '@type': 'ActionStatusType',
-  },
-  description: 'Searches for room-availability for this hotel',
-  name: 'Search for rooms and its offers',
-  object: {
-    '@type': 'LodgingReservation',
-    'checkinTime-input': 'required',
-    'checkoutTime-input': 'required',
-    'numAdults-input': {
-      '@type': 'PropertyValueSpecification',
-      valuePattern: '^[0-9]*$',
-    },
-    'numChildren-input': {
-      '@type': 'PropertyValueSpecification',
-      maxValue: '10',
-    },
-    reservationFor: {
-      '@type': 'Person',
-      'name-input': {
-        '@type': 'PropertyValueSpecification',
-        valueRequired: 'true',
-      },
-    },
-  },
-  result: {
-    '@type': ['Offer', 'LodgingReservation'],
-    'name-output': 'required',
-    'description-output': 'required',
-  },
-  target: {
-    '@type': 'EntryPoint',
-    contentType: 'application/ld+json',
-    encodingType: 'application/ld+json',
-    httpMethod: 'POST',
-    urlTemplate: 'https://actions.semantify.it/api/easybooking/search/3896',
-  },
-};
-
-const annotationInputCompleter = getAnnotationCompleter(
-  testAnnotation,
-  '-input',
-);
-const annotationOutputCompleter = getAnnotationCompleter(
-  testAnnotation,
-  '-output',
-);
 
 interface IMappingEditors {
   path?: any;
@@ -163,9 +107,17 @@ class Mapping extends React.Component<IProps, IState> {
 
   public editors: IMappingEditors = {};
 
-  public annotation: any = testAnnotation;
-  public inputProps = getIOProps(testAnnotation, 'input');
-  public outputProps = getIOProps(testAnnotation, 'output');
+  public inputProps = getIOProps(this.props.annotation, 'input');
+  public outputProps = getIOProps(this.props.annotation, 'output');
+
+  public annotationInputCompleter = getAnnotationCompleter(
+    this.props.annotation,
+    '-input',
+  );
+  public annotationOutputCompleter = getAnnotationCompleter(
+    this.props.annotation,
+    '-output',
+  );
 
   public onChangePath = (value: string, event: any) => {
     this.setState({
@@ -309,7 +261,7 @@ class Mapping extends React.Component<IProps, IState> {
         </h2>
         <Row>
           <Col md="4" style={{ paddingLeft: 0 }}>
-            <JSONBox object={testAnnotation} />
+            <JSONBox object={this.props.annotation} />
             <TestRequest
               inputProps={this.inputProps}
               disabled={!requestMappingIsValid}
@@ -377,7 +329,7 @@ class Mapping extends React.Component<IProps, IState> {
                   enableBasicAutocompletion={true}
                   onLoad={(editor: any) => {
                     this.editors.path = editor;
-                    editor.completers = [annotationInputCompleter];
+                    editor.completers = [this.annotationInputCompleter];
                   }}
                 />
                 {!this.state.pathValid && (
@@ -415,7 +367,7 @@ class Mapping extends React.Component<IProps, IState> {
                   enableBasicAutocompletion={true}
                   onLoad={(editor: any) => {
                     this.editors.query = editor;
-                    editor.completers = [annotationInputCompleter];
+                    editor.completers = [this.annotationInputCompleter];
                   }}
                 />
                 {!this.state.queryValid && (
@@ -454,7 +406,7 @@ class Mapping extends React.Component<IProps, IState> {
                   onLoad={(editor: any) => {
                     this.editors.header = editor;
                     editor.completers = [
-                      annotationInputCompleter,
+                      this.annotationInputCompleter,
                       requestHeaderCompleter,
                     ];
                   }}
@@ -508,7 +460,7 @@ class Mapping extends React.Component<IProps, IState> {
                   }}
                   onLoad={(editor: any) => {
                     this.editors.payload = editor;
-                    editor.completers = [annotationInputCompleter];
+                    editor.completers = [this.annotationInputCompleter];
                   }}
                   cursorStart={0}
                 />
@@ -558,7 +510,7 @@ class Mapping extends React.Component<IProps, IState> {
               onLoad={(editor: any) => {
                 this.editors.headerResponse = editor;
                 editor.completers = [
-                  annotationOutputCompleter,
+                  this.annotationOutputCompleter,
                   responseHeaderCompleter,
                 ];
               }}
@@ -598,7 +550,7 @@ class Mapping extends React.Component<IProps, IState> {
               setOptions={{ enableSnippets: true }}
               onLoad={(editor: any) => {
                 this.editors.headerResponse = editor;
-                editor.completers = [annotationOutputCompleter];
+                editor.completers = [this.annotationOutputCompleter];
               }}
             />
           </div>

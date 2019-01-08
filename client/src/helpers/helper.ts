@@ -263,7 +263,7 @@ export interface IPropertyValueSpecification {
   defaultValue?: string;
   maxValue?: number;
   minValue?: number;
-  multipleValues?: boolean;
+  multipleValuesAllowed?: boolean;
   valueMaxLength?: number;
   valueMinLength?: number;
   valuePattern?: string;
@@ -286,7 +286,7 @@ export const transformPropertyValueSpecification = (
       defaultValue: getPVSMatchFromRegex('default'),
       maxValue: Number(getPVSMatchFromRegex('max')),
       minValue: Number(getPVSMatchFromRegex('min')),
-      multipleValues: getPVSMatchFromRegex('multiple'),
+      multipleValuesAllowed: getPVSMatchFromRegex('multiple'),
       valueMaxLength: Number(getPVSMatchFromRegex('maxlength')),
       valueMinLength: Number(getPVSMatchFromRegex('minlength')),
       valuePattern: getPVSMatchFromRegex('pattern'),

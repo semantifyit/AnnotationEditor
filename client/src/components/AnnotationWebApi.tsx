@@ -9,10 +9,12 @@ import { generateJSONLD, removeNS } from '../helpers/helper';
 import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
+import Mapping from './Mapping/Mapping';
 
 interface IState {
   ready: boolean;
   currentStep: number;
+  showMapping: boolean;
 }
 
 class AnnotationWebApi extends React.Component<{}, IState> {
@@ -21,6 +23,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
   public state: IState = {
     ready: false,
     currentStep: 0,
+    showMapping: false,
   };
 
   public steps = [
@@ -35,6 +38,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
       type: p.schemaAction,
       typeTitle: p.schemaAction,
       annotationResult: { jsonld: null, complete: false },
+      mapping: {},
     },
   ];
 
@@ -67,12 +71,15 @@ class AnnotationWebApi extends React.Component<{}, IState> {
       if (state.currentStep === this.steps.length - 1) {
         this.steps.push(clone(this.steps[this.steps.length - 1]));
       }
-      return { currentStep: state.currentStep + 1 };
+      return { currentStep: state.currentStep + 1, showMapping: false };
     });
   };
   public previousStep = () => {
     if (this.state.currentStep !== 0) {
-      this.setState((state) => ({ currentStep: state.currentStep - 1 }));
+      this.setState((state) => ({
+        currentStep: state.currentStep - 1,
+        showMapping: false,
+      }));
     }
   };
 
@@ -80,7 +87,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     if (!this.validAnnCompleteConfirmation()) {
       return;
     }
-    this.setState({ currentStep: step });
+    this.setState({ currentStep: step, showMapping: false });
   };
 
   public annChangeType = (types: string[]) => {
@@ -88,11 +95,16 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     this.forceUpdate(); // since steps aren't in the state (they probably should be)
   };
 
+  public toggleShowMapping = () => {
+    this.setState((state) => ({ showMapping: !state.showMapping }));
+  };
+
   public render() {
     if (!this.state.ready) {
       return <h1>Loading ...</h1>;
     }
     const progress = ((this.state.currentStep + 1) / this.steps.length) * 100;
+
     return (
       <div>
         <section className="jumbotron text-center">
@@ -148,19 +160,40 @@ class AnnotationWebApi extends React.Component<{}, IState> {
         })}
         <br />
         <div>
-          {this.steps.map((step, i) => (
-            <div
-              hidden={i !== this.state.currentStep}
-              key={i}
-              id={`annotation-${i}`}
-            >
-              <Annotations
-                typeIDs={[{ node: step.type, uid: '' }]}
-                generateButton={false}
-                changedType={this.annChangeType}
-              />
-            </div>
-          ))}
+          {this.steps.map((step, i) => {
+            const annotation = generateJSONLD(`annotation-${i}`).jsonld;
+            return (
+              <div
+                hidden={i !== this.state.currentStep}
+                key={i}
+                id={`annotation-${i}`}
+              >
+                {step.type === p.schemaAction && (
+                  <Button
+                    color="info"
+                    className="float-right"
+                    style={{ marginTop: '5px' }}
+                    onClick={this.toggleShowMapping}
+                    title="Add a mapping for the Action (advanced)"
+                  >
+                    {this.state.showMapping ? 'Back' : 'Set mapping'}
+                  </Button>
+                )}
+                <div hidden={!this.state.showMapping}>
+                  <hr />
+                  <Mapping annotation={annotation || {}} />
+                  <hr />
+                </div>
+                <div hidden={this.state.showMapping}>
+                  <Annotations
+                    typeIDs={[{ node: step.type, uid: '' }]}
+                    generateButton={false}
+                    changedType={this.annChangeType}
+                  />
+                </div>
+              </div>
+            );
+          })}
           <div style={{ marginTop: '50px' }}>
             {this.state.currentStep > 0 && (
               <Button onClick={this.previousStep} color="primary">

@@ -6,6 +6,7 @@ import Home from './Home';
 import AnnotationEditorPage from './AnnotationEditorPage';
 import Navigation from './Navigation';
 import Mapping from './Mapping/Mapping';
+import { sampleAnnotation } from './Mapping/SampleAnnotation';
 
 class App extends React.Component {
   public render() {
@@ -30,7 +31,10 @@ class App extends React.Component {
               path="/webApi/"
               render={() => <AnnotationEditorPage type="webapi" />}
             />
-            <Route path="/mapping/" component={Mapping} />
+            <Route
+              path="/mapping/"
+              render={() => <Mapping annotation={sampleAnnotation} />}
+            />
           </div>
         </>
       </Router>

@@ -80,7 +80,11 @@ class TestRequest extends React.Component<IProps, IState> {
   };
 
   public changeInputField = (index: number, path: string, value: string) => {
-    set(this.editorObj, path.substring(2), value);
+    if (this.props.inputProps[index].pvs.multipleValuesAllowed) {
+      set(this.editorObj, path.substring(2), value.split(',,'));
+    } else {
+      set(this.editorObj, path.substring(2), value);
+    }
     this.setState((state) => {
       const inputs = state.inputs;
       inputs[index] = value;
@@ -201,7 +205,20 @@ class TestRequest extends React.Component<IProps, IState> {
           <Col md={6}>
             {this.props.inputProps.map(({ path, pvs }, i) => (
               <FormGroup key={i}>
-                <Label>{path}</Label>
+                <Label>
+                  {path}
+                  {pvs.multipleValuesAllowed && (
+                    <span
+                      style={{
+                        fontSize: '0.8em',
+                        fontStyle: 'italic',
+                        marginLeft: '10px',
+                      }}
+                    >
+                      (multiple allowed, separate with ",,")
+                    </span>
+                  )}
+                </Label>
                 <Input
                   invalid={!!this.state.inputsValid[i]}
                   value={this.state.inputs[i]}

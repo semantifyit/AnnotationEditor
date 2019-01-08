@@ -61,7 +61,7 @@ class TestResponse extends React.Component<IProps, IState> {
         triggerType="button"
         modalTitle="Test your Response mapping"
         btnTitle="Test your Response mapping"
-        btnColor="primary"
+        btnColor="info"
         disabled={this.props.disabled}
       >
         <h5>Enter a sample API response:</h5>

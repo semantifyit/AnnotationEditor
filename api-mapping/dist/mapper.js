@@ -40,7 +40,7 @@ exports.requestMapping = function (inputAction, mapping, options) {
             ? useInputValue(inputAction, val, options)
             : val;
     };
-    var newObj = util_1.deepMapValues(mapping, transformValue);
+    var newObj = util_1.removeUndef(util_1.deepMapValues(mapping, transformValue));
     var path = newObj.path && newObj.path.join('/');
     var queryString = newObj.query &&
         Object.entries(newObj.query).map(function (_a) {
@@ -48,11 +48,11 @@ exports.requestMapping = function (inputAction, mapping, options) {
             return "?" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
         });
     var url = util_1.URLJoin(newObj.url, path, queryString);
-    return {
+    return util_1.removeUndef({
         url: url,
         headers: newObj.headers,
         body: newObj.body,
-    };
+    });
 };
 var defaultResponseOptions = {
     evalMethod: 'eval',

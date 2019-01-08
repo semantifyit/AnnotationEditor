@@ -1,4 +1,11 @@
-import { deepMapValues, get, mergeDiff, mergeSame, URLJoin } from './util';
+import {
+  deepMapValues,
+  get,
+  mergeDiff,
+  mergeSame,
+  removeUndef,
+  URLJoin,
+} from './util';
 
 interface StringObj<T = string> {
   [key: string]: T;
@@ -87,7 +94,7 @@ export const requestMapping = (
       ? useInputValue(inputAction, val, options)
       : val;
 
-  const newObj = deepMapValues(mapping, transformValue);
+  const newObj = removeUndef(deepMapValues(mapping, transformValue));
 
   const path = newObj.path && newObj.path.join('/');
   const queryString =
@@ -95,13 +102,14 @@ export const requestMapping = (
     Object.entries(newObj.query).map(
       ([k, v]) => `?${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
     );
+
   const url = URLJoin(newObj.url, path, queryString);
 
-  return {
+  return removeUndef({
     url,
     headers: newObj.headers,
     body: newObj.body,
-  };
+  });
 };
 
 interface ResponseObj {

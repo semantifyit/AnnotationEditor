@@ -84,3 +84,20 @@ describe('mapping request github issue list', () => {
     expect(requestMapping(inputAction, mapping)).toEqual(expectedRequest);
   });
 });
+
+describe('url only', () => {
+  const mapping = {
+    url: 'https://api.github.com/repos/thibaultgerrier/Try1/issues',
+    query: {},
+    body: {},
+    path: [],
+  };
+
+  it('1st', () => {
+    const expectedRequest = {
+      url: 'https://api.github.com/repos/thibaultgerrier/Try1/issues',
+    };
+
+    expect(requestMapping({}, mapping)).toEqual(expectedRequest);
+  });
+});

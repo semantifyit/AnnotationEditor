@@ -1,5 +1,6 @@
 import React from 'react';
 import { set } from 'lodash';
+import axios, { AxiosResponse } from 'axios';
 import { requestMapping } from 'api-mapping';
 import {
   Button,
@@ -23,6 +24,7 @@ interface IProps {
     pvs: IPropertyValueSpecification;
   }[];
   requestMapping: RequestMapping | undefined;
+  requestMethod: string;
   disabled: boolean;
 }
 
@@ -31,6 +33,8 @@ interface IState {
   inputsValid: (string | undefined)[];
   editorValue: string;
   mappingOutput: RequestOutput | undefined;
+  apiResponse: undefined | AxiosResponse;
+  apiResponseErr?: boolean;
 }
 
 class TestRequest extends React.Component<IProps, IState> {
@@ -41,6 +45,7 @@ class TestRequest extends React.Component<IProps, IState> {
     ),
     editorValue: '',
     mappingOutput: undefined,
+    apiResponse: undefined,
   };
 
   public editorObj = {
@@ -81,24 +86,61 @@ class TestRequest extends React.Component<IProps, IState> {
       alert('There is some error with your mapping!');
       return;
     }
+    // console.log(this.props.requestMapping);
     const mappingOutput = requestMapping(
       JSON.parse(this.state.editorValue),
       this.props.requestMapping,
     );
+    // console.log(mappingOutput);
+
     this.setState({ mappingOutput });
+  };
+
+  public callAPI = async () => {
+    if (!this.state.mappingOutput) {
+      alert("Mapping output empty, shouldn't happen");
+      return;
+    }
+    try {
+      const response = await axios({
+        method: this.props.requestMethod,
+        url: this.state.mappingOutput.url,
+        headers: this.state.mappingOutput.headers,
+        data: this.state.mappingOutput.body,
+      });
+      this.setState({
+        apiResponse: response,
+      });
+      // console.log(response.data);
+    } catch (e) {
+      // console.log('Err');
+      // console.log(e);
+      // console.log(typeof e);
+      // console.log(JSON.stringify(e, null, 2));
+      if (e.response) {
+        this.setState({
+          apiResponse: e.response,
+        });
+      } else {
+        this.setState({
+          apiResponseErr: true,
+        });
+      }
+    }
   };
 
   public render() {
     const runMappingDisabled =
       !this.state.inputsValid.every((v) => v === undefined) &&
       stringIsValidJSON(this.state.editorValue);
-    const { mappingOutput } = this.state;
+    const { mappingOutput, apiResponse } = this.state;
+
     return (
       <ButtonModal
         triggerType="button"
         modalTitle="Test your Request mapping"
         btnTitle="Test your Request mapping"
-        btnColor="primary"
+        btnColor="info"
         disabled={this.props.disabled}
       >
         <h5>Enter values for the -input fields of your Action:</h5>
@@ -163,8 +205,8 @@ class TestRequest extends React.Component<IProps, IState> {
             Headers:
             <br />
             {mappingOutput.headers && !isEmptyObject(mappingOutput.headers) ? (
-              Object.entries(mappingOutput.headers).map(([k, v]) => (
-                <div>
+              Object.entries(mappingOutput.headers).map(([k, v], i) => (
+                <div key={i}>
                   <b>{k}:</b> {v}
                   <br />
                 </div>
@@ -180,6 +222,49 @@ class TestRequest extends React.Component<IProps, IState> {
               <JSONBox object={mappingOutput.body} />
             ) : (
               <i style={{ color: 'grey' }}>No Body</i>
+            )}
+            <br />
+            <br />
+            <Button
+              color="primary"
+              disabled={mappingOutput.url === ''}
+              onClick={this.callAPI}
+            >
+              Call API
+            </Button>
+            {apiResponse && (
+              <div>
+                <hr />
+                <h5> API response: </h5>
+                <b>Status:</b> {apiResponse.status} {apiResponse.statusText}{' '}
+                <br />
+                <b>Headers:</b>
+                <br />
+                <div className="box">
+                  {Object.entries(apiResponse.headers).map(([k, v], i) => (
+                    <div key={i}>
+                      <b>{k}:</b> {v}
+                      <br />
+                    </div>
+                  ))}
+                </div>
+                <b>Data:</b>
+                <br />
+                {typeof apiResponse.data === 'object' ? (
+                  <JSONBox object={apiResponse.data} withCopy={true} />
+                ) : (
+                  <div className="box">{String(apiResponse.data)}</div>
+                )}
+              </div>
+            )}
+            <br />
+            {this.state.apiResponseErr && (
+              <>
+                Some error occurred while calling the API, probably a CORS
+                error. (You can check your network tab for more information).
+                You might want to try to call the API via our back-end (dropdown
+                on "Call API" button).
+              </>
             )}
           </div>
         )}

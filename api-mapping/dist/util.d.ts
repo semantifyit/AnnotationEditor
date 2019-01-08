@@ -5,3 +5,5 @@ export declare const isNodeJs: () => boolean;
 export declare const isBrowser: () => boolean;
 export declare const mergeDiff: (...objects: any[]) => any;
 export declare const mergeSame: (...objects: any[]) => any;
+export declare const removeUndef: <T>(obj: T) => T;
+export declare const isEmptyObject: (obj: any) => boolean;

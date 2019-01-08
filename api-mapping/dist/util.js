@@ -89,3 +89,17 @@ exports.mergeSame = function () {
         return [acc, cur];
     }, {});
 };
+exports.removeUndef = function (obj) {
+    return Object.entries(obj).reduce(function (acc, _a) {
+        var k = _a[0], v = _a[1];
+        if (!exports.isEmptyObject(v)) {
+            acc[k] = v;
+        }
+        return acc;
+    }, {});
+};
+exports.isEmptyObject = function (obj) {
+    return !obj ||
+        (Array.isArray(obj) && obj.length === 0) ||
+        (typeof obj === 'object' && Object.keys(obj).length === 0);
+};

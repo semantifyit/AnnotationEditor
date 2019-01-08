@@ -80,3 +80,19 @@ export const mergeSame = (...objects: any[]) =>
     }
     return [acc, cur];
   }, {});
+
+export const removeUndef = <T>(obj: T): T =>
+  Object.entries(obj).reduce(
+    (acc, [k, v]) => {
+      if (!isEmptyObject(v)) {
+        acc[k] = v;
+      }
+      return acc;
+    },
+    {} as any,
+  );
+
+export const isEmptyObject = (obj: any): boolean =>
+  !obj ||
+  (Array.isArray(obj) && obj.length === 0) ||
+  (typeof obj === 'object' && Object.keys(obj).length === 0);

@@ -28,7 +28,7 @@ import InfoPath from './InfoPath';
 import InfoHeader from './InfoHeader';
 import InfoPayload from './InfoPayload';
 import InfoUsingInput from './InfoUsingInput';
-import TextRequest from './TestRequest';
+import TestRequest from './TestRequest';
 import JSONBox from '../JSONBox';
 import {
   getIOProps,
@@ -317,10 +317,11 @@ class Mapping extends React.Component<IProps, IState> {
                   : 'Make sure your request mappings are valid or filled in properly!'
               }
             >
-              <TextRequest
+              <TestRequest
                 inputProps={this.inputProps}
                 disabled={!requestMappingIsValid}
                 requestMapping={requestMapping}
+                requestMethod={this.state.httpMethod}
               />
             </div>
           </Col>

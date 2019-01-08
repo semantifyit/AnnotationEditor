@@ -28,3 +28,8 @@
   font-size: 13px;
   padding: 10px;
 }
+
+.box {
+  border: 1px solid lightgrey;
+  padding: 10px;
+}

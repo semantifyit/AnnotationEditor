@@ -1,4 +1,11 @@
-import { deepMapValues, get, mergeDiff, mergeSame, URLJoin } from './util';
+import {
+  deepMapValues,
+  get,
+  isEmptyObject,
+  mergeDiff,
+  mergeSame,
+  URLJoin,
+} from './util';
 
 describe('util', () => {
   it('deepMapValues', () => {
@@ -52,6 +59,10 @@ describe('util', () => {
 
   it('URLJoin', () => {
     expect(URLJoin('a')).toEqual('a');
+    expect(URLJoin('a', '')).toEqual('a');
+    expect(
+      URLJoin('https://api.github.com/repos/thibaultgerrier/Try1/issues'),
+    ).toEqual('https://api.github.com/repos/thibaultgerrier/Try1/issues');
     expect(URLJoin('a', undefined, undefined)).toEqual('a');
 
     expect(
@@ -120,5 +131,15 @@ describe('util', () => {
     expect(
       mergeSame({ result: { genre: 'bug' } }, { result: { genre: 'test' } }),
     ).toEqual({ result: { genre: ['bug', 'test'] } });
+  });
+
+  it('isEmptyObject', () => {
+    expect(isEmptyObject(null)).toBe(true);
+    expect(isEmptyObject(undefined)).toBe(true);
+    expect(isEmptyObject([])).toBe(true);
+    expect(isEmptyObject({})).toBe(true);
+    expect(isEmptyObject([1])).toBe(false);
+    expect(isEmptyObject({ a: 1 })).toBe(false);
+    expect(isEmptyObject('hi')).toBe(false);
   });
 });

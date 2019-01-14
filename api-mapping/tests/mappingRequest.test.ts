@@ -13,6 +13,7 @@ describe('mapping request github issue create', () => {
       labels: '$.result.genre',
     },
   };
+  console.log(JSON.stringify(mapping, null, 2));
   it('1st', () => {
     const inputAction = {
       '@context': 'http://schema.org/',

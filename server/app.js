@@ -5,6 +5,9 @@ const morgan = require("morgan");
 const path = require("path");
 const fs = require("fs");
 
+const vocabRouter = require('./routes/vocabs');
+const downloadRouter = require('./routes/downloads');
+
 const app = express();
 app.use(parser.json());
 app.use(morgan("dev"));
@@ -14,19 +17,8 @@ app.use((req, res, next) => {
   return next();
 });
 
-// vocab routes
-app.get("/annotation/api/vocabs/:vocabName", (req, res) => {
-  const { vocabName } = req.params;
-  try {
-    const vocab = fs.readFileSync(
-      path.join(__dirname, "vocabs", `${vocabName}.jsonld`),
-      "utf8"
-    );
-    res.json(JSON.parse(vocab));
-  } catch (e) {
-    res.status(404).json({ err: `No such vocabulary available: ${vocabName}` });
-  }
-});
+app.use('/annotation/api', vocabRouter);
+app.use('/annotation/api', downloadRouter);
 
 // server app route
 if (process.env.NODE_ENV && process.env.NODE_ENV !== "default") {

@@ -41,3 +41,15 @@ export const syntaxHighlightJsonStr = (jsonStr: string) => {
     },
   );
 };
+
+// adapted from https://gist.github.com/javilobo8/097c30a233786be52070986d8cdb1743
+export const downloadContent = (data: any, filename: string) => {
+  const url = window.URL.createObjectURL(new Blob([data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  window.URL.revokeObjectURL(url);
+  link.remove();
+};

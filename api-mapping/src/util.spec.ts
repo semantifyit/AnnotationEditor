@@ -131,6 +131,10 @@ describe('util', () => {
     expect(
       mergeSame({ result: { genre: 'bug' } }, { result: { genre: 'test' } }),
     ).toEqual({ result: { genre: ['bug', 'test'] } });
+
+    expect(
+      mergeSame({ a: { t: 'type' } }, { a: [{ b: 'foo' }, { b: 'hey' }] }),
+    ).toEqual({ a: [{ b: 'foo', t: 'type' }, { b: 'hey', t: 'type' }] });
   });
 
   it('isEmptyObject', () => {

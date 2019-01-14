@@ -67,3 +67,17 @@ function registerHMR() {
 }
 
 registerHMR();
+
+import axios from 'axios';
+import { downloadContent } from './helpers/html';
+
+const foo = async () => {
+  const response = await axios({
+    url: '/annotation/api/downloadWebAPIProjectZip',
+    method: 'POST',
+    responseType: 'blob',
+  });
+  console.log(response);
+  downloadContent(response.data, 'action-server-nodejs.zip');
+};
+// foo();

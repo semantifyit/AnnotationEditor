@@ -1,9 +1,9 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-// const { requestMapping } = require('./api-mapping');
-// console.log(requestMapping({}, {url: 'http://example.com'}));
+const { requestMapping, responseMapping } = require('../api-mapping');
 
 const joinURL = (...args) =>
   args
@@ -18,6 +18,44 @@ const config = JSON.parse(
 const data = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'actions.json'), 'utf-8'),
 );
+
+const defaultHeaders = {
+  'User-Agent': 'Node',
+  Accept: 'application/json,text/plain',
+};
+
+const makeRequest = (method, url, headers, body) =>
+  new Promise((resolve, reject) => {
+    const lib = url.startsWith('https') ? https : http;
+    const reqURL = new URL(url);
+
+    const reqOptions = {
+      method: method,
+      hostname: reqURL.hostname,
+      port: reqURL.port !== '' ? reqURL.port : undefined,
+      path: reqURL.pathname,
+      headers: Object.assign(headers || {}, defaultHeaders),
+    };
+    //console.log(reqOptions);
+    const request = lib.request(reqOptions, (response) => {
+      //console.log(response);
+      if (response.statusCode < 200 || response.statusCode > 299) {
+        reject(
+          new Error('Failed to load page, status code: ' + response.statusCode),
+        );
+      }
+      const body = [];
+      response.on('data', (chunk) => body.push(chunk));
+      response.on('end', () =>
+        resolve({ body: body.join(''), headers: response.headers }),
+      );
+    });
+    if (body) {
+      request.write(body);
+    }
+    request.end();
+  });
+
 const preProcessData = () => {
   const {
     baseUrl,
@@ -49,7 +87,7 @@ const preProcessData = () => {
   );
 
   // potentialActions target
-  data.actions.map((action) => {
+  data.actions = data.actions.map((action) => {
     action.potentialAction.target.urlTemplate = joinURL(
       actionTargetUrl,
       action.id,
@@ -59,42 +97,99 @@ const preProcessData = () => {
 };
 preProcessData();
 
+const existingPostRoutes = data.actions.map(({ id }) =>
+  joinURL(config.pathPrefix, config.actionTarget, id),
+);
+
+const getBody = (request, res) =>
+  new Promise((resolve, reject) => {
+    const body = [];
+    request
+      .on('error', (err) => {
+        console.error(err);
+      })
+      .on('data', (chunk) => {
+        console.log(chunk);
+        body.push(chunk);
+      })
+      .on('end', () => {
+        console.log('end');
+        resolve(Buffer.concat(body).toString());
+      });
+  });
+
 http
-  .createServer((req, res) => {
-    const { method, url } = req;
-    res.setHeader('Content-Type', 'application/ld+json');
+  .createServer(async (request, response) => {
+    const { method, url, headers } = request;
+    console.log(`Request: ${method} ${url}`);
+
+    response.on('error', (err) => {
+      console.error(err);
+    });
+    response.setHeader('Content-Type', 'application/ld+json');
 
     // entryPoint
-    if (url === joinURL(config.pathPrefix, config.entryPoint)) {
-      res.write(JSON.stringify(data.webAPI));
+    if (
+      method === 'GET' &&
+      url === joinURL(config.pathPrefix, config.entryPoint)
+    ) {
+      response.end(JSON.stringify(data.webAPI));
     }
     // action List
-    else if (url === joinURL(config.pathPrefix, config.actionList)) {
-      res.write(
+    else if (
+      method === 'GET' &&
+      url === joinURL(config.pathPrefix, config.actionList)
+    ) {
+      response.end(
         JSON.stringify(
           data.actions.map(({ potentialAction }) => potentialAction),
         ),
       );
     }
     // action call
-    else if (
-      data.actions
-        .map(({ id }) => joinURL(config.pathPrefix, config.actionTarget, id))
-        .includes(url)
-    ) {
+    else if (method === 'POST' && existingPostRoutes.includes(url)) {
       // TODO do mapping, call api...
-      res.write('Hi dude');
+      //console.log('Action call');
+      let requestBody = await getBody(request);
+      if (typeof requestBody === 'string') {
+        requestBody = JSON.parse(requestBody);
+      }
+      const actionId = url.split('/').pop();
+      const action = data.actions.find((a) => a.id === actionId);
+      //console.log(requestBody);
+      const requestMappingResult = requestMapping(
+        requestBody,
+        action.requestMapping,
+        {
+          evalMethod: config.evalMethod,
+        },
+      );
+      //console.log(requestMappingResult);
+      let apiResponse = await makeRequest(
+        action.requestMapping.method,
+        requestMappingResult.url,
+        requestMappingResult.headers,
+        requestMappingResult.body,
+      );
+      //console.log(apiResponse);
+      if (typeof apiResponse.body === 'string') {
+        apiResponse.body = JSON.parse(apiResponse.body);
+      }
+      const responseMappingResult = responseMapping(
+        apiResponse,
+        action.responseMapping,
+        {
+          evalMethod: config.evalMethod,
+        },
+      );
+      //console.log(responseMappingResult);
+      response.write(JSON.stringify(responseMappingResult));
+      response.end();
     } else {
-      res.statusCode = 404;
-      res.write(JSON.stringify({ err: 'Route not found' }));
+      response.statusCode = 404;
+      response.end(JSON.stringify({ err: 'Route not found' }));
     }
-
-    const actionsIds = data.actions.map(({ id }) => id);
-
-    res.end();
   })
   .listen(config.port, () => {
     console.log(`server start at port ${config.port}`);
   });
-
-console.log('Hello world!');

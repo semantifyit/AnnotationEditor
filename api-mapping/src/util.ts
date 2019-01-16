@@ -97,3 +97,82 @@ export const isEmptyObject = (obj: any): boolean =>
   obj === undefined ||
   (Array.isArray(obj) && obj.length === 0) ||
   (typeof obj === 'object' && Object.keys(obj).length === 0);
+
+export const isObject = (item: any): boolean =>
+  item && typeof item === 'object' && !Array.isArray(item);
+
+export const mergeResult = (...objects: any[]): any =>
+  objects.reduce((acc, cur) => {
+    Object.entries(cur).forEach(([k, v]) => {
+      if (acc[k] !== undefined) {
+        // TODO
+      } else {
+        acc[k] = v;
+      }
+    });
+    return acc;
+  }, {});
+
+export const isNumeric = (num: any): boolean => !isNaN(num);
+
+export const set = (obj: any, path: string, val: any) => {
+  if (typeof obj !== 'object') {
+    console.log('return');
+    console.log(obj);
+    return;
+  }
+  const paths = path
+    .replace(/\[([^\[\]]*)\]/g, '.$1.')
+    .split('.')
+    .filter((t) => t !== '');
+  console.log(paths);
+  if (paths.length === 1) {
+    if (obj[paths[0]]) {
+      if (Array.isArray(obj[paths[0]])) {
+        obj[paths[0]].push(val);
+      } else {
+        obj[paths[0]] = [obj[paths[0]], val];
+      }
+    } else {
+      console.log(obj);
+      console.log(paths[0]);
+      console.log(val);
+      obj[paths[0]] = val;
+    }
+  } else {
+    const restPath = paths.slice(1).join('.');
+    if (!obj[paths[0]]) {
+      console.log('HIHI');
+      console.log(obj);
+      console.log(paths[0]);
+      obj[paths[0]] = {};
+      set(obj[paths[0]], restPath, val);
+    } else if (Array.isArray(obj[paths[0]])) {
+      console.log('HO');
+      console.log(obj);
+      console.log(paths[0]);
+      if (isNumeric(paths[1])) {
+        console.log('num');
+        if (!obj[paths[0]][paths[1]]) {
+          obj[paths[0]][paths[1]] = {};
+        }
+        set(obj[paths[0]][paths[1]], paths.slice(2).join('.'), val);
+      } else {
+        console.log('each');
+        obj[paths[0]].forEach((_: any, i: number) => {
+          set(obj[paths[0]][i], restPath, val);
+        });
+      }
+    } else if (typeof obj[paths[0]] === 'object') {
+      console.log('GHE');
+      set(obj[paths[0]], restPath, val);
+    } else {
+      console.log('asd');
+      const newO = {};
+      set(newO, restPath, val);
+      obj[paths[0]] = [obj[paths[0]], newO];
+    }
+  }
+};
+
+export const setnew = (obj: any, path: string, value: any) => {};

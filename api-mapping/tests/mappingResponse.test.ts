@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import { responseMapping } from '../src/mapper';
 
+const fileToJSON = (filename: string) =>
+  JSON.parse(fs.readFileSync(filename, 'utf8'));
+
 describe('simple response mapping', () => {
   it('simple object', () => {
     const mapping = {
@@ -127,6 +130,7 @@ describe('mapping response github issue list', () => {
         },
       ],
     };
+    console.log(JSON.stringify(expectedAction, null, 4));
 
     expect(responseMapping(responseObj, mapping)).toEqual(expectedAction);
     expect(
@@ -157,5 +161,33 @@ describe('mapping response github issue list', () => {
         evalMethod: 'vm-runInNewContext',
       }),
     ).toEqual(expectedAction);
+  });
+});
+
+describe('new mapping', () => {
+  it('issue-create', () => {
+    const mapping = fileToJSON(
+      `${__dirname}/data/github-issue-create/action.json`,
+    );
+    const inOut1 = fileToJSON(
+      `${__dirname}/data/github-issue-create/inout1.json`,
+    );
+
+    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
+      inOut1.output,
+    );
+  });
+
+  it('issue-list', () => {
+    const mapping = fileToJSON(
+      `${__dirname}/data/github-issue-list/action.json`,
+    );
+    const inOut1 = fileToJSON(
+      `${__dirname}/data/github-issue-list/inout1.json`,
+    );
+
+    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
+      inOut1.output,
+    );
   });
 });

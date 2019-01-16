@@ -4,6 +4,7 @@ import {
   mergeDiff,
   mergeSame,
   removeUndef,
+  set,
   URLJoin,
 } from './util';
 
@@ -130,92 +131,63 @@ const defaultResponseOptions: ResponseOptions = {
   evalMethod: 'eval',
 };
 
+const doMapping = (mappingObj: any, input: any, options: ResponseOptions) => {
+  let result = {};
+  if (!input || !mappingObj) {
+    return result;
+  }
+  if (Array.isArray(mappingObj) && Array.isArray(input)) {
+    if (mappingObj.length === 1) {
+      // mapping used for all in input
+      const forceMerge = !!mappingObj[0].$merge;
+      const mappedElements = input.map((inputElem) =>
+        doMapping(mappingObj[0], inputElem, options),
+      );
+      result = forceMerge
+        ? mergeSame(...mappedElements)
+        : mergeDiff(...mappedElements);
+    } else {
+      // each array elem different mapping ( no array length = 0)
+      result = mergeSame(
+        ...mappingObj.map((mappingElem, i) =>
+          doMapping(mappingElem, input[i], options),
+        ),
+      );
+    }
+  } else if (typeof mappingObj === 'object') {
+    Object.entries(mappingObj)
+      .filter(([k]) => !metadataProperties.includes(k))
+      .forEach(([key, value]) => {
+        if (
+          typeof value === 'string' &&
+          value.startsWith('$.') &&
+          input[key] !== undefined
+        ) {
+          // value is path
+          const { path, transformFunction } = parsePathStr(value);
+          if (options.evalMethod && transformFunction) {
+            const transformedValue = transFormValue(
+              input[key],
+              transformFunction,
+              options.evalMethod,
+            );
+            set(result, path, transformedValue);
+          } else {
+            set(result, path, input[key]);
+          }
+        } else if (typeof value === 'object') {
+          result = mergeSame(doMapping(value, input[key], options), result);
+        }
+      });
+    // console.log(result);
+  }
+  return result;
+};
+
 export const responseMapping = (
-  inputResponse: ResponseObj,
-  mapping: ResponseMapping,
+  inputResponse: object,
+  mapping: object,
   options: ResponseOptions = defaultResponseOptions,
 ): object => {
-  const set = (obj: any, path: string, val: any) => {
-    const paths = path.split('.');
-    if (paths.length === 1) {
-      if (obj[paths[0]]) {
-        if (Array.isArray(obj[paths[0]])) {
-          obj[paths[0]].push(val);
-        } else {
-          obj[paths[0]] = [obj[paths[0]], val];
-        }
-      } else {
-        obj[paths[0]] = val;
-      }
-    } else {
-      if (!obj[paths[0]]) {
-        obj[paths[0]] = {};
-      }
-      set(obj[paths[0]], paths.slice(1).join('.'), val);
-    }
-  };
-
-  if (!mapping.body) {
-    return {};
-  }
-
-  const metadataProperties = ['$merge'];
-
-  const doMapping = (mappingObj: any, input: any) => {
-    let result = {};
-    if (!input || !mappingObj) {
-      return result;
-    }
-    if (Array.isArray(mappingObj) && Array.isArray(input)) {
-      if (mappingObj.length === 1) {
-        // mapping used for all in input
-        const forceMerge = !!mappingObj[0].$merge;
-        const mappedElements = input.map((inputElem) =>
-          doMapping(mappingObj[0], inputElem),
-        );
-        result = forceMerge
-          ? mergeSame(...mappedElements)
-          : mergeDiff(...mappedElements);
-      } else {
-        // each array elem different mapping ( no array length = 0)
-        result = mergeSame(
-          ...mappingObj.map((mappingElem, i) =>
-            doMapping(mappingElem, input[i]),
-          ),
-        );
-      }
-    } else if (typeof mappingObj === 'object') {
-      Object.entries(mappingObj)
-        .filter(([k]) => !metadataProperties.includes(k))
-        .forEach(([key, value]) => {
-          if (
-            typeof value === 'string' &&
-            value.startsWith('$.') &&
-            input[key] !== undefined
-          ) {
-            // value is path
-            const { path, transformFunction } = parsePathStr(value);
-            if (options.evalMethod && transformFunction) {
-              const transformedValue = transFormValue(
-                input[key],
-                transformFunction,
-                options.evalMethod,
-              );
-              set(result, path, transformedValue);
-            } else {
-              set(result, path, input[key]);
-            }
-          } else if (typeof value === 'object') {
-            result = mergeSame(doMapping(value, input[key]), result);
-          }
-        });
-      // console.log(result);
-    }
-    return result;
-  };
-
-  const resultOut = doMapping(mapping, inputResponse);
-  // console.log(resultOut);
-
-  return resultOut;
+  return doMapping(mapping, inputResponse, options);
 };

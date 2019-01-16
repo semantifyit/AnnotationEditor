@@ -109,11 +109,11 @@ const getBody = (request, res) =>
         console.error(err);
       })
       .on('data', (chunk) => {
-        console.log(chunk);
+        //console.log(chunk);
         body.push(chunk);
       })
       .on('end', () => {
-        console.log('end');
+        //console.log('end');
         resolve(Buffer.concat(body).toString());
       });
   });

@@ -30,6 +30,7 @@ export interface ResponseMapping {
 }
 interface ResponseOptions {
   evalMethod?: evalMethod;
+  iteratorPath?: string;
 }
 export declare const responseMapping: (
   inputResponse: object,

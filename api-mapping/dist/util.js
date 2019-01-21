@@ -14,7 +14,7 @@ exports.deepMapValues = function(obj, f) {
       }, {})
     : f(obj);
 };
-var pathStringToArr = function(path) {
+exports.pathStringToArr = function(path) {
   return path
     .replace(/\[([^\[\]]*)\]/g, '.$1.')
     .split('.')
@@ -23,7 +23,7 @@ var pathStringToArr = function(path) {
     });
 };
 exports.get = function(obj, selector) {
-  return pathStringToArr(selector).reduce(function(prev, cur) {
+  return exports.pathStringToArr(selector).reduce(function(prev, cur) {
     return prev && prev[cur];
   }, obj);
 };
@@ -107,7 +107,7 @@ exports.replaceIterators = function(path, iterators) {
   return newPath;
 };
 exports.set = function(obj, path, value) {
-  var paths = pathStringToArr(path);
+  var paths = exports.pathStringToArr(path);
   setPath(obj, paths, value);
 };
 var setPath = function(obj, path, value) {

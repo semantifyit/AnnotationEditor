@@ -71,6 +71,7 @@ exports.requestMapping = function(inputAction, mapping, options) {
 };
 var defaultResponseOptions = {
   evalMethod: 'eval',
+  iteratorPath: '$ite',
 };
 var doMapping = function(mappingObj, input, result, iterators, options) {
   if (!input || !mappingObj) {
@@ -78,7 +79,7 @@ var doMapping = function(mappingObj, input, result, iterators, options) {
   }
   if (Array.isArray(mappingObj) && Array.isArray(input)) {
     if (mappingObj.length === 1) {
-      var iterator_1 = mappingObj[0].$ite;
+      var iterator_1 = util_1.get(mappingObj[0], options.iteratorPath);
       input.forEach(function(inputElem, i) {
         var _a;
         return doMapping(
@@ -137,7 +138,8 @@ exports.responseMapping = function(inputResponse, mapping, options, mergeObj) {
     options = defaultResponseOptions;
   }
   var result = {};
-  doMapping(mapping, inputResponse, result, {}, options);
+  var userOptions = Object.assign(defaultResponseOptions, options);
+  doMapping(mapping, inputResponse, result, {}, userOptions);
   if (mergeObj) {
     util_1.mergeResult(result.$, mergeObj, new RegExp('-input$'));
   }

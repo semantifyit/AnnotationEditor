@@ -12,7 +12,7 @@ export const deepMapValues = <T = object>(obj: T, f: Function): T =>
       }, {})
     : f(obj);
 
-const pathStringToArr = (path: string): string[] =>
+export const pathStringToArr = (path: string): string[] =>
   path
     .replace(/\[([^\[\]]*)\]/g, '.$1.')
     .split('.')

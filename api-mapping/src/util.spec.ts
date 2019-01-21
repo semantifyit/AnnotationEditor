@@ -3,6 +3,7 @@ import {
   get,
   isEmptyObject,
   mergeResult,
+  pathStringToArr,
   replaceIterators,
   set,
   URLJoin,
@@ -27,6 +28,12 @@ describe('util', () => {
     const transform = (e: any) => (typeof e === 'string' ? e.toUpperCase() : e);
 
     expect(deepMapValues(input, transform)).toEqual(output);
+  });
+
+  it('pathStringToArr', () => {
+    expect(pathStringToArr('foo.12')).toEqual(['foo', '12']);
+    expect(pathStringToArr('foo[1]')).toEqual(['foo', '1']);
+    expect(pathStringToArr('_ite[0]._')).toEqual(['_ite', '0', '_']);
   });
 
   it('get', () => {
@@ -56,6 +63,36 @@ describe('util', () => {
     expect(get(obj, 'deep.asd')).toEqual(undefined);
     expect(get(obj, 'foo.asd.sdf')).toEqual(undefined);
     expect(get(obj, 'qqq.asd.sdf')).toEqual(undefined);
+
+    const ite = {
+      _ite: [
+        {
+          _: 'i',
+        },
+      ],
+    };
+    expect(get(ite, '_ite[0]._')).toEqual('i');
+
+    const ite2 = {
+      $: {
+        ObjectID: "$[i].@id |> (id => 'https://example.com/' + id)",
+      },
+      _ite: [
+        {
+          _: 'i',
+        },
+      ],
+      Name: [
+        {
+          Value: [
+            {
+              _: '$[i].name',
+            },
+          ],
+        },
+      ],
+    };
+    expect(get(ite2, '_ite[0]._')).toEqual('i');
   });
 
   it('URLJoin', () => {

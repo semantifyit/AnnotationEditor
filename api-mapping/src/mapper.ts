@@ -126,10 +126,17 @@ export interface ResponseMapping {
 
 interface ResponseOptions {
   evalMethod?: evalMethod;
+  iteratorPath?: string;
 }
 
-const defaultResponseOptions: ResponseOptions = {
+interface ResponseOptionsReq {
+  evalMethod: evalMethod;
+  iteratorPath: string;
+}
+
+const defaultResponseOptions: ResponseOptionsReq = {
   evalMethod: 'eval',
+  iteratorPath: '$ite',
 };
 
 const doMapping = (
@@ -137,7 +144,7 @@ const doMapping = (
   input: any,
   result: object,
   iterators: { [key: string]: number },
-  options: ResponseOptions,
+  options: ResponseOptionsReq,
 ): void => {
   if (!input || !mappingObj) {
     return;
@@ -147,7 +154,7 @@ const doMapping = (
     if (mappingObj.length === 1) {
       // mapping used for all in input
       // iterator available
-      const iterator = mappingObj[0].$ite;
+      const iterator = get(mappingObj[0], options.iteratorPath);
       input.forEach((inputElem, i) =>
         doMapping(
           mappingObj[0],
@@ -201,7 +208,11 @@ export const responseMapping = (
   mergeObj?: object,
 ): object => {
   const result: { $?: any } = {};
-  doMapping(mapping, inputResponse, result, {}, options);
+  const userOptions: ResponseOptionsReq = Object.assign(
+    defaultResponseOptions,
+    options,
+  );
+  doMapping(mapping, inputResponse, result, {}, userOptions);
   if (mergeObj) {
     mergeResult(result.$, mergeObj, new RegExp('-input$')); // TODO add option for regexp maybe?
   }

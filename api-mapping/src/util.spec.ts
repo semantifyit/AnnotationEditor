@@ -2,6 +2,7 @@ import {
   deepMapValues,
   get,
   isEmptyObject,
+  mergeResult,
   replaceIterators,
   set,
   URLJoin,
@@ -156,7 +157,7 @@ describe('util', () => {
   //   expect(mergeDiff(a, b)).toEqual(resDiff);
   // });
 
-  it('merge with action', () => {
+  it('merge result with action', () => {
     const output = {
       result: [{ name: 'thi' }, { name: 'phil', location: { city: 'dbn' } }],
     };
@@ -195,7 +196,8 @@ describe('util', () => {
         },
       ],
     };
-    // expect(mergeResult(output, action)).toEqual(result);
+    mergeResult(output, action, new RegExp('-input$'));
+    expect(output).toEqual(result);
   });
 
   it('isEmptyObject', () => {

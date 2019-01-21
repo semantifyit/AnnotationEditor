@@ -105,17 +105,27 @@ export const isEmptyObject = (obj: any): boolean =>
 export const isObject = (item: any): boolean =>
   item && typeof item === 'object' && !Array.isArray(item);
 
-export const mergeResult = (...objects: any[]): any =>
-  objects.reduce((acc, cur) => {
-    Object.entries(cur).forEach(([k, v]) => {
-      if (acc[k] !== undefined) {
-        // TODO
-      } else {
-        acc[k] = v;
+export const mergeResult = (
+  input: any,
+  mergeObj: any,
+  ignoreKeyRegex?: RegExp,
+): void => {
+  if (Array.isArray(input)) {
+    input.forEach((_, i) => {
+      mergeResult(input[i], mergeObj, ignoreKeyRegex);
+    });
+  } else {
+    Object.entries(mergeObj).forEach(([key, val], i) => {
+      if (ignoreKeyRegex && !ignoreKeyRegex.test(key)) {
+        if (typeof val === 'object' && input[key] !== undefined) {
+          mergeResult(input[key], val, ignoreKeyRegex);
+        } else if (input[key] === undefined && typeof val !== 'object') {
+          input[key] = val;
+        }
       }
     });
-    return acc;
-  }, {});
+  }
+};
 
 export const isNumeric = (num: any): boolean => !isNaN(num);
 

@@ -1,6 +1,7 @@
 import {
   deepMapValues,
   get,
+  mergeResult,
   removeUndef,
   replaceIterators,
   set,
@@ -34,6 +35,7 @@ interface RequestOptions {
   evalMethod?: evalMethod;
 }
 
+// TODO newlines in string
 const transFormValue = (
   val: any,
   transformFunctionStr: string,
@@ -54,11 +56,12 @@ const transFormValue = (
 
 const parsePathStr = (
   pathStr: string,
+  keepDollar: boolean = false,
 ): { path: string; transformFunction?: string } => {
   const [path, transformFunction] = pathStr.split(/\|>/).map((s) => s.trim());
   return {
     transformFunction,
-    path: path.substring(2), // remove '$.' for our get method#
+    path: keepDollar ? path : path.substring(2), // remove '$.' for our get method#
   };
 };
 
@@ -69,7 +72,6 @@ const useInputValue = (
 ): string => {
   const { path, transformFunction } = parsePathStr(pathStr);
 
-  // TODO different locator options
   const inputVal = get(inputObj, path);
 
   if (transformFunction && options.evalMethod) {
@@ -167,11 +169,11 @@ const doMapping = (
       .forEach(([key, value]) => {
         if (
           typeof value === 'string' &&
-          value.startsWith('$.') &&
+          value.startsWith('$') &&
           input[key] !== undefined
         ) {
           // value is path
-          const { path, transformFunction } = parsePathStr(value);
+          const { path, transformFunction } = parsePathStr(value, true);
           const iteratorPath = replaceIterators(path, iterators);
           if (options.evalMethod && transformFunction) {
             const transformedValue = transFormValue(
@@ -196,8 +198,12 @@ export const responseMapping = (
   inputResponse: object,
   mapping: object,
   options: ResponseOptions = defaultResponseOptions,
+  mergeObj?: object,
 ): object => {
-  const result = {};
+  const result: { $?: any } = {};
   doMapping(mapping, inputResponse, result, {}, options);
-  return result;
+  if (mergeObj) {
+    mergeResult(result.$, mergeObj, new RegExp('-input$')); // TODO add option for regexp maybe?
+  }
+  return result.$;
 };

@@ -6,7 +6,11 @@ export declare const isBrowser: () => boolean;
 export declare const removeUndef: <T>(obj: T) => T;
 export declare const isEmptyObject: (obj: any) => boolean;
 export declare const isObject: (item: any) => boolean;
-export declare const mergeResult: (...objects: any[]) => any;
+export declare const mergeResult: (
+  input: any,
+  mergeObj: any,
+  ignoreKeyRegex?: RegExp | undefined,
+) => void;
 export declare const isNumeric: (num: any) => boolean;
 export declare const replaceIterators: (
   path: string,

@@ -13,7 +13,10 @@ var transFormValue = function(val, transformFunctionStr, evalMethodType) {
       return eval(code);
   }
 };
-var parsePathStr = function(pathStr) {
+var parsePathStr = function(pathStr, keepDollar) {
+  if (keepDollar === void 0) {
+    keepDollar = false;
+  }
   var _a = pathStr.split(/\|>/).map(function(s) {
       return s.trim();
     }),
@@ -21,7 +24,7 @@ var parsePathStr = function(pathStr) {
     transformFunction = _a[1];
   return {
     transformFunction: transformFunction,
-    path: path.substring(2),
+    path: keepDollar ? path : path.substring(2),
   };
 };
 var useInputValue = function(inputObj, pathStr, options) {
@@ -104,10 +107,10 @@ var doMapping = function(mappingObj, input, result, iterators, options) {
           value = _a[1];
         if (
           typeof value === 'string' &&
-          value.startsWith('$.') &&
+          value.startsWith('$') &&
           input[key] !== undefined
         ) {
-          var _b = parsePathStr(value),
+          var _b = parsePathStr(value, true),
             path = _b.path,
             transformFunction = _b.transformFunction;
           var iteratorPath = util_1.replaceIterators(path, iterators);
@@ -129,11 +132,14 @@ var doMapping = function(mappingObj, input, result, iterators, options) {
     console.log('mapping not object');
   }
 };
-exports.responseMapping = function(inputResponse, mapping, options) {
+exports.responseMapping = function(inputResponse, mapping, options, mergeObj) {
   if (options === void 0) {
     options = defaultResponseOptions;
   }
   var result = {};
   doMapping(mapping, inputResponse, result, {}, options);
-  return result;
+  if (mergeObj) {
+    util_1.mergeResult(result.$, mergeObj, new RegExp('-input$'));
+  }
+  return result.$;
 };

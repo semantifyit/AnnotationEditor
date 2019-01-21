@@ -35,5 +35,6 @@ export declare const responseMapping: (
   inputResponse: object,
   mapping: object,
   options?: ResponseOptions,
+  mergeObj?: object | undefined,
 ) => object;
 export {};

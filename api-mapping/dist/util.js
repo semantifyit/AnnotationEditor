@@ -72,22 +72,24 @@ exports.isEmptyObject = function(obj) {
 exports.isObject = function(item) {
   return item && typeof item === 'object' && !Array.isArray(item);
 };
-exports.mergeResult = function() {
-  var objects = [];
-  for (var _i = 0; _i < arguments.length; _i++) {
-    objects[_i] = arguments[_i];
-  }
-  return objects.reduce(function(acc, cur) {
-    Object.entries(cur).forEach(function(_a) {
-      var k = _a[0],
-        v = _a[1];
-      if (acc[k] !== undefined) {
-      } else {
-        acc[k] = v;
+exports.mergeResult = function(input, mergeObj, ignoreKeyRegex) {
+  if (Array.isArray(input)) {
+    input.forEach(function(_, i) {
+      exports.mergeResult(input[i], mergeObj, ignoreKeyRegex);
+    });
+  } else {
+    Object.entries(mergeObj).forEach(function(_a, i) {
+      var key = _a[0],
+        val = _a[1];
+      if (ignoreKeyRegex && !ignoreKeyRegex.test(key)) {
+        if (typeof val === 'object' && input[key] !== undefined) {
+          exports.mergeResult(input[key], val, ignoreKeyRegex);
+        } else if (input[key] === undefined && typeof val !== 'object') {
+          input[key] = val;
+        }
       }
     });
-    return acc;
-  }, {});
+  }
 };
 exports.isNumeric = function(num) {
   return !isNaN(num);

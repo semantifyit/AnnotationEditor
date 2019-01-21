@@ -1,106 +1,204 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deepMapValues = function (obj, f) {
-    return Array.isArray(obj)
-        ? obj.map(function (val) { return exports.deepMapValues(val, f); })
-        : typeof obj === 'object'
-            ? Object.entries(obj).reduce(function (acc, _a) {
-                var key = _a[0], val = _a[1];
-                acc[key] = exports.deepMapValues(val, f);
-                return acc;
-            }, {})
-            : f(obj);
-};
-exports.get = function (obj, selector) {
-    return selector
-        .replace(/\[([^\[\]]*)\]/g, '.$1.')
-        .split('.')
-        .filter(function (t) { return t !== ''; })
-        .reduce(function (prev, cur) { return prev && prev[cur]; }, obj);
-};
-var isDefined = function (t) { return !!t; };
-exports.URLJoin = function () {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
-    return args
-        .filter(isDefined)
-        .join('/')
-        .replace(/[\/]+/g, '/')
-        .replace(/^(.+):\//, '$1://')
-        .replace(/^file:/, 'file:/')
-        .replace(/\/(\?|&|#[^!])/g, '$1')
-        .replace(/\?/g, '&')
-        .replace('&', '?');
-};
-exports.isNodeJs = function () { return typeof window === 'undefined'; };
-exports.isBrowser = function () {
-    return ![typeof window, typeof document].includes('undefined');
-};
-exports.mergeDiff = function () {
-    var objects = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        objects[_i] = arguments[_i];
-    }
-    return objects.reduce(function (acc, cur) {
-        Object.entries(cur).forEach(function (_a) {
-            var k = _a[0], v = _a[1];
-            if (acc[k]) {
-                if (Array.isArray(acc[k])) {
-                    acc[k].push(v);
-                }
-                else {
-                    acc[k] = [acc[k], v];
-                }
-            }
-            else {
-                acc[k] = v;
-            }
-        });
+'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
+exports.deepMapValues = function(obj, f) {
+  return Array.isArray(obj)
+    ? obj.map(function(val) {
+        return exports.deepMapValues(val, f);
+      })
+    : typeof obj === 'object'
+    ? Object.entries(obj).reduce(function(acc, _a) {
+        var key = _a[0],
+          val = _a[1];
+        acc[key] = exports.deepMapValues(val, f);
         return acc;
-    }, {});
+      }, {})
+    : f(obj);
 };
-exports.mergeSame = function () {
-    var objects = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        objects[_i] = arguments[_i];
+var pathStringToArr = function(path) {
+  return path
+    .replace(/\[([^\[\]]*)\]/g, '.$1.')
+    .split('.')
+    .filter(function(t) {
+      return t !== '';
+    });
+};
+exports.get = function(obj, selector) {
+  return pathStringToArr(selector).reduce(function(prev, cur) {
+    return prev && prev[cur];
+  }, obj);
+};
+var isDefined = function(t) {
+  return !!t;
+};
+exports.URLJoin = function() {
+  var args = [];
+  for (var _i = 0; _i < arguments.length; _i++) {
+    args[_i] = arguments[_i];
+  }
+  return args
+    .filter(isDefined)
+    .join('/')
+    .replace(/[\/]+/g, '/')
+    .replace(/^(.+):\//, '$1://')
+    .replace(/^file:/, 'file:/')
+    .replace(/\/(\?|&|#[^!])/g, '$1')
+    .replace(/\?/g, '&')
+    .replace('&', '?');
+};
+exports.isNodeJs = function() {
+  return typeof window === 'undefined';
+};
+exports.isBrowser = function() {
+  return ![typeof window, typeof document].includes('undefined');
+};
+exports.removeUndef = function(obj) {
+  return Object.entries(obj).reduce(function(acc, _a) {
+    var k = _a[0],
+      v = _a[1];
+    if (!exports.isEmptyObject(v)) {
+      acc[k] = v;
     }
-    return objects.reduce(function (acc, cur) {
-        if (typeof cur === 'object') {
-            Object.entries(cur).forEach(function (_a) {
-                var k = _a[0], v = _a[1];
-                if (acc[k]) {
-                    acc[k] = exports.mergeSame(acc[k], v);
-                }
-                else {
-                    acc[k] = v;
-                }
-            });
-            return acc;
-        }
-        if (Array.isArray(acc)) {
-            acc.push(cur);
-            return acc;
-        }
-        if (Object.keys(acc).length === 0) {
-            return [cur];
-        }
-        return [acc, cur];
-    }, {});
+    return acc;
+  }, {});
 };
-exports.removeUndef = function (obj) {
-    return Object.entries(obj).reduce(function (acc, _a) {
-        var k = _a[0], v = _a[1];
-        if (!exports.isEmptyObject(v)) {
-            acc[k] = v;
-        }
-        return acc;
-    }, {});
+exports.isEmptyObject = function(obj) {
+  return (
+    obj === null ||
+    obj === undefined ||
+    (Array.isArray(obj) && obj.length === 0) ||
+    (typeof obj === 'object' && Object.keys(obj).length === 0)
+  );
 };
-exports.isEmptyObject = function (obj) {
-    return obj === null ||
-        obj === undefined ||
-        (Array.isArray(obj) && obj.length === 0) ||
-        (typeof obj === 'object' && Object.keys(obj).length === 0);
+exports.isObject = function(item) {
+  return item && typeof item === 'object' && !Array.isArray(item);
+};
+exports.mergeResult = function() {
+  var objects = [];
+  for (var _i = 0; _i < arguments.length; _i++) {
+    objects[_i] = arguments[_i];
+  }
+  return objects.reduce(function(acc, cur) {
+    Object.entries(cur).forEach(function(_a) {
+      var k = _a[0],
+        v = _a[1];
+      if (acc[k] !== undefined) {
+      } else {
+        acc[k] = v;
+      }
+    });
+    return acc;
+  }, {});
+};
+exports.isNumeric = function(num) {
+  return !isNaN(num);
+};
+exports.replaceIterators = function(path, iterators) {
+  var newPath = path;
+  Object.entries(iterators).forEach(function(_a) {
+    var ite = _a[0],
+      index = _a[1];
+    newPath = newPath.replace(
+      new RegExp('\\[' + ite + '\\]', 'g'),
+      '[' + index + ']',
+    );
+  });
+  return newPath;
+};
+exports.set = function(obj, path, value) {
+  var paths = pathStringToArr(path);
+  setPath(obj, paths, value);
+};
+var setPath = function(obj, path, value) {
+  var _a;
+  var prop = path[0],
+    rest = path.slice(1);
+  if (path.length === 1) {
+    if (Array.isArray(obj)) {
+      if (exports.isNumeric(prop)) {
+        if (obj[Number(prop)] !== undefined) {
+          if (Array.isArray(obj[Number(prop)])) {
+            obj[Number(prop)].push(value);
+          } else {
+            obj[Number(prop)] = [obj[Number(prop)], value];
+          }
+        } else {
+          obj[Number(prop)] = value;
+        }
+      } else {
+        if (
+          obj.every(function(elem) {
+            return typeof elem !== 'object';
+          })
+        ) {
+          obj.push(((_a = {}), (_a[prop] = value), _a));
+        } else {
+          obj.forEach(function(elem, i) {
+            if (typeof elem === 'object') {
+              if (obj[i][prop] !== undefined) {
+                if (Array.isArray(obj[i][prop])) {
+                  obj[i][prop].push(value);
+                } else {
+                  obj[i][prop] = [obj[i][prop], value];
+                }
+              } else {
+                console.log(obj[i]);
+                console.log(i);
+                obj[i][prop] = value;
+              }
+            }
+          });
+        }
+      }
+    } else {
+      if (obj[prop] !== undefined) {
+        if (Array.isArray(obj[prop])) {
+          obj[prop].push(value);
+        } else {
+          obj[prop] = [obj[prop], value];
+        }
+      } else {
+        obj[prop] = value;
+      }
+    }
+  } else {
+    if (Array.isArray(obj)) {
+      if (exports.isNumeric(prop)) {
+        if (obj[Number(prop)] !== undefined) {
+          if (typeof obj[Number(prop)] === 'object') {
+            setPath(obj[Number(prop)], rest, value);
+          } else {
+            obj[Number(prop)] = [obj[Number(prop)]];
+            setPath(obj[Number(prop)], rest, value);
+          }
+        } else {
+          obj[Number(prop)] = exports.isNumeric(rest[0]) ? [] : {};
+          setPath(obj[Number(prop)], rest, value);
+        }
+      } else {
+        if (
+          obj.every(function(elem) {
+            return typeof elem !== 'object';
+          })
+        ) {
+          obj.push(exports.isNumeric(rest[0]) ? [] : {});
+          setPath(obj[obj.length - 1], path, value);
+        } else {
+          obj.forEach(function(elem, i) {
+            if (typeof elem === 'object') {
+              setPath(obj[i], path, value);
+            }
+          });
+        }
+      }
+    } else if (typeof obj === 'object') {
+      if (obj[prop] !== undefined) {
+        setPath(obj[prop], rest, value);
+      } else {
+        obj[prop] = exports.isNumeric(rest[0]) ? [] : {};
+        setPath(obj[prop], rest, value);
+      }
+    } else {
+      console.log('Object neither');
+    }
+  }
 };

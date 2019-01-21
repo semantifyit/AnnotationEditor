@@ -34,7 +34,24 @@
         "type": "User",
         "site_admin": false
       },
-      "labels": [],
+      "labels": [
+        {
+          "id": 722498942,
+          "node_id": "MDU6TGFiZWw3MjI0OTg5NDI=",
+          "url": "https://api.github.com/repos/ThibaultGerrier/Try1/labels/bug",
+          "name": "bug",
+          "color": "ee0701",
+          "default": true
+        },
+        {
+          "id": 1164613322,
+          "node_id": "MDU6TGFiZWwxMTY0NjEzMzIy",
+          "url": "https://api.github.com/repos/ThibaultGerrier/Try1/labels/test",
+          "name": "test",
+          "color": "39d69c",
+          "default": false
+        }
+      ],
       "state": "open",
       "locked": false,
       "assignee": null,
@@ -45,7 +62,7 @@
       "updated_at": "2018-12-17T18:05:24Z",
       "closed_at": null,
       "author_association": "OWNER",
-      "body": "hello there x2",
+      "body": "hello there",
       "closed_by": null
     }
   },
@@ -59,8 +76,8 @@
         "url": "https://api.github.com/users/ThibaultGerrier"
       },
       "dateCreated": "2018-12-17T18:05:24Z",
-      "dateModified": "2018-12-17T18:10:39Z",
-      "description": "this issue was edited",
+      "dateModified": "2018-12-17T18:05:24Z",
+      "description": "hello there",
       "genre": [
         "bug",
         "test"

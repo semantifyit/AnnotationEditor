@@ -24,10 +24,6 @@ export declare const requestMapping: (
   mapping: RequestMapping,
   options?: RequestOptions,
 ) => RequestOutput;
-interface ResponseObj {
-  headers?: StringObj<string | number>;
-  body?: any;
-}
 export interface ResponseMapping {
   headers?: StringObj;
   body?: object;
@@ -36,8 +32,8 @@ interface ResponseOptions {
   evalMethod?: evalMethod;
 }
 export declare const responseMapping: (
-  inputResponse: ResponseObj,
-  mapping: ResponseMapping,
+  inputResponse: object,
+  mapping: object,
   options?: ResponseOptions,
 ) => object;
 export {};

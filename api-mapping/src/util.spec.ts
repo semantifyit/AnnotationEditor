@@ -2,8 +2,7 @@ import {
   deepMapValues,
   get,
   isEmptyObject,
-  mergeDiff,
-  mergeSame,
+  replaceIterators,
   set,
   URLJoin,
 } from './util';
@@ -106,56 +105,56 @@ describe('util', () => {
     expect(URLJoin('http://www.google.com')).toEqual('http://www.google.com');
   });
 
-  it('merge', () => {
-    expect(mergeDiff({ a: 1, b: 2 }, { c: 4 })).toEqual({ a: 1, b: 2, c: 4 });
-    expect(mergeDiff({ a: 1, b: 2 }, { a: 3, c: 4 })).toEqual({
-      a: [1, 3],
-      b: 2,
-      c: 4,
-    });
-    expect(
-      mergeDiff({ a: { a: 1, b: 2 } }, { a: { d: 5, e: 6 }, c: 4 }),
-    ).toEqual({
-      a: [{ a: 1, b: 2 }, { d: 5, e: 6 }],
-      c: 4,
-    });
-    expect(
-      mergeDiff({ a: { a: 1 } }, { a: { a: 2 } }, { a: { a: 3 } }),
-    ).toEqual({ a: [{ a: 1 }, { a: 2 }, { a: 3 }] });
-
-    expect(mergeSame({ a: { b: 1 } }, { a: { c: { d: 4 } } })).toEqual({
-      a: { b: 1, c: { d: 4 } },
-    });
-  });
-
-  it('merge same', () => {
-    expect(
-      mergeSame({ result: { genre: 'bug' } }, { result: { genre: 'test' } }),
-    ).toEqual({ result: { genre: ['bug', 'test'] } });
-
-    expect(
-      mergeSame({ a: { t: 'type' } }, { a: [{ b: 'foo' }, { b: 'hey' }] }),
-    ).toEqual({ a: [{ b: 'foo', t: 'type' }, { b: 'hey', t: 'type' }] });
-  });
-
-  it('merge new', () => {
-    const a = { name: 'thi', location: { city: 'ibk' } };
-    const b = { name: 'phil', location: { city: 'dbn' } };
-    const resDiff = [
-      { name: 'thi', location: { city: 'ibk' } },
-      { name: 'phil', location: { city: 'dbn' } },
-    ];
-    const resSameDeep = {
-      name: ['thi', 'phil'],
-      location: { city: ['ibk', 'dbn'] },
-    };
-    const resSameFirstLevel = {
-      name: ['thi', 'phil'],
-      location: [{ city: 'ibk' }, { city: 'dbn' }],
-    };
-
-    expect(mergeDiff(a, b)).toEqual(resDiff);
-  });
+  // it('merge', () => {
+  //   expect(mergeDiff({ a: 1, b: 2 }, { c: 4 })).toEqual({ a: 1, b: 2, c: 4 });
+  //   expect(mergeDiff({ a: 1, b: 2 }, { a: 3, c: 4 })).toEqual({
+  //     a: [1, 3],
+  //     b: 2,
+  //     c: 4,
+  //   });
+  //   expect(
+  //     mergeDiff({ a: { a: 1, b: 2 } }, { a: { d: 5, e: 6 }, c: 4 }),
+  //   ).toEqual({
+  //     a: [{ a: 1, b: 2 }, { d: 5, e: 6 }],
+  //     c: 4,
+  //   });
+  //   expect(
+  //     mergeDiff({ a: { a: 1 } }, { a: { a: 2 } }, { a: { a: 3 } }),
+  //   ).toEqual({ a: [{ a: 1 }, { a: 2 }, { a: 3 }] });
+  //
+  //   expect(mergeSame({ a: { b: 1 } }, { a: { c: { d: 4 } } })).toEqual({
+  //     a: { b: 1, c: { d: 4 } },
+  //   });
+  // });
+  //
+  // it('merge same', () => {
+  //   expect(
+  //     mergeSame({ result: { genre: 'bug' } }, { result: { genre: 'test' } }),
+  //   ).toEqual({ result: { genre: ['bug', 'test'] } });
+  //
+  //   expect(
+  //     mergeSame({ a: { t: 'type' } }, { a: [{ b: 'foo' }, { b: 'hey' }] }),
+  //   ).toEqual({ a: [{ b: 'foo', t: 'type' }, { b: 'hey', t: 'type' }] });
+  // });
+  //
+  // it('merge new', () => {
+  //   const a = { name: 'thi', location: { city: 'ibk' } };
+  //   const b = { name: 'phil', location: { city: 'dbn' } };
+  //   const resDiff = [
+  //     { name: 'thi', location: { city: 'ibk' } },
+  //     { name: 'phil', location: { city: 'dbn' } },
+  //   ];
+  //   const resSameDeep = {
+  //     name: ['thi', 'phil'],
+  //     location: { city: ['ibk', 'dbn'] },
+  //   };
+  //   const resSameFirstLevel = {
+  //     name: ['thi', 'phil'],
+  //     location: [{ city: 'ibk' }, { city: 'dbn' }],
+  //   };
+  //
+  //   expect(mergeDiff(a, b)).toEqual(resDiff);
+  // });
 
   it('merge with action', () => {
     const output = {
@@ -255,9 +254,42 @@ describe('util', () => {
     expect(a).toEqual({ a: [[1, 2], 3] });
     set(a, 'a[1].b', 3);
     expect(a).toEqual({ a: [[1, 2], [3, { b: 3 }]] });
+    a = { a: [[1, 2], 3] };
+    set(a, 'a[1].b.c', 3);
+    expect(a).toEqual({ a: [[1, 2], [3, { b: { c: 3 } }]] });
 
     a = {};
     set(a, 'a[0][0]', 1);
     expect(a).toEqual({ a: [[1]] });
+
+    a = {};
+    set(a, '$[0]', 1);
+    set(a, '$[1]', 12);
+    expect(a).toEqual({ $: [1, 12] });
+
+    a = {};
+    set(a, '$.result[0].name', 'hi');
+    expect(a).toEqual({ $: { result: [{ name: 'hi' }] } });
+    set(a, '$.result[1].name', 'hello');
+    expect(a).toEqual({ $: { result: [{ name: 'hi' }, { name: 'hello' }] } });
+    set(a, '$.result[0].desc', 'foo');
+    expect(a).toEqual({
+      $: { result: [{ name: 'hi', desc: 'foo' }, { name: 'hello' }] },
+    });
+  });
+
+  it('replaceIterators', () => {
+    const ite = {
+      i: 0,
+      ite: 1,
+      j: 2,
+    };
+    expect(replaceIterators('$[i]', ite)).toBe('$[0]');
+    expect(replaceIterators('$[ite]', ite)).toBe('$[1]');
+    expect(replaceIterators('$[j]', ite)).toBe('$[2]');
+    expect(replaceIterators('$[i][j]', ite)).toBe('$[0][2]');
+    expect(replaceIterators('$[i][j].ite.j[ite]', ite)).toBe(
+      '$[0][2].ite.j[1]',
+    );
   });
 });

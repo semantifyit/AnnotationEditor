@@ -1,9 +1,8 @@
 import {
   deepMapValues,
   get,
-  mergeDiff,
-  mergeSame,
   removeUndef,
+  replaceIterators,
   set,
   URLJoin,
 } from './util';
@@ -131,32 +130,40 @@ const defaultResponseOptions: ResponseOptions = {
   evalMethod: 'eval',
 };
 
-const doMapping = (mappingObj: any, input: any, options: ResponseOptions) => {
-  let result = {};
+const doMapping = (
+  mappingObj: any,
+  input: any,
+  result: object,
+  iterators: { [key: string]: number },
+  options: ResponseOptions,
+): void => {
   if (!input || !mappingObj) {
-    return result;
+    return;
   }
+
   if (Array.isArray(mappingObj) && Array.isArray(input)) {
     if (mappingObj.length === 1) {
       // mapping used for all in input
-      const forceMerge = !!mappingObj[0].$merge;
-      const mappedElements = input.map((inputElem) =>
-        doMapping(mappingObj[0], inputElem, options),
+      // iterator available
+      const iterator = mappingObj[0].$ite;
+      input.forEach((inputElem, i) =>
+        doMapping(
+          mappingObj[0],
+          inputElem,
+          result,
+          iterator ? Object.assign(iterators, { [iterator]: i }) : iterators,
+          options,
+        ),
       );
-      result = forceMerge
-        ? mergeSame(...mappedElements)
-        : mergeDiff(...mappedElements);
     } else {
       // each array elem different mapping ( no array length = 0)
-      result = mergeSame(
-        ...mappingObj.map((mappingElem, i) =>
-          doMapping(mappingElem, input[i], options),
-        ),
+      mappingObj.forEach((mappingElem, i) =>
+        doMapping(mappingElem, input[i], result, iterators, options),
       );
     }
   } else if (typeof mappingObj === 'object') {
     Object.entries(mappingObj)
-      .filter(([k]) => !metadataProperties.includes(k))
+      .filter(([key]) => key !== '$ite')
       .forEach(([key, value]) => {
         if (
           typeof value === 'string' &&
@@ -165,23 +172,24 @@ const doMapping = (mappingObj: any, input: any, options: ResponseOptions) => {
         ) {
           // value is path
           const { path, transformFunction } = parsePathStr(value);
+          const iteratorPath = replaceIterators(path, iterators);
           if (options.evalMethod && transformFunction) {
             const transformedValue = transFormValue(
               input[key],
               transformFunction,
               options.evalMethod,
             );
-            set(result, path, transformedValue);
+            set(result, iteratorPath, transformedValue);
           } else {
-            set(result, path, input[key]);
+            set(result, iteratorPath, input[key]);
           }
         } else if (typeof value === 'object') {
-          result = mergeSame(doMapping(value, input[key], options), result);
+          doMapping(value, input[key], result, iterators, options);
         }
       });
-    // console.log(result);
+  } else {
+    console.log('mapping not object');
   }
-  return result;
 };
 
 export const responseMapping = (
@@ -189,5 +197,7 @@ export const responseMapping = (
   mapping: object,
   options: ResponseOptions = defaultResponseOptions,
 ): object => {
-  return doMapping(mapping, inputResponse, options);
+  const result = {};
+  doMapping(mapping, inputResponse, result, {}, options);
+  return result;
 };

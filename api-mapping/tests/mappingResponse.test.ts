@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import { responseMapping } from '../src/mapper';
-
-const fileToJSON = (filename: string) =>
-  JSON.parse(fs.readFileSync(filename, 'utf8'));
+import { fileToJSON } from './util';
 
 describe('simple response mapping', () => {
   it('simple object', () => {
@@ -34,113 +32,37 @@ describe('simple response mapping', () => {
   });
 });
 
-describe('mapping response github issue list', () => {
-  const mapping = {
-    headers: {
-      statusCode:
-        '$.actionStatus |> (c => c === "200" ? "http://schema.org/CompletedActionStatus" : "http://schema.org/FailedActionStatus")',
-    },
-    body: [
-      {
-        url: '$.result.url',
-        id: '$.result.identifier',
-        number: '$.result.issueNumber',
-        title: '$.result.name',
-        user: {
-          login: '$.result.author.name |> ((i) => i.toUpperCase())',
-          id: '$.result.author.identifier',
-          avatar_url: '$.result.author.image',
-          url: '$.result.author.url',
-        },
-        labels: [
-          // {
-          //   name: '$.result.genre.name',
-          //   color: '$.result.genre.color',
-          // },
-          {
-            $merge: true,
-            name: '$.result.genre',
-          },
-        ],
-        created_at: '$.result.dateCreated',
-        updated_at: '$.result.dateModified',
-        body: '$.result.description',
-      },
-    ],
-  };
-  console.log(JSON.stringify(mapping, null, 4));
-  it('success', () => {
-    const response = JSON.parse(
-      fs.readFileSync('./tests/data/github-issue-list-response.json', 'utf-8'),
+describe('new mapping', () => {
+  it('issue-create', () => {
+    const mapping = fileToJSON(
+      `${__dirname}/data/github-issue-create/action.json`,
     );
-    const responseObj = {
-      headers: {
-        statusCode: 200,
-      },
-      body: response,
-    };
-    const expectedAction = {
-      actionStatus: 'http://schema.org/CompletedActionStatus',
-      result: [
-        {
-          author: {
-            identifier: 10177712,
-            image: 'https://avatars2.githubusercontent.com/u/10177712?v=4',
-            name: 'THIBAULTGERRIER',
-            url: 'https://api.github.com/users/ThibaultGerrier',
-          },
-          dateCreated: '2018-12-17T18:05:24Z',
-          dateModified: '2018-12-17T18:10:39Z',
-          description: 'this issue was edited',
-          genre: ['bug', 'test'],
-          identifier: 391828911,
-          issueNumber: 3,
-          name: 'Second Issue from API',
-          url: 'https://api.github.com/repos/ThibaultGerrier/Try1/issues/3',
-        },
-        {
-          author: {
-            identifier: 10177712,
-            image: 'https://avatars2.githubusercontent.com/u/10177712?v=4',
-            name: 'THIBAULTGERRIER',
-            url: 'https://api.github.com/users/ThibaultGerrier',
-          },
-          dateCreated: '2018-12-17T18:04:12Z',
-          dateModified: '2018-12-17T18:04:12Z',
-          description: 'hello there',
-          identifier: 391828528,
-          issueNumber: 2,
-          name: 'New Issue from API',
-          url: 'https://api.github.com/repos/ThibaultGerrier/Try1/issues/2',
-        },
-        {
-          author: {
-            identifier: 10177712,
-            image: 'https://avatars2.githubusercontent.com/u/10177712?v=4',
-            name: 'THIBAULTGERRIER',
-            url: 'https://api.github.com/users/ThibaultGerrier',
-          },
-          dateCreated: '2018-12-17T17:43:30Z',
-          dateModified: '2018-12-17T17:43:30Z',
-          description: 'A first Issue',
-          identifier: 391820881,
-          issueNumber: 1,
-          name: 'Test Issue',
-          url: 'https://api.github.com/repos/ThibaultGerrier/Try1/issues/1',
-        },
-      ],
-    };
-    console.log(JSON.stringify(expectedAction, null, 4));
+    const inOut1 = fileToJSON(
+      `${__dirname}/data/github-issue-create/response_inout1.json`,
+    );
 
-    expect(responseMapping(responseObj, mapping)).toEqual(expectedAction);
-    expect(
-      responseMapping(responseObj, mapping, {
-        evalMethod: 'vm-runInNewContext',
-      }),
-    ).toEqual(expectedAction);
+    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
+      inOut1.output,
+    );
   });
 
-  it('fail', () => {
+  it('issue-list', () => {
+    const mapping = fileToJSON(
+      `${__dirname}/data/github-issue-list/action.json`,
+    );
+    const inOut1 = fileToJSON(
+      `${__dirname}/data/github-issue-list/response_inout1.json`,
+    );
+
+    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
+      inOut1.output,
+    );
+  });
+
+  it('fail issue-create', () => {
+    const mapping = fileToJSON(
+      `${__dirname}/data/github-issue-create/action.json`,
+    );
     const responseObj = {
       headers: {
         statusCode: 404,
@@ -155,39 +77,13 @@ describe('mapping response github issue list', () => {
       actionStatus: 'http://schema.org/FailedActionStatus',
     };
 
-    expect(responseMapping(responseObj, mapping)).toEqual(expectedAction);
+    expect(responseMapping(responseObj, mapping.responseMapping)).toEqual(
+      expectedAction,
+    );
     expect(
-      responseMapping(responseObj, mapping, {
+      responseMapping(responseObj, mapping.responseMapping, {
         evalMethod: 'vm-runInNewContext',
       }),
     ).toEqual(expectedAction);
-  });
-});
-
-describe('new mapping', () => {
-  it('issue-create', () => {
-    const mapping = fileToJSON(
-      `${__dirname}/data/github-issue-create/action.json`,
-    );
-    const inOut1 = fileToJSON(
-      `${__dirname}/data/github-issue-create/inout1.json`,
-    );
-
-    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
-      inOut1.output,
-    );
-  });
-
-  it('issue-list', () => {
-    const mapping = fileToJSON(
-      `${__dirname}/data/github-issue-list/action.json`,
-    );
-    const inOut1 = fileToJSON(
-      `${__dirname}/data/github-issue-list/inout1.json`,
-    );
-
-    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
-      inOut1.output,
-    );
   });
 });

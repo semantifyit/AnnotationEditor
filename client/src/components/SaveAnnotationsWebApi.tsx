@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 import {
   Button,
   FormGroup,
@@ -18,8 +19,8 @@ import {
   loginSemantifyUser,
   saveAnnToSemantifyWebsite,
 } from '../helpers/semantify';
-import { generateJSONLD } from '../helpers/helper';
-import { copyStrIntoClipBoard } from '../helpers/html';
+import { generateJSONLD, getMappings } from '../helpers/helper';
+import { copyStrIntoClipBoard, downloadContent } from '../helpers/html';
 import {
   getSemantifyDefaultWebsite,
   getSemantifyUser,
@@ -43,6 +44,7 @@ interface IState {
   chosenWebsite: string;
   savedAnnotationsSemantifyUids: string[];
   annotations: { jsonld: any; complete: boolean }[];
+  mappings: { requestMapping: object; responseMapping: object }[];
   availableSemantifyWebsites: ISemantifyWebsite[];
   semantifyUser: ISemantifyUser | undefined;
   username: string;
@@ -58,6 +60,7 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
     modalIsOpen: false,
     savedAnnotationsSemantifyUids: [],
     annotations: [],
+    mappings: [],
     availableSemantifyWebsites: [],
     semantifyUser: getSemantifyUser(),
     username: '',
@@ -106,7 +109,12 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
     const annotationsResults = this.props.annotationDOMIds.map((id) =>
       generateJSONLD(id),
     );
-    this.setState({ modalIsOpen: true, annotations: annotationsResults });
+    const mappings = getMappings(this.props.annotationDOMIds.slice(1)); // webapi doesn't have a mapping
+    this.setState({
+      modalIsOpen: true,
+      annotations: annotationsResults,
+      mappings,
+    });
   };
 
   public loginClick = async () => {
@@ -139,6 +147,30 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
     removeSemantifyUser();
     removeSemantifyDefaultWebsite();
     this.setState({ showLoginBtn: true });
+  };
+
+  public downloadMapping = async () => {
+    // {
+    //   url: '/annotation/api/downloadWebAPIProjectZip',
+    //     method: 'POST',
+    //   responseType: 'blob',
+    // }
+
+    const resp = await axios({
+      url: '/annotation/api/downloadWebAPIProjectZip',
+      method: 'POST',
+      responseType: 'blob',
+      data: {
+        webAPI: this.state.annotations[0].jsonld,
+        actions: this.state.annotations.slice(1).map(({ jsonld }, i) => ({
+          id: i,
+          requestMapping: this.state.mappings[i].requestMapping,
+          responseMapping: this.state.mappings[i].responseMapping,
+        })),
+      },
+    });
+    // console.log(resp);
+    downloadContent(resp.data, 'action-server-nodejs.zip');
   };
 
   public render() {
@@ -280,6 +312,12 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
             )}
           </ModalBody>
           <ModalFooter>
+            <div className="mr-auto">
+              <Button color="success" onClick={this.downloadMapping}>
+                <FontAwesomeIcon icon="download" size="lg" /> Download Mapping
+                NodeJS Server
+              </Button>{' '}
+            </div>
             <Button color="info" onClick={this.saveAnnotations}>
               <FontAwesomeIcon icon="save" size="lg" /> Save
             </Button>{' '}

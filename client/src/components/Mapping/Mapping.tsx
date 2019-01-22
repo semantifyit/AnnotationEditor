@@ -49,6 +49,7 @@ interface IMappingEditors {
 
 interface IProps {
   annotation: any;
+  domIdPrefix?: string;
 }
 
 interface IState {
@@ -105,6 +106,7 @@ class Mapping extends React.Component<IProps, IState> {
     payloadType: 'json',
   };
 
+  public domIdPrefix = this.props.domIdPrefix || '';
   public editors: IMappingEditors = {};
 
   public inputProps = getIOProps(this.props.annotation, 'input');
@@ -277,7 +279,7 @@ class Mapping extends React.Component<IProps, IState> {
                   <Input
                     type="select"
                     name="select"
-                    id="httpSelectMethod"
+                    id={`${this.domIdPrefix}-httpSelectMethod`}
                     onChange={this.changeHTTPMethod}
                   >
                     <option>GET</option>
@@ -294,7 +296,7 @@ class Mapping extends React.Component<IProps, IState> {
                   <Input
                     type="text"
                     name="url"
-                    id="baseUrl"
+                    id={`${this.domIdPrefix}-baseUrl`}
                     placeholder="https://..."
                     onChange={(e) => this.setState({ urlVal: e.target.value })}
                   />
@@ -319,7 +321,7 @@ class Mapping extends React.Component<IProps, IState> {
                   mode="json"
                   theme="tomorrow"
                   onChange={this.onChangePath}
-                  name="editor-path"
+                  name={`${this.domIdPrefix}-editor-path`}
                   editorProps={{ $blockScrolling: Infinity }}
                   fontSize={14}
                   setOptions={{ enableSnippets: true }}
@@ -357,7 +359,7 @@ class Mapping extends React.Component<IProps, IState> {
                   mode="json"
                   theme="tomorrow"
                   onChange={this.onChangeQuery}
-                  name="editor-query"
+                  name={`${this.domIdPrefix}-editor-query`}
                   editorProps={{ $blockScrolling: Infinity }}
                   fontSize={14}
                   setOptions={{ enableSnippets: true }}
@@ -395,7 +397,7 @@ class Mapping extends React.Component<IProps, IState> {
                   mode="json"
                   theme="tomorrow"
                   onChange={this.onChangeHeader}
-                  name="editor-headers"
+                  name={`${this.domIdPrefix}-editor-header`}
                   editorProps={{ $blockScrolling: Infinity }}
                   fontSize={14}
                   height="100px"
@@ -448,7 +450,7 @@ class Mapping extends React.Component<IProps, IState> {
                   mode={this.state.payloadType}
                   theme="tomorrow"
                   onChange={this.onChangePayload}
-                  name="editor-payload"
+                  name={`${this.domIdPrefix}-editor-payload`}
                   editorProps={{ $blockScrolling: Infinity }}
                   fontSize={14}
                   width="100%"
@@ -499,7 +501,7 @@ class Mapping extends React.Component<IProps, IState> {
               mode="json"
               theme="tomorrow"
               onChange={this.onChangeHeadersResponse}
-              name="editor-header-response"
+              name={`${this.domIdPrefix}-editor-header-response`}
               editorProps={{ $blockScrolling: Infinity }}
               fontSize={14}
               height="100px"
@@ -540,7 +542,7 @@ class Mapping extends React.Component<IProps, IState> {
               mode="json"
               theme="tomorrow"
               onChange={this.onChangePayloadResponse}
-              name="editor-payload-response"
+              name={`${this.domIdPrefix}-editor-payload-response`}
               editorProps={{ $blockScrolling: Infinity }}
               fontSize={14}
               height="400px"

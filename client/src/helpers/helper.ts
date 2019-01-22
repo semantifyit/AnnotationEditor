@@ -1,10 +1,12 @@
 import { set, get } from 'lodash';
+import brace from 'brace';
 
 import { INode, INodeValue } from './Vocab';
 import {
   flatten2DArr,
   flatten3DArr,
   flattenObject,
+  isDefined,
   makeArray,
   notEmpty,
   Optional,
@@ -339,3 +341,54 @@ export const getIOProps = (
         | string
         | IPropertyValueSpecification),
     }));
+
+interface IMappingResponse {
+  requestMapping: object;
+  responseMapping: object;
+}
+
+const getEditorValue = (
+  editorId: string,
+  isJSON = true,
+): string | undefined => {
+  try {
+    const editor = brace.edit(editorId);
+    return JSON.parse(editor.getValue());
+  } catch (e) {
+    return undefined;
+  }
+};
+
+const getDomValue = (domId: string): string => {
+  const elem = document.getElementById(domId) as HTMLInputElement;
+  return elem && elem.value !== undefined ? elem.value : '';
+};
+
+export const getMappings = (domIds: string[]): IMappingResponse[] =>
+  domIds
+    .map((domId) => {
+      const method = getDomValue(`${domId}-httpSelectMethod`);
+      const url = getDomValue(`${domId}-baseUrl`);
+      const path = getEditorValue(`${domId}-editor-path`);
+      const query = getEditorValue(`${domId}-editor-query`);
+      const header = getEditorValue(`${domId}-editor-header`);
+      const payload = getEditorValue(`${domId}-editor-payload`);
+      const header_resp = getEditorValue(`${domId}-editor-header-response`);
+      const payload_resp = getEditorValue(`${domId}-editor-payload-response`);
+
+      return {
+        requestMapping: {
+          method,
+          url,
+          path,
+          query,
+          headers: header,
+          body: payload,
+        },
+        responseMapping: {
+          headers: header_resp,
+          body: payload_resp,
+        },
+      };
+    })
+    .filter(isDefined);

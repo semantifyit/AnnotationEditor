@@ -14,6 +14,7 @@ import {
   faTimes,
   faSave,
   faInfoCircle,
+  faDownload,
 } from '@fortawesome/free-solid-svg-icons';
 
 import App from './components/App';
@@ -45,6 +46,7 @@ library.add(
   faTimes,
   faSave,
   faInfoCircle,
+  faDownload,
 );
 
 ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);

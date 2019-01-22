@@ -181,7 +181,10 @@ class AnnotationWebApi extends React.Component<{}, IState> {
                 )}
                 <div hidden={!this.state.showMapping}>
                   <hr />
-                  <Mapping annotation={annotation || {}} />
+                  <Mapping
+                    annotation={annotation || {}}
+                    domIdPrefix={`annotation-${i}`}
+                  />
                   <hr />
                 </div>
                 <div hidden={this.state.showMapping}>

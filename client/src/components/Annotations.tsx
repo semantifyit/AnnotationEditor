@@ -36,11 +36,9 @@ class Annotations extends React.Component<IProps, IState> {
   };
 
   public createAnnotation = () => {
-    this.jsonldResult = generateJSONLD(
-      this.baseUID,
-      '',
-      this.props.typeIDs.length > 1,
-    );
+    this.jsonldResult = generateJSONLD(this.baseUID, {
+      makeJsonldArray: this.props.typeIDs.length > 1,
+    });
     this.setState({ modalIsOpen: true });
   };
 

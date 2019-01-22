@@ -203,10 +203,14 @@ const pathSeparator = '$';
 export const joinPaths = (pathArr: string[]): string =>
   pathArr.join(pathSeparator);
 
+interface IgenerateJSONLDOptions {
+  pathStartsWith?: string;
+  makeJsonldArray?: boolean;
+}
+
 export const generateJSONLD = (
   docEleId: string,
-  pathStartsWith?: string,
-  makeJsonldArray?: boolean,
+  options?: IgenerateJSONLDOptions,
 ): { jsonld: any; complete: boolean } => {
   const docEle = document.getElementById(docEleId);
   if (!docEle) {
@@ -214,7 +218,7 @@ export const generateJSONLD = (
   }
 
   let complete = true;
-  const jsonld: any = makeJsonldArray ? [] : {};
+  const jsonld: any = options && options.makeJsonldArray ? [] : {};
   const terminals = docEle.querySelectorAll('[data-path]');
   terminals.forEach((t: Element) => {
     let { path } = (t as HTMLElement).dataset;
@@ -225,8 +229,12 @@ export const generateJSONLD = (
     if (!path || !value) {
       return;
     }
-    if (pathStartsWith && path.startsWith(pathStartsWith)) {
-      path = path.replace(`${pathStartsWith}${pathSeparator}`, '');
+    if (
+      options &&
+      options.pathStartsWith &&
+      path.startsWith(options.pathStartsWith)
+    ) {
+      path = path.replace(`${options.pathStartsWith}${pathSeparator}`, '');
       set(jsonld, path.split(pathSeparator), value);
     } else {
       set(jsonld, path.split(pathSeparator), value);

@@ -185,13 +185,32 @@ class Mapping extends React.Component<IProps, IState> {
       | 'headerResponse'
       | 'payloadResponse',
   ) => {
-    // console.log(value);
-    // console.log(location);
-    // this.editors[location].setValue(value);
     this.editors[location].session.insert(
       this.editors[location].getCursorPosition(),
       value,
     );
+  };
+
+  public componentDidUpdate = () => {
+    this.inputProps = getIOProps(this.props.annotation, 'input');
+    this.outputProps = getIOProps(this.props.annotation, 'output');
+    this.annotationInputCompleter = getAnnotationCompleter(
+      this.props.annotation,
+      '-input',
+    );
+    this.annotationOutputCompleter = getAnnotationCompleter(
+      this.props.annotation,
+      '-output',
+    );
+    this.editors.path.completers = [this.annotationInputCompleter];
+    this.editors.query.completers = [this.annotationInputCompleter];
+    this.editors.header.completers = [
+      this.annotationInputCompleter,
+      requestHeaderCompleter,
+    ];
+    this.editors.payload.completers = [this.annotationInputCompleter];
+    this.editors.headerResponse.completers = [this.annotationOutputCompleter];
+    this.editors.payloadResponse.completers = [this.annotationOutputCompleter];
   };
 
   public render() {
@@ -551,7 +570,7 @@ class Mapping extends React.Component<IProps, IState> {
               enableBasicAutocompletion={true}
               setOptions={{ enableSnippets: true }}
               onLoad={(editor: any) => {
-                this.editors.headerResponse = editor;
+                this.editors.payloadResponse = editor;
                 editor.completers = [this.annotationOutputCompleter];
               }}
             />

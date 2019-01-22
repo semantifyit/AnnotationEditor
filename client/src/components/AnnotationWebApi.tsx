@@ -10,6 +10,7 @@ import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
 import Mapping from './Mapping/Mapping';
+import { removeNSFromJSONLD } from '../helpers/rdf';
 
 interface IState {
   ready: boolean;
@@ -95,7 +96,21 @@ class AnnotationWebApi extends React.Component<{}, IState> {
     this.forceUpdate(); // since steps aren't in the state (they probably should be)
   };
 
-  public toggleShowMapping = () => {
+  public toggleShowMapping = async () => {
+    if (!this.state.showMapping) {
+      this.steps[this.state.currentStep].annotationResult = generateJSONLD(
+        `annotation-${this.state.currentStep}`,
+      );
+      this.steps[
+        this.state.currentStep
+      ].annotationResult.jsonld = await removeNSFromJSONLD(
+        this.steps[this.state.currentStep].annotationResult.jsonld,
+        {
+          '@vocab': 'http://schema.org/',
+          smtfy: 'https://actions.semantify.it/vocab/',
+        },
+      );
+    }
     this.setState((state) => ({ showMapping: !state.showMapping }));
   };
 
@@ -104,7 +119,6 @@ class AnnotationWebApi extends React.Component<{}, IState> {
       return <h1>Loading ...</h1>;
     }
     const progress = ((this.state.currentStep + 1) / this.steps.length) * 100;
-
     return (
       <div>
         {!this.state.showMapping && (
@@ -163,41 +177,38 @@ class AnnotationWebApi extends React.Component<{}, IState> {
             <br />
           </>
         )}
-        {this.steps.map((step, i) => {
-          const annotation = generateJSONLD(`annotation-${i}`).jsonld;
-          return (
-            <div
-              hidden={i !== this.state.currentStep}
-              key={i}
-              id={`annotation-${i}`}
-            >
-              {step.type === p.schemaAction && (
-                <Button
-                  color="info"
-                  className="float-right"
-                  style={{ marginTop: '5px' }}
-                  onClick={this.toggleShowMapping}
-                  title="Add a mapping for the Action (advanced)"
-                >
-                  {this.state.showMapping ? 'Back' : 'Set mapping'}
-                </Button>
-              )}
-              <div hidden={!this.state.showMapping}>
-                <Mapping
-                  annotation={annotation || {}}
-                  domIdPrefix={`annotation-${i}`}
-                />
-              </div>
-              <div hidden={this.state.showMapping}>
-                <Annotations
-                  typeIDs={[{ node: step.type, uid: '' }]}
-                  generateButton={false}
-                  changedType={this.annChangeType}
-                />
-              </div>
+        {this.steps.map((step, i) => (
+          <div
+            hidden={i !== this.state.currentStep}
+            key={i}
+            id={`annotation-${i}`}
+          >
+            {step.type === p.schemaAction && (
+              <Button
+                color="info"
+                className="float-right"
+                style={{ marginTop: '5px' }}
+                onClick={this.toggleShowMapping}
+                title="Add a mapping for the Action (advanced)"
+              >
+                {this.state.showMapping ? 'Back' : 'Set mapping'}
+              </Button>
+            )}
+            <div hidden={!this.state.showMapping}>
+              <Mapping
+                annotation={step.annotationResult.jsonld || {}}
+                domIdPrefix={`annotation-${i}`}
+              />
             </div>
-          );
-        })}
+            <div hidden={this.state.showMapping}>
+              <Annotations
+                typeIDs={[{ node: step.type, uid: '' }]}
+                generateButton={false}
+                changedType={this.annChangeType}
+              />
+            </div>
+          </div>
+        ))}
         {!this.state.showMapping && (
           <div style={{ marginTop: '50px' }}>
             {this.state.currentStep > 0 && (

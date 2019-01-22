@@ -156,8 +156,9 @@ class TypeNode extends React.Component<IProps, IState> {
     // the newly set nodes. In the current case of only one sparql restriction needing a previous restriction this is fine.
     // sorry gods of programming for this code
     setTimeout(async () => {
-      const jsonld = generateJSONLD(this.baseUID, joinPaths(this.props.path))
-        .jsonld;
+      const jsonld = generateJSONLD(this.baseUID, {
+        pathStartsWith: joinPaths(this.props.path),
+      }).jsonld;
       const sparqlRestrictions = await this.context.vocab.getSparqlRestrictionsForTypes(
         nodeIds,
         this.props.additionalRestrictionIds,

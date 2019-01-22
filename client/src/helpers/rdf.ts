@@ -25,5 +25,7 @@ export const turtleToJsonLD = (turtleString: string): Promise<object[]> =>
     });
   });
 
-export const removeNSFromJSONLD = (ann: any, namespace: string): Promise<any> =>
-  jsonld.compact(ann, { '@vocab': namespace });
+export const removeNSFromJSONLD = (
+  ann: any,
+  context: { [key: string]: string },
+): Promise<any> => jsonld.compact(ann, context);

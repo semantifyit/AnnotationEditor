@@ -30,6 +30,7 @@ import {
   setSemantifyUser,
 } from '../helpers/storage';
 import JSONBox from './JSONBox';
+import { removeNSFromJSONLD } from '../helpers/rdf';
 
 interface IProps {
   isDisabled: boolean;
@@ -105,9 +106,17 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
     }));
   };
 
-  public finalize = () => {
-    const annotationsResults = this.props.annotationDOMIds.map((id) =>
-      generateJSONLD(id),
+  public finalize = async () => {
+    const annotationsResults = await Promise.all(
+      this.props.annotationDOMIds
+        .map((id) => generateJSONLD(id))
+        .map(async (ann) => {
+          ann.jsonld = await removeNSFromJSONLD(ann.jsonld, {
+            '@vocab': 'http://schema.org/',
+            smtfy: 'https://actions.semantify.it/vocab/',
+          });
+          return ann;
+        }),
     );
     const mappings = getMappings(this.props.annotationDOMIds.slice(1)); // webapi doesn't have a mapping
     this.setState({
@@ -150,12 +159,6 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
   };
 
   public downloadMapping = async () => {
-    // {
-    //   url: '/annotation/api/downloadWebAPIProjectZip',
-    //     method: 'POST',
-    //   responseType: 'blob',
-    // }
-
     const resp = await axios({
       url: '/annotation/api/downloadWebAPIProjectZip',
       method: 'POST',

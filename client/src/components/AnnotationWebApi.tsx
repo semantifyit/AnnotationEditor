@@ -107,96 +107,98 @@ class AnnotationWebApi extends React.Component<{}, IState> {
 
     return (
       <div>
-        <section className="jumbotron text-center">
-          <div className="container">
-            <h1 className="jumbotron-heading">
-              Create your Semantic API Description
-            </h1>
-          </div>
-        </section>
-        <h4>
-          {this.steps[this.state.currentStep].title}{' '}
-          {this.state.currentStep > 0 && `(${this.state.currentStep})`}
-        </h4>
-        <br />
-        <div className="progress">
-          <div
-            className="progress-bar progress-bar-striped"
-            role="progressbar"
-            style={{
-              width: `${progress}%`,
-            }}
-            aria-valuenow={progress}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          />
-        </div>
-        <br />
-        {this.steps.map(({ typeTitle }, i) => {
-          const style: any = {
-            marginRight: '40px',
-            fontSize: '1.3em',
-          };
-          if (this.state.currentStep === i) {
-            style.backgroundColor = 'rgb(194, 216, 252)';
-          }
+        {!this.state.showMapping && (
+          <>
+            <section className="jumbotron text-center">
+              <div className="container">
+                <h1 className="jumbotron-heading">
+                  Create your Semantic API Description
+                </h1>
+              </div>
+            </section>
+            <h4>
+              {this.steps[this.state.currentStep].title}{' '}
+              {this.state.currentStep > 0 && `(${this.state.currentStep})`}
+            </h4>
+            <br />
+            <div className="progress">
+              <div
+                className="progress-bar progress-bar-striped"
+                role="progressbar"
+                style={{
+                  width: `${progress}%`,
+                }}
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+            <br />
+            {this.steps.map(({ typeTitle }, i) => {
+              const style: any = {
+                marginRight: '40px',
+                fontSize: '1.3em',
+              };
+              if (this.state.currentStep === i) {
+                style.backgroundColor = 'rgb(194, 216, 252)';
+              }
+              return (
+                <a
+                  key={i}
+                  href="#"
+                  className="cursor-hand"
+                  style={style}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    this.moveToStep(i);
+                  }}
+                >
+                  {`${i + 1}: ${typeTitle
+                    .split(', ')
+                    .map((t) => removeNS(t))
+                    .join(', ')}`}
+                </a>
+              );
+            })}
+            <br />
+          </>
+        )}
+        {this.steps.map((step, i) => {
+          const annotation = generateJSONLD(`annotation-${i}`).jsonld;
           return (
-            <a
+            <div
+              hidden={i !== this.state.currentStep}
               key={i}
-              href="#"
-              className="cursor-hand"
-              style={style}
-              onClick={(e) => {
-                e.preventDefault();
-                this.moveToStep(i);
-              }}
+              id={`annotation-${i}`}
             >
-              {`${i + 1}: ${typeTitle
-                .split(', ')
-                .map((t) => removeNS(t))
-                .join(', ')}`}
-            </a>
+              {step.type === p.schemaAction && (
+                <Button
+                  color="info"
+                  className="float-right"
+                  style={{ marginTop: '5px' }}
+                  onClick={this.toggleShowMapping}
+                  title="Add a mapping for the Action (advanced)"
+                >
+                  {this.state.showMapping ? 'Back' : 'Set mapping'}
+                </Button>
+              )}
+              <div hidden={!this.state.showMapping}>
+                <Mapping
+                  annotation={annotation || {}}
+                  domIdPrefix={`annotation-${i}`}
+                />
+              </div>
+              <div hidden={this.state.showMapping}>
+                <Annotations
+                  typeIDs={[{ node: step.type, uid: '' }]}
+                  generateButton={false}
+                  changedType={this.annChangeType}
+                />
+              </div>
+            </div>
           );
         })}
-        <br />
-        <div>
-          {this.steps.map((step, i) => {
-            const annotation = generateJSONLD(`annotation-${i}`).jsonld;
-            return (
-              <div
-                hidden={i !== this.state.currentStep}
-                key={i}
-                id={`annotation-${i}`}
-              >
-                {step.type === p.schemaAction && (
-                  <Button
-                    color="info"
-                    className="float-right"
-                    style={{ marginTop: '5px' }}
-                    onClick={this.toggleShowMapping}
-                    title="Add a mapping for the Action (advanced)"
-                  >
-                    {this.state.showMapping ? 'Back' : 'Set mapping'}
-                  </Button>
-                )}
-                <div hidden={!this.state.showMapping}>
-                  <hr />
-                  <Mapping
-                    annotation={annotation || {}}
-                    domIdPrefix={`annotation-${i}`}
-                  />
-                  <hr />
-                </div>
-                <div hidden={this.state.showMapping}>
-                  <Annotations
-                    typeIDs={[{ node: step.type, uid: '' }]}
-                    generateButton={false}
-                    changedType={this.annChangeType}
-                  />
-                </div>
-              </div>
-            );
-          })}
+        {!this.state.showMapping && (
           <div style={{ marginTop: '50px' }}>
             {this.state.currentStep > 0 && (
               <Button onClick={this.previousStep} color="primary">
@@ -222,7 +224,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
               />
             </div>
           </div>
-        </div>
+        )}
         <ToastContainer hideProgressBar={true} autoClose={3000} />
       </div>
     );

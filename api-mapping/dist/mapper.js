@@ -1,6 +1,13 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
 var util_1 = require('./util');
+var logError = function(e) {
+  if (util_1.isBrowser()) {
+    alert(e);
+  }
+  console.log('Mapping Error:');
+  console.log(e);
+};
 var transFormValue = function(val, transformFunctionStr, evalMethodType) {
   var cleanVal = typeof val === 'string' ? val.replace(/'/g, "\\'") : val;
   var code = '(' + transformFunctionStr + ")('" + cleanVal + "')";
@@ -46,28 +53,33 @@ exports.requestMapping = function(inputAction, mapping, options) {
   if (options === void 0) {
     options = defaultRequestOptions;
   }
-  var transformValue = function(val) {
-    return typeof val === 'string' && val.startsWith('$')
-      ? useInputValue(inputAction, val, options)
-      : val;
-  };
-  var newObj = util_1.removeUndef(
-    util_1.deepMapValues(mapping, transformValue),
-  );
-  var path = newObj.path && newObj.path.join('/');
-  var queryString =
-    newObj.query &&
-    Object.entries(newObj.query).map(function(_a) {
-      var k = _a[0],
-        v = _a[1];
-      return '?' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
+  try {
+    var transformValue = function(val) {
+      return typeof val === 'string' && val.startsWith('$')
+        ? useInputValue(inputAction, val, options)
+        : val;
+    };
+    var newObj = util_1.removeUndef(
+      util_1.deepMapValues(mapping, transformValue),
+    );
+    var path = newObj.path && newObj.path.join('/');
+    var queryString =
+      newObj.query &&
+      Object.entries(newObj.query).map(function(_a) {
+        var k = _a[0],
+          v = _a[1];
+        return '?' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
+      });
+    var url = util_1.URLJoin(newObj.url, path, queryString);
+    return util_1.removeUndef({
+      url: url,
+      headers: newObj.headers,
+      body: newObj.body,
     });
-  var url = util_1.URLJoin(newObj.url, path, queryString);
-  return util_1.removeUndef({
-    url: url,
-    headers: newObj.headers,
-    body: newObj.body,
-  });
+  } catch (e) {
+    logError(e);
+    return { url: '' };
+  }
 };
 var defaultResponseOptions = {
   evalMethod: 'eval',
@@ -137,11 +149,16 @@ exports.responseMapping = function(inputResponse, mapping, options, mergeObj) {
   if (options === void 0) {
     options = defaultResponseOptions;
   }
-  var result = {};
-  var userOptions = Object.assign(defaultResponseOptions, options);
-  doMapping(mapping, inputResponse, result, {}, userOptions);
-  if (mergeObj) {
-    util_1.mergeResult(result.$, mergeObj, new RegExp('-input$'));
+  try {
+    var result = {};
+    var userOptions = Object.assign(defaultResponseOptions, options);
+    doMapping(mapping, inputResponse, result, {}, userOptions);
+    if (mergeObj) {
+      util_1.mergeResult(result.$, mergeObj, new RegExp('-input$'));
+    }
+    return result.$;
+  } catch (e) {
+    logError(e);
+    return {};
   }
-  return result.$;
 };

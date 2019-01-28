@@ -1,6 +1,7 @@
 import {
   deepMapValues,
   get,
+  isBrowser,
   mergeResult,
   removeUndef,
   replaceIterators,
@@ -34,6 +35,14 @@ interface RequestOptions {
   locator?: 'simple' | 'json-path'; // json-path not supported, could be for the future
   evalMethod?: evalMethod;
 }
+
+const logError = (e: any) => {
+  if (isBrowser()) {
+    alert(e);
+  }
+  console.log('Mapping Error:');
+  console.log(e);
+};
 
 // TODO newlines in string
 const transFormValue = (
@@ -91,27 +100,32 @@ export const requestMapping = (
   mapping: RequestMapping,
   options: RequestOptions = defaultRequestOptions,
 ): RequestOutput => {
-  const transformValue = (val: any): any =>
-    typeof val === 'string' && val.startsWith('$')
-      ? useInputValue(inputAction, val, options)
-      : val;
+  try {
+    const transformValue = (val: any): any =>
+      typeof val === 'string' && val.startsWith('$')
+        ? useInputValue(inputAction, val, options)
+        : val;
 
-  const newObj = removeUndef(deepMapValues(mapping, transformValue));
+    const newObj = removeUndef(deepMapValues(mapping, transformValue));
 
-  const path = newObj.path && newObj.path.join('/');
-  const queryString =
-    newObj.query &&
-    Object.entries(newObj.query).map(
-      ([k, v]) => `?${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
-    );
+    const path = newObj.path && newObj.path.join('/');
+    const queryString =
+      newObj.query &&
+      Object.entries(newObj.query).map(
+        ([k, v]) => `?${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+      );
 
-  const url = URLJoin(newObj.url, path, queryString);
+    const url = URLJoin(newObj.url, path, queryString);
 
-  return removeUndef({
-    url,
-    headers: newObj.headers,
-    body: newObj.body,
-  });
+    return removeUndef({
+      url,
+      headers: newObj.headers,
+      body: newObj.body,
+    });
+  } catch (e) {
+    logError(e);
+    return { url: '' }; // empty return;
+  }
 };
 
 interface ResponseObj {
@@ -207,14 +221,19 @@ export const responseMapping = (
   options: ResponseOptions = defaultResponseOptions,
   mergeObj?: object,
 ): object => {
-  const result: { $?: any } = {};
-  const userOptions: ResponseOptionsReq = Object.assign(
-    defaultResponseOptions,
-    options,
-  );
-  doMapping(mapping, inputResponse, result, {}, userOptions);
-  if (mergeObj) {
-    mergeResult(result.$, mergeObj, new RegExp('-input$')); // TODO add option for regexp maybe?
+  try {
+    const result: { $?: any } = {};
+    const userOptions: ResponseOptionsReq = Object.assign(
+      defaultResponseOptions,
+      options,
+    );
+    doMapping(mapping, inputResponse, result, {}, userOptions);
+    if (mergeObj) {
+      mergeResult(result.$, mergeObj, new RegExp('-input$')); // TODO add option for regexp maybe?
+    }
+    return result.$;
+  } catch (e) {
+    logError(e);
+    return {};
   }
-  return result.$;
 };

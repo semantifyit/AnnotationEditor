@@ -6,6 +6,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 # this speeds up building time if you don't change the package.json
 COPY ./package*.json /var/src/
 COPY ./client/package*.json /var/src/client/
+COPY ./api-mapping/package*.json /var/src/api-mapping/
 
 WORKDIR /var/src
 

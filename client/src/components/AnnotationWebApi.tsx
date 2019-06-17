@@ -57,7 +57,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
       `annotation-${this.state.currentStep}`,
     ).complete;
     if (!currentAnnotationIsComplete) {
-      return confirm(
+      return window.confirm(
         'Your annotation has some empty fields, are you sure you want to continue?',
       );
     }
@@ -159,7 +159,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
               return (
                 <a
                   key={i}
-                  href="#"
+                  href="/"
                   className="cursor-hand"
                   style={style}
                   onClick={(e) => {

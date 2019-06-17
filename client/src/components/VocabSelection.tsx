@@ -5,7 +5,6 @@ import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 
 import { defaultVocabs } from '../helpers/Vocab';
-import { clone } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 
 interface IProps {
@@ -31,12 +30,14 @@ class VocabSelection extends React.Component<IProps, IState> {
   public state: IState = {
     isOpen: false,
     filename: null,
-    currentVocabs: this.context.vocab.getCurrentVocabs(),
+    currentVocabs: [],
     vocabUrl: '',
     fileUploadVocab: [],
   };
 
-  public initialVocabSelection = clone(this.state.currentVocabs);
+  componentWillMount() {
+    this.setState({ currentVocabs: this.context.vocab.getCurrentVocabs() });
+  }
 
   public fileUpload = (e: React.ChangeEvent<any>) => {
     if (
@@ -60,7 +61,7 @@ class VocabSelection extends React.Component<IProps, IState> {
         file.result,
       );
       if (result !== true) {
-        toast.error(`Error parsing the vocab:\n${name}`);
+        toast.error(`Error parsing the vocab:\n${fileSource.name}`);
         return;
       }
       this.props.reloadClick();

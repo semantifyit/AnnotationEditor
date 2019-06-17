@@ -21,7 +21,6 @@ import App from './components/App';
 // import registerServiceWorker from './registerServiceWorker';
 
 // for light theme
-(window as any).theme = 'light';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/bootstrap-override.css';
 
@@ -32,6 +31,8 @@ import './styles/bootstrap-override.css';
 import './styles/index.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-datetime/css/react-datetime.css';
+
+(window as any).theme = 'light';
 
 library.add(
   faAngleDown,
@@ -69,17 +70,3 @@ function registerHMR() {
 }
 
 registerHMR();
-
-import axios from 'axios';
-import { downloadContent } from './helpers/html';
-
-const foo = async () => {
-  const response = await axios({
-    url: '/annotation/api/downloadWebAPIProjectZip',
-    method: 'POST',
-    responseType: 'blob',
-  });
-  console.log(response);
-  downloadContent(response.data, 'action-server-nodejs.zip');
-};
-// foo();

@@ -93,6 +93,7 @@ export interface IRestriction {
   maxInclusive?: number;
 }
 
+/*
 const toIdNode = (str: string) => ({
   '@id': str,
 });
@@ -102,6 +103,7 @@ const toIdNodeArr = (str: string) => [
     '@id': str,
   },
 ];
+*/
 
 export const makePropertyRestrictionObj = (shProp: INode): IRestriction => {
   const pRanges: IRestrictionRange[] = [];

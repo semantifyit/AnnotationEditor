@@ -19,7 +19,11 @@ const InfoPayloadResponse = () => (
     notation path for the output properties of the Action. For arrays simply
     only keep the first element (but keep the brackets).
     <br /> Make sure to check out{' '}
-    <a href="https://github.com/semantifyit/annotation-editor" target="_blank">
+    <a
+      href="https://github.com/semantifyit/annotation-editor"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       github.com/semantifyit/annotation-editor
     </a>{' '}
     for some example response mappings.

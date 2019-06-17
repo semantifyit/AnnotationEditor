@@ -23,6 +23,7 @@ export const syntaxHighlightJsonStr = (jsonStr: string) => {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
   return json.replace(
+    //eslint-disable-next-line  no-useless-escape
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     (match: any) => {
       let cls: colorType = 'number';

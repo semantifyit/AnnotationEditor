@@ -68,19 +68,21 @@ class TypeNode extends React.Component<IProps, IState> {
       return;
     }
 
+    /*
     const canUseDashIOProps =
       this.props.canUseDashIOProps ||
       this.context.vocab.nodesCanUseIOProps(nodes);
+    */
 
-    this.state.propertyIds = []; // since the node changed, reset the list of properties
+    // since the node changed, reset the list of properties
     // reset the selected element for the select box
     const propNode = Object.entries(
       this.context.vocab.getPropertyNodeForType(this.props.nodeId),
     ).filter(([k, v]) => v.length > 0);
 
-    this.state.selectedProp =
-      propNode.length > 0 ? propNode[0][1][0]['@id'] : '@id';
-    this.state.nodeIds = [this.props.nodeId];
+    const selectedProp = propNode.length > 0 ? propNode[0][1][0]['@id'] : '@id';
+
+    this.setState({ nodeIds: [this.props.nodeId], selectedProp });
 
     // restrictions
     this.updateRestrictions();
@@ -198,14 +200,14 @@ class TypeNode extends React.Component<IProps, IState> {
     this.restrictions
       .filter((r) => r.property === propId && r.maxCount)
       .reduce(
-        (acc, cur) =>
+        (acc: boolean, cur) =>
           acc &&
           (cur.maxCount
             ? cur.maxCount >
               this.state.propertyIds.filter((p) => p.nodeId === propId).length
             : false),
         true,
-      ) as boolean;
+      );
 
   public addProperty = (propId: string) => {
     const canUseAnotherProp = this.canUseAnotherProp(propId);
@@ -283,11 +285,13 @@ class TypeNode extends React.Component<IProps, IState> {
       this.context.vocab.getPropertyNodeForTypes(this.state.nodeIds),
     ).filter(([k, v]) => v.length > 0);
 
-    if (this.state.selectedProp === '') {
+    let selectedProp = this.state.selectedProp;
+
+    if (selectedProp === '') {
       if (propertyNodeObj.length > 0) {
-        this.state.selectedProp = propertyNodeObj[0][1][0]['@id'];
+        selectedProp = propertyNodeObj[0][1][0]['@id'];
       } else {
-        this.state.selectedProp = '@id';
+        selectedProp = '@id';
       }
     }
     if (nodes.length === 0) {
@@ -349,7 +353,7 @@ class TypeNode extends React.Component<IProps, IState> {
                 <div className="input-group">
                   <select
                     className="custom-select"
-                    value={this.state.selectedProp}
+                    value={selectedProp}
                     onChange={(e) =>
                       this.setState({ selectedProp: e.target.value })
                     }

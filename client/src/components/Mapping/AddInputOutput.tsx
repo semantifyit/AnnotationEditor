@@ -12,6 +12,7 @@ import {
   ModalHeader,
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// eslint-disable-next-line
 import brace from 'brace';
 import AceEditor from 'react-ace';
 import 'brace/mode/javascript';

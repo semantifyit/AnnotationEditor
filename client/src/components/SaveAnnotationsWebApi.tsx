@@ -213,7 +213,11 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
                 <hr />
                 <h4>
                   Saved Annotations to{' '}
-                  <a href="https://semantify.it" target="_blank">
+                  <a
+                    href="https://semantify.it"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Semantify
                   </a>
                   !
@@ -222,7 +226,11 @@ class SaveAnnotationsWebApi extends React.Component<IProps, IState> {
                 <ul>
                   {this.state.savedAnnotationsSemantifyUids.map((uid, i) => (
                     <li key={i}>
-                      <a href={`https://smtfy.it/${uid}`} target="_blank">
+                      <a
+                        href={`https://smtfy.it/${uid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         {`https://smtfy.it/${uid}`}
                       </a>
                     </li>

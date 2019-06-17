@@ -94,8 +94,9 @@ class PropertyNode extends React.Component<IProps, IState> {
       }
     }
     this.ranges = getRanges(node);
+    let selectedRange = this.state.selectedRange;
     if (this.ranges.length === 0) {
-      this.state.selectedRange = p.xsdString;
+      selectedRange = p.xsdString;
     }
 
     if (this.props.restriction) {
@@ -111,9 +112,9 @@ class PropertyNode extends React.Component<IProps, IState> {
           acc[cur.nodeId] = cur.restrictionIds;
           return acc;
         }, {});
-        if (this.state.selectedRange === '') {
+        if (selectedRange === '') {
           // without can't change range when ranges have restrictions
-          this.state.selectedRange = this.ranges[0];
+          selectedRange = this.ranges[0];
         }
       }
       const nodeIdRestrictions = restrictions.filter((r) => r.rangeIsIdNode);
@@ -122,8 +123,8 @@ class PropertyNode extends React.Component<IProps, IState> {
       }
     }
 
-    if (this.state.selectedRange === '') {
-      this.state.selectedRange = this.ranges[0];
+    if (selectedRange === '') {
+      selectedRange = this.ranges[0];
     }
 
     const path =
@@ -181,7 +182,7 @@ class PropertyNode extends React.Component<IProps, IState> {
                 <div className="input-group">
                   <select
                     className="custom-select"
-                    value={this.state.selectedRange}
+                    value={selectedRange}
                     onChange={(e) =>
                       this.setState({ selectedRange: e.target.value })
                     }
@@ -218,13 +219,13 @@ class PropertyNode extends React.Component<IProps, IState> {
           <div style={{ paddingRight: '20px' }}>
             <div style={{ width: '100%' }}>
               <RangeNode
-                nodeId={this.state.selectedRange}
-                key={this.state.selectedRange}
+                nodeId={selectedRange}
+                key={selectedRange}
                 path={path}
                 canUseDashIOProps={this.props.canUseDashIOProps}
                 restriction={this.props.restriction}
                 additionalRestrictionIds={makeArray(
-                  this.rangeRestrictions[this.state.selectedRange],
+                  this.rangeRestrictions[selectedRange],
                 ).filter((n) => n)}
                 existingMembersIds={this.props.existingMembersIds}
                 makeRangeIdNode={this.makeRangeIdNode}

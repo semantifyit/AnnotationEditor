@@ -2,18 +2,6 @@ import brace from 'brace';
 
 // https://stackoverflow.com/questions/51863210/manually-adding-snippets-to-react-ace-editor
 
-const sampleSnippetText =
-  '\
-snippet ks\n\
-\t"${1}": ""\n\
-snippet ksn\n\
-\t"${1}": "",\n\
-snippet ko\n\
-\t"${1}": {}\n\
-snippet ka\n\
-\t"${1}": []\n\
-';
-
 // tslint:disable no-trailing-whitespace
 const snippetText = `snippet ks
 	"\${1:key}": "\${2:val}"

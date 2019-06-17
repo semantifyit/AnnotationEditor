@@ -1,6 +1,6 @@
 import React from 'react';
 import { set } from 'lodash';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, Method } from 'axios';
 import { requestMapping, responseMapping } from 'api-mapping';
 import {
   Alert,
@@ -129,7 +129,7 @@ class TestRequest extends React.Component<IProps, IState> {
     }
     try {
       const response = await axios({
-        method: this.props.requestMethod,
+        method: this.props.requestMethod as Method,
         url: mappingOutput.url,
         headers: mappingOutput.headers,
         data: mappingOutput.body,

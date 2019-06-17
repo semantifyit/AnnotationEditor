@@ -1,15 +1,15 @@
 const express = require('express');
-const path = require("path");
+const path = require('path');
 const fs = require('fs');
 
 const router = express.Router();
 
-router.get("/vocabs/:vocabName", (req, res) => {
+router.get('/vocabs/:vocabName', (req, res) => {
   const { vocabName } = req.params;
   try {
     const vocab = fs.readFileSync(
-      path.join(__dirname, '..', "vocabs", `${vocabName}.jsonld`),
-      "utf8"
+      path.join(__dirname, '..', 'vocabs', `${vocabName}.jsonld`),
+      'utf8',
     );
     res.json(JSON.parse(vocab));
   } catch (e) {
@@ -18,4 +18,3 @@ router.get("/vocabs/:vocabName", (req, res) => {
 });
 
 module.exports = router;
-

@@ -16,6 +16,7 @@ const Navigation = () => (
           className="nav-link"
           href="https://semantify.it/"
           target="_blank"
+          rel="noopener noreferrer"
           style={{ paddingTop: '0', paddingBottom: '0' }}
         >
           <span
@@ -27,11 +28,12 @@ const Navigation = () => (
             Powered by
           </span>
           &emsp;
-          <img src={logo} style={{ height: '60px' }} />
+          <img src={logo} style={{ height: '60px' }} alt="Logo" />
           &emsp;
           <img
             src={semantify}
             style={{ filter: 'invert(1)', height: '50px' }}
+            alt="Semantify"
           />
         </a>
       </li>

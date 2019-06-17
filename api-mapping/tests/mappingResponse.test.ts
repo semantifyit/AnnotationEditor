@@ -3,7 +3,7 @@ import { responseMapping } from '../src/mapper';
 import { fileToJSON } from './util';
 
 describe('simple response mapping', () => {
-  it('simple object', () => {
+  it('simple object', async () => {
     const mapping = {
       url: '$.result.url',
       id: '$.result.identifier',
@@ -26,14 +26,14 @@ describe('simple response mapping', () => {
         identifier: 391828911,
       },
     };
-    expect(responseMapping({ body: input }, { body: mapping })).toEqual(
+    expect(await responseMapping({ body: input }, { body: mapping })).toEqual(
       expectedResult,
     );
   });
 });
 
 describe('new mapping', () => {
-  it('issue-create', () => {
+  it('issue-create', async () => {
     const mapping = fileToJSON(
       `${__dirname}/data/github-issue-create/action.json`,
     );
@@ -41,12 +41,12 @@ describe('new mapping', () => {
       `${__dirname}/data/github-issue-create/response_inout1.json`,
     );
 
-    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
-      inOut1.output,
-    );
+    expect(
+      await responseMapping(inOut1.input, mapping.responseMapping),
+    ).toEqual(inOut1.output);
   });
 
-  it('issue-list', () => {
+  it('issue-list', async () => {
     const mapping = fileToJSON(
       `${__dirname}/data/github-issue-list/action.json`,
     );
@@ -54,12 +54,12 @@ describe('new mapping', () => {
       `${__dirname}/data/github-issue-list/response_inout1.json`,
     );
 
-    expect(responseMapping(inOut1.input, mapping.responseMapping)).toEqual(
-      inOut1.output,
-    );
+    expect(
+      await responseMapping(inOut1.input, mapping.responseMapping),
+    ).toEqual(inOut1.output);
   });
 
-  it('fail issue-create', () => {
+  it('fail issue-create', async () => {
     const mapping = fileToJSON(
       `${__dirname}/data/github-issue-create/action.json`,
     );
@@ -77,11 +77,11 @@ describe('new mapping', () => {
       actionStatus: 'http://schema.org/FailedActionStatus',
     };
 
-    expect(responseMapping(responseObj, mapping.responseMapping)).toEqual(
+    expect(await responseMapping(responseObj, mapping.responseMapping)).toEqual(
       expectedAction,
     );
     expect(
-      responseMapping(responseObj, mapping.responseMapping, {
+      await responseMapping(responseObj, mapping.responseMapping, {
         evalMethod: 'vm-runInNewContext',
       }),
     ).toEqual(expectedAction);

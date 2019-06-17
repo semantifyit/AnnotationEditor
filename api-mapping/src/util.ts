@@ -1,3 +1,4 @@
+import * as xml2js from 'xml2js';
 // tslint:disable:ter-indent
 
 // adapted from https://github.com/30-seconds/30-seconds-of-code#deepmapkeys-
@@ -192,4 +193,16 @@ const setPath = (obj: any, path: string[], value: any) => {
       console.log('Object neither');
     }
   }
+};
+
+export const xmlToJson = async (xml: string): Promise<object> =>
+  new Promise((resolve) => {
+    xml2js.parseString(xml, { explicitCharkey: true }, (err, result) => {
+      resolve(result);
+    });
+  });
+
+export const jsonToXml = (json: object): string => {
+  const xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: false } });
+  return xmlBuilder.buildObject(json);
 };

@@ -14,7 +14,7 @@ describe('mapping request github issue create', () => {
     },
   };
 
-  it('1st', () => {
+  it('1st', async () => {
     const inputAction = {
       '@context': 'http://schema.org/',
       '@type': 'CreateAction',
@@ -50,9 +50,9 @@ describe('mapping request github issue create', () => {
       },
     };
 
-    expect(requestMapping(inputAction, mapping)).toEqual(expectedRequest);
+    expect(await requestMapping(inputAction, mapping)).toEqual(expectedRequest);
     expect(
-      requestMapping(inputAction, mapping, {
+      await requestMapping(inputAction, mapping, {
         evalMethod: 'vm-runInNewContext',
       }),
     ).toEqual(expectedRequest);
@@ -65,7 +65,7 @@ describe('mapping request github issue list', () => {
     path: ['repos', '$.object.author.name', '$.object.name', 'issues'],
   };
 
-  it('1st', () => {
+  it('1st', async () => {
     const inputAction = {
       '@context': 'http://schema.org/',
       '@type': 'FindAction',
@@ -82,7 +82,7 @@ describe('mapping request github issue list', () => {
       url: 'https://api.github.com/repos/ThibaultGerrier/Try1/issues',
     };
 
-    expect(requestMapping(inputAction, mapping)).toEqual(expectedRequest);
+    expect(await requestMapping(inputAction, mapping)).toEqual(expectedRequest);
   });
 });
 
@@ -94,11 +94,11 @@ describe('url only', () => {
     path: [],
   };
 
-  it('1st', () => {
+  it('1st', async () => {
     const expectedRequest = {
       url: 'https://api.github.com/repos/thibaultgerrier/Try1/issues',
     };
 
-    expect(requestMapping({}, mapping)).toEqual(expectedRequest);
+    expect(await requestMapping({}, mapping)).toEqual(expectedRequest);
   });
 });

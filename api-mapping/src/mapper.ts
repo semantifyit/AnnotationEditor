@@ -2,11 +2,13 @@ import {
   deepMapValues,
   get,
   isBrowser,
+  jsonToXml,
   mergeResult,
   removeUndef,
   replaceIterators,
   set,
   URLJoin,
+  xmlToJson,
 } from './util';
 
 interface StringObj<T = string> {
@@ -18,20 +20,20 @@ export interface RequestMapping {
   path?: string[];
   query?: StringObj;
   headers?: StringObj;
-  body?: object;
+  body?: object | string;
 }
 
 export interface RequestOutput {
   url: string;
   headers?: StringObj;
-  body?: object;
+  body?: object | string;
 }
 
 // TODO different eval options
 type evalMethod = 'eval' | 'vm-runInNewContext';
 
 interface RequestOptions {
-  type?: 'json';
+  type?: 'json' | 'xml';
   locator?: 'simple' | 'json-path'; // json-path not supported, could be for the future
   evalMethod?: evalMethod;
 }
@@ -95,11 +97,14 @@ const defaultRequestOptions: RequestOptions = {
   evalMethod: 'eval',
 };
 
-export const requestMapping = (
+export const requestMapping = async (
   inputAction: object,
   mapping: RequestMapping,
   options: RequestOptions = defaultRequestOptions,
-): RequestOutput => {
+): Promise<RequestOutput> => {
+  if (options.type === 'xml' && typeof mapping.body === 'string') {
+    mapping.body = await xmlToJson(mapping.body);
+  }
   try {
     const transformValue = (val: any): any =>
       typeof val === 'string' && val.startsWith('$')
@@ -117,11 +122,15 @@ export const requestMapping = (
 
     const url = URLJoin(newObj.url, path, queryString);
 
-    return removeUndef({
+    const output = removeUndef({
       url,
       headers: newObj.headers,
       body: newObj.body,
     });
+    if (options.type === 'xml' && typeof output.body === 'object') {
+      output.body = jsonToXml(output.body);
+    }
+    return output;
   } catch (e) {
     logError(e);
     return { url: '' }; // empty return;
@@ -139,16 +148,19 @@ export interface ResponseMapping {
 }
 
 interface ResponseOptions {
+  type?: 'json' | 'xml';
   evalMethod?: evalMethod;
   iteratorPath?: string;
 }
 
 interface ResponseOptionsReq {
+  type: 'json' | 'xml';
   evalMethod: evalMethod;
   iteratorPath: string;
 }
 
 const defaultResponseOptions: ResponseOptionsReq = {
+  type: 'json',
   evalMethod: 'eval',
   iteratorPath: '$ite',
 };
@@ -215,18 +227,22 @@ const doMapping = (
   }
 };
 
-export const responseMapping = (
-  inputResponse: object,
-  mapping: object,
+export const responseMapping = async (
+  inputResponse: any,
+  mapping: any,
   options: ResponseOptions = defaultResponseOptions,
   mergeObj?: object,
-): object => {
+): Promise<object> => {
   try {
     const result: { $?: any } = {};
     const userOptions: ResponseOptionsReq = Object.assign(
       defaultResponseOptions,
       options,
     );
+    if (options.type === 'xml' && mapping.body && inputResponse.body) {
+      mapping.body = await xmlToJson(mapping.body);
+      inputResponse.body = await xmlToJson(inputResponse.body);
+    }
     doMapping(mapping, inputResponse, result, {}, userOptions);
     if (mergeObj) {
       mergeResult(result.$, mergeObj, new RegExp('-input$')); // TODO add option for regexp maybe?

@@ -9,9 +9,7 @@ export const saveToGraphDb = async (annotations: any): Promise<boolean> => {
   try {
     await axios({
       method: 'post',
-      url: `${defaultGraphDB.url}/repositories/${
-        defaultGraphDB.repositoryId
-      }/statements`,
+      url: `${defaultGraphDB.url}/repositories/${defaultGraphDB.repositoryId}/statements`,
       headers: {
         Accept: 'application/ld+json',
         'Content-Type': 'application/ld+json',

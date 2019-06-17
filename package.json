@@ -17,12 +17,11 @@
     "server-prod": "cd server && cross-env NODE_ENV=production node app.js",
     "analyze": "source-map-explorer client/build/static/js/main.*",
     "analyze-deps": "find client/build/static/js/**.chunk.js | head -n 1 | xargs source-map-explorer",
-    "validate:ts": "cd client && tsc --noEmit",
-    "validate:tslint": "cd client && tslint -p tsconfig.json"
+    "validate:ts": "cd client && tsc --noEmit"
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run validate:ts && npm run validate:tslint"
+      "pre-push": "npm run validate:ts"
     }
   },
   "prettier": {

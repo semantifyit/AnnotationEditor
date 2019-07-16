@@ -3,12 +3,7 @@ import Select from 'react-select';
 
 import { ISingleOption } from './DropDownSelect';
 import Annotations from './Annotations';
-import {
-  fetchDSbyId,
-  fetchPublicDS,
-  IDSMap,
-  transformDSToShacl,
-} from '../helpers/semantify';
+import { fetchDSbyId, fetchPublicDS, IDSMap } from '../helpers/semantify';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import { joinNS } from '../helpers/properties';
 
@@ -38,10 +33,16 @@ class AnnotationTemplate extends React.Component<{}, IState> {
     if (!ds) {
       return;
     }
-    const shaclDS = transformDSToShacl(ds.content);
-    await this.context.vocab.addVocab(ds.name, shaclDS, 'application/ld+json');
+    await this.context.vocab.addVocab(
+      'DomainSpecification',
+      ds.content,
+      'application/ld+json',
+    );
     this.setState({
-      createdType: joinNS('schema', ds.content['dsv:class'][0]['schema:name']),
+      createdType: joinNS(
+        'schema',
+        ds.content['@graph'][0]['sh:targetClass'].split(':')[1],
+      ),
     });
   }
 

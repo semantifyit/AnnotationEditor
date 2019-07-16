@@ -92,17 +92,11 @@ class RangeNode extends React.Component<IProps, IState> {
         r.maxInclusive &&
         (value < r.minInclusive || value > r.maxInclusive)
       ) {
-        valueIncorrectnessReason = `Value must be between ${
-          r.minInclusive
-        } and ${r.maxInclusive}`;
+        valueIncorrectnessReason = `Value must be between ${r.minInclusive} and ${r.maxInclusive}`;
       } else if (r.minInclusive && value < r.minInclusive) {
-        valueIncorrectnessReason = `Value can't be smaller than ${
-          r.minInclusive
-        }`;
+        valueIncorrectnessReason = `Value can't be smaller than ${r.minInclusive}`;
       } else if (r.maxInclusive && value > r.maxInclusive) {
-        valueIncorrectnessReason = `Value can't be bigger than ${
-          r.maxInclusive
-        }`;
+        valueIncorrectnessReason = `Value can't be bigger than ${r.maxInclusive}`;
       }
     });
     this.setState({ value, valueIncorrectnessReason });
@@ -209,6 +203,7 @@ class RangeNode extends React.Component<IProps, IState> {
           />
         );
       case p.schemaDateTime:
+      case p.xsdDateTime:
         return (
           <DateTime
             defaultValue={new Date()}

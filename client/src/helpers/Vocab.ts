@@ -77,7 +77,7 @@ export default class Vocab {
           const expandedVocab = await jsonld.expand(jsonldObj);
           const flattenedVocab = await jsonld.flatten(expandedVocab);
           if (Array.isArray(flattenedVocab)) {
-            this.addVocabJsonLD(vocabName, expandedVocab);
+            this.addVocabJsonLD(vocabName, flattenedVocab);
           } else if (
             flattenedVocab['@graph'] &&
             Array.isArray(flattenedVocab['@graph'])

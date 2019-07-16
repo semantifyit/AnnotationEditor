@@ -19,6 +19,7 @@ export const xsdInteger = joinNS('xsd', 'integer');
 export const xsdBoolean = joinNS('xsd', 'boolean');
 export const xsdDate = joinNS('xsd', 'date');
 export const xsdTime = joinNS('xsd', 'time');
+export const xsdDateTime = joinNS('xsd', 'dateTime');
 export const xsdAnyURI = joinNS('xsd', 'anyURI');
 
 // RDF
@@ -95,6 +96,7 @@ export const terminalNodes = [
   // XSD
   xsdBoolean,
   xsdDate,
+  xsdDateTime,
   xsdDecimal,
   xsdBoolean,
   xsdInteger,

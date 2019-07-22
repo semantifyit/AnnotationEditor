@@ -20,3 +20,23 @@ export declare const replaceIterators: (
   },
 ) => string;
 export declare const set: (obj: any, path: string, value: any) => void;
+export declare const xmlToJson: (xml: string) => Promise<object>;
+export declare const jsonToXml: (json: object) => string;
+export declare const logError: (e: any) => void;
+export declare const parsePathStr: (
+  pathStr: string,
+  keepDollar?: boolean,
+) => {
+  path: string;
+  transformFunction?: string | undefined;
+};
+export declare type EvalMethod = 'eval' | 'vm-runInNewContext';
+export declare const transFormValue: (
+  val: any,
+  transformFunctionStr: string,
+  evalMethod: EvalMethod,
+) => any;
+export declare const runCode: (
+  code: string,
+  evalMethodType?: 'eval' | 'vm-runInNewContext' | undefined,
+) => any;

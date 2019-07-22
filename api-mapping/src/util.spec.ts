@@ -3,9 +3,12 @@ import {
   get,
   isEmptyObject,
   mergeResult,
+  parsePathStr,
   pathStringToArr,
   replaceIterators,
+  runCode,
   set,
+  transFormValue,
   URLJoin,
 } from './util';
 
@@ -330,5 +333,36 @@ describe('util', () => {
     expect(replaceIterators('$[i][j].ite.j[ite]', ite)).toBe(
       '$[0][2].ite.j[1]',
     );
+  });
+
+  it('runCode', () => {
+    expect(runCode('1', 'eval')).toBe(1);
+    expect(runCode('"foo"', 'eval')).toBe('foo');
+    expect(runCode('"foo" + "bar"', 'eval')).toBe('foobar');
+
+    expect(runCode('1', 'vm-runInNewContext')).toBe(1);
+    expect(runCode('"foo"', 'vm-runInNewContext')).toBe('foo');
+    expect(runCode('"foo" + "bar"', 'vm-runInNewContext')).toBe('foobar');
+  });
+
+  it('parsePathStr', () => {
+    expect(parsePathStr('$.foo', false)).toEqual({ path: 'foo' });
+    expect(parsePathStr('$.foo', true)).toEqual({ path: '$.foo' });
+    expect(parsePathStr('$.foo |> (f => f)')).toEqual({
+      path: 'foo',
+      transformFunction: '(f => f)',
+    });
+  });
+
+  it('transFormValue', () => {
+    expect(transFormValue('foo', '(f => f)', 'eval')).toEqual('foo');
+    expect(transFormValue('foo', '(f => f + ".")', 'eval')).toEqual('foo.');
+
+    expect(transFormValue('foo', '(f => f)', 'vm-runInNewContext')).toEqual(
+      'foo',
+    );
+    expect(
+      transFormValue('foo', '(f => f + ".")', 'vm-runInNewContext'),
+    ).toEqual('foo.');
   });
 });

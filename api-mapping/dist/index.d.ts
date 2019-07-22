@@ -1,1 +1,2 @@
-export { requestMapping, responseMapping } from './mapper';
+export { requestMapping } from './requestMapping';
+export { responseMapping } from './responseMapping';

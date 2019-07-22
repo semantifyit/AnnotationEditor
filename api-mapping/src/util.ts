@@ -1,4 +1,5 @@
 import * as xml2js from 'xml2js';
+import * as vm from 'vm';
 // tslint:disable:ter-indent
 
 // adapted from https://github.com/30-seconds/30-seconds-of-code#deepmapkeys-
@@ -196,8 +197,11 @@ const setPath = (obj: any, path: string[], value: any) => {
 };
 
 export const xmlToJson = async (xml: string): Promise<object> =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     xml2js.parseString(xml, { explicitCharkey: true }, (err, result) => {
+      if (err) {
+        reject(err);
+      }
       resolve(result);
     });
   });
@@ -205,4 +209,51 @@ export const xmlToJson = async (xml: string): Promise<object> =>
 export const jsonToXml = (json: object): string => {
   const xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: false } });
   return xmlBuilder.buildObject(json);
+};
+
+export const logError = (e: any) => {
+  /*if (isBrowser() && alert) {
+    try {
+      alert(e);
+    } catch (err) {
+      // ignore
+    }
+  }*/
+  console.log('Mapping Error:');
+  console.log(e);
+};
+
+export const parsePathStr = (
+  pathStr: string,
+  keepDollar: boolean = false,
+): { path: string; transformFunction?: string } => {
+  const [path, transformFunction] = pathStr.split(/\|>/).map((s) => s.trim());
+  return {
+    transformFunction,
+    path: keepDollar ? path : path.substring(2), // remove '$.' for our get method#
+  };
+};
+
+export type EvalMethod = 'eval' | 'vm-runInNewContext';
+
+// TODO newlines in string
+export const transFormValue = (
+  val: any,
+  transformFunctionStr: string,
+  evalMethod: EvalMethod,
+): any => {
+  const cleanVal = typeof val === 'string' ? val.replace(/'/g, "\\'") : val;
+  const code = `(${transformFunctionStr})('${cleanVal}')`;
+  return runCode(code, evalMethod);
+};
+
+export const runCode = (code: string, evalMethodType?: EvalMethod): any => {
+  switch (evalMethodType) {
+    case 'vm-runInNewContext':
+      return vm.runInNewContext(code);
+    case 'eval':
+    default:
+      // tslint:disable-next-line:no-eval
+      return eval(code);
+  }
 };

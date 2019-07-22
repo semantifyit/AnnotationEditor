@@ -14,7 +14,8 @@
     },
     "moduleFileExtensions": [
       "ts",
-      "js"
+      "js",
+      "json"
     ],
     "testRegex": "^.+\\.(test|spec)\\.ts$"
   },
@@ -27,9 +28,13 @@
     "@types/jest": "^24.0.15",
     "@types/xml2js": "^0.4.4",
     "jest": "^24.8.0",
-    "ts-jest": "^24.0.2"
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.3"
   },
   "dependencies": {
+    "@rmlio/yarrrml-parser": "^0.3.3",
+    "n3": "^1.1.1",
+    "rocketrml": "^1.0.6",
     "xml2js": "^0.4.19"
   }
 }

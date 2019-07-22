@@ -1,8 +1,25 @@
-import * as fs from 'fs';
-import { responseMapping } from '../src/mapper';
+import { responseMapping } from '../src';
 import { fileToJSON } from './util';
 
 describe('simple response mapping', () => {
+  it('simple object', async () => {
+    const mapping = {
+      body: {
+        foo: '$.result.bar',
+      },
+    };
+    const input = {
+      body: {
+        foo: '123',
+      },
+    };
+    const expectedResult = {
+      result: {
+        bar: '123',
+      },
+    };
+    expect(await responseMapping(input, mapping)).toEqual(expectedResult);
+  });
   it('simple object', async () => {
     const mapping = {
       url: '$.result.url',
@@ -85,5 +102,89 @@ describe('new mapping', () => {
         evalMethod: 'vm-runInNewContext',
       }),
     ).toEqual(expectedAction);
+  });
+});
+
+describe('xml', () => {
+  it('simple object', async () => {
+    const mapping = {
+      body: '<root><data at="$.result.my">$.result.bar</data></root>',
+    };
+    const input = {
+      body: '<root><data at="123">foo</data></root>',
+    };
+    const expectedResult = {
+      result: {
+        bar: 'foo',
+        my: '123',
+      },
+    };
+    expect(await responseMapping(input, mapping, { type: 'xml' })).toEqual(
+      expectedResult,
+    );
+  });
+});
+
+describe('rml', () => {
+  it('simple object', async () => {
+    const mapping = {
+      body: `
+prefixes:
+  schema: "http://schema.org/"
+  myfunc: "http://myfunc.com/"
+mappings:
+  person:
+    sources:
+      - ['input~jsonpath', '$.persons[*]']
+    s: http://example.com/$(firstname)
+    po:
+      - [a, schema:Person]
+      - [schema:name, $(firstname)]
+      - [schema:language, $(speaks.*)]
+`,
+    };
+    const input = `{
+  "persons": [
+      {
+          "firstname": "John",
+          "lastname": "Doe",
+          "speaks": [
+              "de",
+              "en"
+          ]
+      },
+      {
+          "firstname": "Jane",
+          "lastname": "Smith",
+          "speaks": [
+              "fr",
+              "es"
+          ]
+      }
+  ]
+}`;
+    const expectedResult = [
+      {
+        '@id': 'http://example.com/John',
+        '@type': 'Person',
+        language: ['de', 'en'],
+        name: 'John',
+        '@context': {
+          '@vocab': 'http://schema.org/',
+        },
+      },
+      {
+        '@id': 'http://example.com/Jane',
+        '@type': 'Person',
+        language: ['fr', 'es'],
+        name: 'Jane',
+        '@context': {
+          '@vocab': 'http://schema.org/',
+        },
+      },
+    ];
+    expect(await responseMapping(input, mapping, { type: 'yarrrml' })).toEqual(
+      expectedResult,
+    );
   });
 });

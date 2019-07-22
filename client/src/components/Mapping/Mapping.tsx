@@ -85,6 +85,14 @@ const isArrayOfStrings = (obj: string): boolean =>
   (Array.isArray(JSON.parse(obj)) &&
     JSON.parse(obj).every((e: any) => typeof e === 'string'));
 
+const getMappingType = (str: 'json' | 'xml' | 'javascript' | 'yaml'): any =>
+  ({
+    json: 'json',
+    xml: 'xml',
+    javascript: 'js',
+    yaml: 'yarrrml',
+  }[str]);
+
 class Mapping extends React.Component<IProps, IState> {
   public state: IState = {
     httpMethod: 'GET',
@@ -151,7 +159,8 @@ class Mapping extends React.Component<IProps, IState> {
   public onChangePayload = (value: string, event: any) => {
     this.setState({
       payloadValue: value,
-      payloadValidJSON: stringIsValidJSON(value),
+      payloadValidJSON:
+        this.state.payloadType === 'json' ? stringIsValidJSON(value) : true,
     });
   };
 
@@ -166,7 +175,10 @@ class Mapping extends React.Component<IProps, IState> {
   public onChangePayloadResponse = (value: string, event: any) => {
     this.setState({
       payloadResponseValue: value,
-      payloadResponseValidJSON: stringIsValidJSON(value),
+      payloadResponseValidJSON:
+        this.state.payloadResponseType === 'json'
+          ? stringIsValidJSON(value)
+          : true,
     });
   };
 
@@ -240,7 +252,7 @@ class Mapping extends React.Component<IProps, IState> {
         path: JSON.parse(this.state.pathValue),
         query: JSON.parse(this.state.queryValue),
         headers: JSON.parse(this.state.headerValue),
-        body: JSON.parse(this.state.payloadValue),
+        body: this.state.payloadValue,
       };
     }
     const responseMappingIsValid =
@@ -251,7 +263,7 @@ class Mapping extends React.Component<IProps, IState> {
     if (responseMappingIsValid) {
       responseMapping = {
         headers: JSON.parse(this.state.headerResponseValue),
-        body: JSON.parse(this.state.payloadResponseValue),
+        body: this.state.payloadResponseValue,
       };
     }
 
@@ -276,6 +288,9 @@ class Mapping extends React.Component<IProps, IState> {
           ).includes(path),
       );
 
+    this.inputProps = getIOProps(this.props.annotation, 'input');
+    this.outputProps = getIOProps(this.props.annotation, 'output');
+
     return (
       <div>
         <h1 className="text-center" style={{ marginTop: '40px' }}>
@@ -295,6 +310,7 @@ class Mapping extends React.Component<IProps, IState> {
               disabled={!requestMappingIsValid}
               requestMapping={requestMapping}
               requestMethod={this.state.httpMethod}
+              requestMappingType={getMappingType(this.state.payloadType)}
             />
           </Col>
           <Col md="8" style={{ paddingRight: 0 }}>
@@ -615,6 +631,8 @@ class Mapping extends React.Component<IProps, IState> {
           requestMapping={requestMapping}
           requestMethod={this.state.httpMethod}
           responseMapping={responseMapping}
+          requestMappingType={getMappingType(this.state.payloadType)}
+          responseMappingType={getMappingType(this.state.payloadResponseType)}
         />
       </div>
     );

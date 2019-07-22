@@ -356,7 +356,7 @@ exports.xmlToJson = function(xml) {
   });
 };
 exports.jsonToXml = function(json) {
-  var xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: false } });
+  var xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: true } });
   return xmlBuilder.buildObject(json);
 };
 exports.logError = function(e) {

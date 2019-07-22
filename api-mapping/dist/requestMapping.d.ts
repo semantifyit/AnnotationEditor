@@ -14,9 +14,9 @@ export interface RequestOutput {
   body?: object | string;
 }
 declare type EvalMethod = 'eval' | 'vm-runInNewContext';
-declare type MappingType = 'json' | 'xml' | 'js';
+declare type RequestType = 'json' | 'xml' | 'js';
 interface RequestOptions {
-  type?: MappingType;
+  type?: RequestType;
   locator?: 'simple' | 'json-path';
   evalMethod?: EvalMethod;
 }

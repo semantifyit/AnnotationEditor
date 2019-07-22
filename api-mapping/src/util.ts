@@ -207,7 +207,7 @@ export const xmlToJson = async (xml: string): Promise<object> =>
   });
 
 export const jsonToXml = (json: object): string => {
-  const xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: false } });
+  const xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: true } }); // maybe set false
   return xmlBuilder.buildObject(json);
 };
 
@@ -227,7 +227,10 @@ export const parsePathStr = (
   pathStr: string,
   keepDollar: boolean = false,
 ): { path: string; transformFunction?: string } => {
-  const [path, transformFunction] = pathStr.split(/\|>/).map((s) => s.trim());
+  const [path, transformFunction] = pathStr
+    .trim()
+    .split(/\|>/)
+    .map((s) => s.trim());
   return {
     transformFunction,
     path: keepDollar ? path : path.substring(2), // remove '$.' for our get method#

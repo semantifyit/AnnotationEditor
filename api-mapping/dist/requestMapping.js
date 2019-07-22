@@ -221,8 +221,8 @@ exports.requestMapping = function(inputAction, mapping, options) {
         case 12:
           try {
             transformValue = function(val) {
-              return typeof val === 'string' && val.startsWith('$')
-                ? useInputValue(inputAction, val, userOptions)
+              return typeof val === 'string' && val.trim().startsWith('$')
+                ? useInputValue(inputAction, val.trim(), userOptions)
                 : val;
             };
             newObj = util_1.removeUndef(

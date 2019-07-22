@@ -430,6 +430,10 @@ export default class Vocab {
     additionalRestrictions: string[] | undefined,
     jsonldObj: any,
   ): Promise<IRestriction[]> => {
+    if (!jsonldObj) {
+      return [];
+    }
+
     const sparqlRestrictionNodes: INodeTarget[] = this.getRestrictionNodes()
       .filter((n) => n[p.shTarget])
       .map(this.replaceBlankNodes)

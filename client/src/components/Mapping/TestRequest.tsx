@@ -30,6 +30,8 @@ interface IProps {
     pvs: IPropertyValueSpecification;
   }[];
   requestMapping: RequestMapping | undefined;
+  requestMappingType: 'json' | 'xml' | 'js';
+  responseMappingType?: 'json' | 'xml' | 'yarrrml';
   requestMethod: string;
   testWithResponseMapping?: boolean;
   responseMapping?: ResponseMapping;
@@ -47,6 +49,11 @@ interface IState {
   errorMsg?: string;
 }
 
+const getDefaultEditorObj = () => ({
+  '@context': 'http://schema.org/',
+  '@type': 'Action',
+});
+
 class TestRequest extends React.Component<IProps, IState> {
   public state: IState = {
     inputs: this.props.inputProps.map(({ pvs }) => pvs.defaultValue || ''),
@@ -58,10 +65,7 @@ class TestRequest extends React.Component<IProps, IState> {
     apiResponse: undefined,
   };
 
-  public editorObj = {
-    '@context': 'http://schema.org/',
-    '@type': 'Action',
-  };
+  public editorObj = getDefaultEditorObj();
 
   public onChangeEditor = (value: string, event: any) => {
     this.setState({
@@ -69,12 +73,29 @@ class TestRequest extends React.Component<IProps, IState> {
     });
   };
 
-  public componentDidMount = () => {
+  public init() {
+    this.editorObj = getDefaultEditorObj();
     this.props.inputProps.forEach(({ path, pvs }) => {
       set(this.editorObj, path.substring(2), pvs.defaultValue || '');
     });
-    this.setState({ editorValue: JSON.stringify(this.editorObj, null, 4) });
+    this.setState({
+      editorValue: JSON.stringify(this.editorObj, null, 4),
+      inputs: this.props.inputProps.map(({ pvs }) => pvs.defaultValue || ''),
+      inputsValid: this.props.inputProps.map(({ pvs }) =>
+        validatePVS(pvs.defaultValue || '', pvs),
+      ),
+    });
+  }
+
+  public componentDidMount = () => {
+    this.init();
   };
+
+  public componentDidUpdate(prevProps: IProps) {
+    if (this.props.inputProps.length !== prevProps.inputProps.length) {
+      this.init();
+    }
+  }
 
   public changeInputField = (index: number, path: string, value: string) => {
     if (this.props.inputProps[index].pvs.multipleValuesAllowed) {
@@ -100,10 +121,11 @@ class TestRequest extends React.Component<IProps, IState> {
       alert('There is some error with your mapping!');
       return;
     }
-    // console.log(this.props.requestMapping);
+    console.log(this.props.requestMapping);
     const mappingOutput = await requestMapping(
       JSON.parse(this.state.editorValue),
       this.props.requestMapping,
+      { type: this.props.requestMappingType },
     );
     // console.log(mappingOutput);
 

@@ -226,8 +226,20 @@ exports.responseMapping = function(inputResponse, mapping, options, mergeObj) {
           return [4, util_1.xmlToJson(inputResponse.body)];
         case 2:
           _b.body = _c.sent();
+          if (!userOptions.iteratorPath) {
+            userOptions.iteratorPath = '$.ite';
+          }
           _c.label = 3;
         case 3:
+          if (userOptions.type === 'json' && typeof mapping.body === 'string') {
+            mapping.body = JSON.parse(mapping.body);
+          }
+          if (
+            userOptions.type === 'json' &&
+            typeof inputResponse.body === 'string'
+          ) {
+            inputResponse.body = JSON.parse(inputResponse.body);
+          }
           if (!(userOptions.type === 'json' || userOptions.type === 'xml'))
             return [3, 4];
           doMapping(mapping, inputResponse, result, {}, userOptions);

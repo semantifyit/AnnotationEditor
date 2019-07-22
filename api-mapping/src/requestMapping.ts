@@ -32,10 +32,10 @@ export interface RequestOutput {
 // TODO different eval options
 type EvalMethod = 'eval' | 'vm-runInNewContext';
 
-type MappingType = 'json' | 'xml' | 'js';
+type RequestType = 'json' | 'xml' | 'js';
 
 interface RequestOptions {
-  type?: MappingType;
+  type?: RequestType;
   locator?: 'simple' | 'json-path'; // json-path not supported, could be for the future
   evalMethod?: EvalMethod;
 }
@@ -101,8 +101,8 @@ export const requestMapping = async (
 
   try {
     const transformValue = (val: any): any =>
-      typeof val === 'string' && val.startsWith('$')
-        ? useInputValue(inputAction, val, userOptions)
+      typeof val === 'string' && val.trim().startsWith('$')
+        ? useInputValue(inputAction, val.trim(), userOptions)
         : val;
 
     const newObj = removeUndef(deepMapValues(mapping, transformValue));

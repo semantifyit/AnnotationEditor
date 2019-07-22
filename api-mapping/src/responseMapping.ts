@@ -17,11 +17,13 @@ interface StringObj<T = string> {
 
 export interface ResponseMapping {
   headers?: StringObj;
-  body?: object;
+  body?: object | string;
 }
 
+export type ResponseType = 'json' | 'xml' | 'yarrrml';
+
 interface ResponseOptions {
-  type?: 'json' | 'xml' | 'yarrrml';
+  type?: ResponseType;
   evalMethod?: EvalMethod;
   iteratorPath?: string;
   rmlOptions?: object;
@@ -124,6 +126,15 @@ export const responseMapping = async (
     if (userOptions.type === 'xml' && mapping.body && inputResponse.body) {
       mapping.body = await xmlToJson(mapping.body);
       inputResponse.body = await xmlToJson(inputResponse.body);
+      if (!userOptions.iteratorPath) {
+        userOptions.iteratorPath = '$.ite';
+      }
+    }
+    if (userOptions.type === 'json' && typeof mapping.body === 'string') {
+      mapping.body = JSON.parse(mapping.body);
+    }
+    if (userOptions.type === 'json' && typeof inputResponse.body === 'string') {
+      inputResponse.body = JSON.parse(inputResponse.body);
     }
     if (userOptions.type === 'json' || userOptions.type === 'xml') {
       doMapping(

@@ -95,13 +95,13 @@ class TestRequest extends React.Component<IProps, IState> {
     });
   };
 
-  public runRequestMapping = () => {
+  public runRequestMapping = async () => {
     if (!this.props.requestMapping) {
       alert('There is some error with your mapping!');
       return;
     }
     // console.log(this.props.requestMapping);
-    const mappingOutput = requestMapping(
+    const mappingOutput = await requestMapping(
       JSON.parse(this.state.editorValue),
       this.props.requestMapping,
     );
@@ -289,8 +289,14 @@ class TestRequest extends React.Component<IProps, IState> {
             <br />
             Body:
             <br />
-            {mappingOutput.body && !isEmptyObject(mappingOutput.body) ? (
+            {mappingOutput.body &&
+            typeof mappingOutput.body === 'object' &&
+            !isEmptyObject(mappingOutput.body) ? (
               <JSONBox object={mappingOutput.body} />
+            ) : mappingOutput.body ? (
+              <pre className="annotation-box">
+                {mappingOutput.body.toString()}
+              </pre>
             ) : (
               <i style={{ color: 'grey' }}>No Body</i>
             )}

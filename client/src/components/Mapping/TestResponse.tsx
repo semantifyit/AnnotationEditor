@@ -4,11 +4,10 @@ import { Button } from 'reactstrap';
 import ButtonModal from './ButtonModal';
 import AceEditor from 'react-ace';
 import { stringIsValidJSON } from '../../helpers/util';
-import { ResponseMapping } from 'api-mapping/dist/mapper';
 import JSONBox from '../JSONBox';
 
 interface IProps {
-  responseMapping: ResponseMapping | undefined;
+  responseMapping: any;
   disabled: boolean;
 }
 

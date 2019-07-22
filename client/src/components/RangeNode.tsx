@@ -63,6 +63,7 @@ class RangeNode extends React.Component<IProps, IState> {
         defaultValueRestriction[0].defaultValue
       ) {
         this.state.value = defaultValueRestriction[0].defaultValue;
+        this.props.valueChanged(this.state.value);
       }
 
       // sh:in restriction -> treat as enum
@@ -75,7 +76,7 @@ class RangeNode extends React.Component<IProps, IState> {
       }
     }
 
-    if (this.props.existingMembersIds.length > 0) {
+    if (this.props.existingMembersIds.length > 0 && this.state.value === '') {
       this.state.value = this.props.existingMembersIds[0];
       this.props.valueChanged(this.state.value);
     }
@@ -308,6 +309,7 @@ class RangeNode extends React.Component<IProps, IState> {
         canUseDashIOProps={this.props.canUseDashIOProps}
         additionalRestrictionIds={this.props.additionalRestrictionIds}
         isIdPropNode={this.props.makeRangeIdNode}
+        idValue={this.state.value}
       />
     );
   }

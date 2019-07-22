@@ -9,8 +9,8 @@ import 'brace/mode/xml';
 import 'brace/snippets/xml';
 import 'brace/mode/yaml';
 import 'brace/snippets/yaml';
-import 'brace/mode/graphqlschema';
-import 'brace/snippets/graphqlschema';
+import 'brace/mode/javascript';
+import 'brace/snippets/javascript';
 
 import 'brace/theme/tomorrow';
 import 'brace/ext/language_tools';
@@ -72,7 +72,8 @@ interface IState {
   headerResponseValidJSON: boolean;
   payloadResponseValue: string;
   payloadResponseValidJSON: boolean;
-  payloadType: 'json' | 'xml' | 'yaml' | 'graphqlschema';
+  payloadType: 'json' | 'xml' | 'javascript';
+  payloadResponseType: 'json' | 'xml' | 'yaml';
 }
 
 const isOneLevelStringJSON = (obj: string): boolean =>
@@ -105,6 +106,7 @@ class Mapping extends React.Component<IProps, IState> {
     payloadResponseValue: '{\n    \n}',
     payloadResponseValidJSON: true,
     payloadType: 'json',
+    payloadResponseType: 'json',
   };
 
   public domIdPrefix = this.props.domIdPrefix || '';
@@ -174,6 +176,10 @@ class Mapping extends React.Component<IProps, IState> {
 
   public changePayloadType = (e: any) => {
     this.setState({ payloadType: e.target.value });
+  };
+
+  public changePayloadResponseType = (e: any) => {
+    this.setState({ payloadResponseType: e.target.value });
   };
 
   public addInputValue = (
@@ -458,8 +464,7 @@ class Mapping extends React.Component<IProps, IState> {
                 >
                   <option value="json">JSON</option>
                   <option value="xml">XML</option>
-                  <option value="yaml">YAML</option>
-                  <option value="graphqlschema">GraphQL</option>
+                  <option value="javascript">JavaScript</option>
                 </Input>
                 <Label for="editor-query" style={{ padding: 0 }}>
                   Payload: <InfoPayload />
@@ -553,13 +558,24 @@ class Mapping extends React.Component<IProps, IState> {
                 addValue={(v) => this.addInputValue(v, 'headerResponse')}
               />
             </div>
+            <Input
+              type="select"
+              bsSize="sm"
+              className="float-right"
+              style={{ width: '100px' }}
+              onChange={this.changePayloadResponseType}
+            >
+              <option value="json">JSON</option>
+              <option value="xml">XML</option>
+              <option value="yaml">Yarrrml</option>
+            </Input>
             <Label for="editor-payload-response" style={{ padding: 0 }}>
               Response Payload: <InfoPayloadResponse />
             </Label>
           </div>
           <div style={{ border: '1px solid lightgrey' }}>
             <AceEditor
-              mode="json"
+              mode={this.state.payloadResponseType}
               theme="tomorrow"
               onChange={this.onChangePayloadResponse}
               name={`${this.domIdPrefix}-editor-payload-response`}

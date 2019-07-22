@@ -25,6 +25,7 @@ interface IProps {
   canUseDashIOProps: boolean;
   additionalRestrictionIds?: string[];
   isIdPropNode?: boolean;
+  idValue?: string;
   changedType?(newTypes: string[]): void;
 }
 
@@ -95,6 +96,12 @@ class TypeNode extends React.Component<IProps, IState> {
         nodeBelongsToNS(nodes[0], 'schema') // only add members for schema.org enumeration types
       ) {
         this.addProperty('@id');
+        this.restrictions.push({
+          id: 'id',
+          defaultValue: this.props.idValue,
+          rangeIsIdNode: false,
+          property: '@id',
+        });
       }
     }
   }

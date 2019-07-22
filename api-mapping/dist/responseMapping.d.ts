@@ -14,9 +14,9 @@ interface ResponseOptions {
   rmlOptions?: object;
 }
 export declare const responseMapping: (
-  inputResponse: any,
-  mapping: any,
-  options?: ResponseOptions,
+  userInputResponse: any,
+  userMapping: any,
+  userOptions?: ResponseOptions,
   mergeObj?: object | undefined,
 ) => Promise<object>;
 export {};

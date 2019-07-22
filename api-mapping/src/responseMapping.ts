@@ -8,6 +8,7 @@ import {
   transFormValue,
   xmlToJson,
   EvalMethod,
+  clone,
 } from './util';
 import { runRmlMapping, yarrrmlPlusToRml } from './rmlmapper';
 
@@ -85,7 +86,7 @@ const doMapping = (
       .forEach(([key, value]) => {
         if (
           typeof value === 'string' &&
-          value.startsWith('$') &&
+          value.trim().startsWith('$') &&
           input[key] !== undefined
         ) {
           // value is path
@@ -111,47 +112,56 @@ const doMapping = (
 };
 
 export const responseMapping = async (
-  inputResponse: any,
-  mapping: any,
-  options: ResponseOptions = defaultResponseOptions,
+  userInputResponse: any,
+  userMapping: any,
+  userOptions: ResponseOptions = defaultResponseOptions,
   mergeObj?: object,
 ): Promise<object> => {
   try {
+    const input = clone(userInputResponse);
+    const mapping = clone(userMapping);
     const result: { $?: any } = {};
-    const userOptions: ResponseOptions = Object.assign(
+    const options: ResponseOptions = Object.assign(
       defaultResponseOptions,
-      options,
+      userOptions,
     );
 
-    if (userOptions.type === 'xml' && mapping.body && inputResponse.body) {
+    if (options.type === 'xml' && mapping.body && input.body) {
       mapping.body = await xmlToJson(mapping.body);
-      inputResponse.body = await xmlToJson(inputResponse.body);
-      if (!userOptions.iteratorPath) {
-        userOptions.iteratorPath = '$.ite';
+      input.body = await xmlToJson(input.body);
+      if (!options.iteratorPath) {
+        options.iteratorPath = '$.ite';
       }
     }
-    if (userOptions.type === 'json' && typeof mapping.body === 'string') {
+    if (options.type === 'json' && typeof mapping.body === 'string') {
       mapping.body = JSON.parse(mapping.body);
     }
-    if (userOptions.type === 'json' && typeof inputResponse.body === 'string') {
-      inputResponse.body = JSON.parse(inputResponse.body);
+    if (options.type === 'json' && typeof input.body === 'string') {
+      input.body = JSON.parse(input.body);
     }
-    if (userOptions.type === 'json' || userOptions.type === 'xml') {
-      doMapping(
-        mapping,
-        inputResponse,
-        result,
-        {},
-        userOptions as ResponseOptionsReq,
-      );
-    } else if (userOptions.type === 'yarrrml') {
-      // TODO
-      const rmlStr = await yarrrmlPlusToRml(mapping.body);
+    if (options.type === 'json' || options.type === 'xml') {
+      doMapping(mapping, input, result, {}, options as ResponseOptionsReq);
+    } else if (options.type === 'yarrrml') {
+      let yarrrml = mapping;
+      if (mapping.body) {
+        yarrrml = mapping.body;
+      }
+      const rmlStr = await yarrrmlPlusToRml(yarrrml);
       const rmlResult = await runRmlMapping(
         rmlStr,
-        inputResponse,
-        userOptions.rmlOptions,
+        input.body,
+        options.rmlOptions,
       );
+      if (mapping.headers && input.headers) {
+        doMapping(
+          mapping.headers,
+          input.headers,
+          result,
+          {},
+          options as ResponseOptionsReq,
+        );
+        mergeResult(rmlResult, result.$, new RegExp('$^'));
+      }
       result.$ = rmlResult;
     }
 

@@ -20,7 +20,22 @@ describe('simple response mapping', () => {
     };
     expect(await responseMapping(input, mapping)).toEqual(expectedResult);
   });
-  it('simple object', async () => {
+
+  it('body header', async () => {
+    const input = { headers: {}, body: { data: 'foo' } };
+    const mapping = {
+      headers: {},
+      body: '{\n    "data": "$.result.issueNumber"\n}',
+    };
+    const expectedResult = {
+      result: {
+        issueNumber: 'foo',
+      },
+    };
+    expect(await responseMapping(input, mapping)).toEqual(expectedResult);
+  });
+
+  it('simple object git', async () => {
     const mapping = {
       url: '$.result.url',
       id: '$.result.identifier',
@@ -123,12 +138,24 @@ describe('xml', () => {
       expectedResult,
     );
   });
+
+  it('simple object 2', async () => {
+    const mapping = { headers: {}, body: '<data>\n    $.result.name\n</data>' };
+    const input = { headers: {}, body: '<data>\n    foo\n</data>' };
+    const expectedResult = {
+      result: {
+        name: 'foo',
+      },
+    };
+    expect(await responseMapping(input, mapping, { type: 'xml' })).toEqual(
+      expectedResult,
+    );
+  });
 });
 
 describe('rml', () => {
   it('simple object', async () => {
-    const mapping = {
-      body: `
+    const mapping = `
 prefixes:
   schema: "http://schema.org/"
   myfunc: "http://myfunc.com/"
@@ -141,8 +168,8 @@ mappings:
       - [a, schema:Person]
       - [schema:name, $(firstname)]
       - [schema:language, $(speaks.*)]
-`,
-    };
+`;
+
     const input = `{
   "persons": [
       {
@@ -181,6 +208,46 @@ mappings:
         '@context': {
           '@vocab': 'http://schema.org/',
         },
+      },
+    ];
+    expect(await responseMapping(input, mapping, { type: 'yarrrml' })).toEqual(
+      expectedResult,
+    );
+  });
+  it('2nd', async () => {
+    const mapping = {
+      headers: { status: '$.status' },
+      body:
+        // tslint:disable-next-line:max-line-length
+        'prefixes:\n  schema: "http://schema.org/"\n  myfunc: "http://myfunc.com/"\nmappings:\n  person:\n    sources:\n      - [\'input~jsonpath\', \'$.persons[*]\']\n    s: http://example.com/$(firstname)\n    po:\n      - [a, schema:Person]\n      - [schema:name, $(firstname)]\n      - [schema:language, $(speaks.*)]\n',
+    };
+
+    const input = {
+      headers: { status: '200' },
+      body:
+        // tslint:disable-next-line:max-line-length
+        '{\n  "persons": [\n      {\n          "firstname": "John",\n          "lastname": "Doe",\n          "speaks": [\n              "de",\n              "en"\n          ]\n      },\n      {\n          "firstname": "Jane",\n          "lastname": "Smith",\n          "speaks": [\n              "fr",\n              "es"\n          ]\n      }\n  ]\n}',
+    };
+    const expectedResult = [
+      {
+        '@id': 'http://example.com/John',
+        '@type': 'Person',
+        language: ['de', 'en'],
+        name: 'John',
+        '@context': {
+          '@vocab': 'http://schema.org/',
+        },
+        status: '200',
+      },
+      {
+        '@id': 'http://example.com/Jane',
+        '@type': 'Person',
+        language: ['fr', 'es'],
+        name: 'Jane',
+        '@context': {
+          '@vocab': 'http://schema.org/',
+        },
+        status: '200',
       },
     ];
     expect(await responseMapping(input, mapping, { type: 'yarrrml' })).toEqual(

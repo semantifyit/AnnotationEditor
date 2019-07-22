@@ -149,9 +149,10 @@ var defaultRequestOptions = {
   locator: 'simple',
   evalMethod: 'eval',
 };
-exports.requestMapping = function(inputAction, mapping, options) {
+exports.requestMapping = function(inputAction, userMapping, options) {
   return __awaiter(_this, void 0, void 0, function() {
     var userOptions,
+      mapping,
       mappingType,
       _a,
       _b,
@@ -170,6 +171,7 @@ exports.requestMapping = function(inputAction, mapping, options) {
       switch (_d.label) {
         case 0:
           userOptions = Object.assign(defaultRequestOptions, options);
+          mapping = util_1.clone(userMapping);
           mappingType = userOptions.type;
           if (!(typeof mapping.body === 'string')) return [3, 12];
           if (!mappingType) return [3, 6];

@@ -198,16 +198,22 @@ const setPath = (obj: any, path: string[], value: any) => {
 
 export const xmlToJson = async (xml: string): Promise<object> =>
   new Promise((resolve, reject) => {
-    xml2js.parseString(xml, { explicitCharkey: true }, (err, result) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(result);
-    });
+    xml2js.parseString(
+      xml,
+      { explicitCharkey: true, trim: true },
+      (err, result) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(result);
+      },
+    );
   });
 
 export const jsonToXml = (json: object): string => {
-  const xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: true } }); // maybe set false
+  const xmlBuilder = new xml2js.Builder({
+    renderOpts: { pretty: true },
+  }); // maybe set false
   return xmlBuilder.buildObject(json);
 };
 
@@ -260,3 +266,10 @@ export const runCode = (code: string, evalMethodType?: EvalMethod): any => {
       return eval(code);
   }
 };
+
+export const clone = <T>(o: T): T =>
+  typeof o === 'object'
+    ? JSON.parse(JSON.stringify(o))
+    : typeof o === 'string'
+    ? o.slice()
+    : o;

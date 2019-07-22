@@ -1,4 +1,5 @@
 import {
+  clone,
   deepMapValues,
   get,
   jsonToXml,
@@ -32,7 +33,7 @@ export interface RequestOutput {
 // TODO different eval options
 type EvalMethod = 'eval' | 'vm-runInNewContext';
 
-type RequestType = 'json' | 'xml' | 'js';
+export type RequestType = 'json' | 'xml' | 'js';
 
 interface RequestOptions {
   type?: RequestType;
@@ -63,13 +64,14 @@ const defaultRequestOptions: RequestOptions = {
 
 export const requestMapping = async (
   inputAction: object,
-  mapping: RequestMapping,
+  userMapping: RequestMapping,
   options?: RequestOptions,
 ): Promise<RequestOutput> => {
   const userOptions: RequestOptions = Object.assign(
     defaultRequestOptions,
     options,
   );
+  const mapping = clone(userMapping);
   let mappingType = userOptions.type;
   if (typeof mapping.body === 'string') {
     if (mappingType) {

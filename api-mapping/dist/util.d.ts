@@ -40,3 +40,4 @@ export declare const runCode: (
   code: string,
   evalMethodType?: 'eval' | 'vm-runInNewContext' | undefined,
 ) => any;
+export declare const clone: <T>(o: T) => T;

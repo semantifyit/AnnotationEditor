@@ -20,7 +20,11 @@ import {
   removeNewLines,
   stringIsValidJSON,
 } from '../../helpers/util';
-import { RequestMapping, RequestOutput } from 'api-mapping/dist/requestMapping';
+import {
+  RequestMapping,
+  RequestOutput,
+  RequestType,
+} from 'api-mapping/dist/requestMapping';
 import { ResponseMapping } from 'api-mapping/dist/responseMapping';
 import JSONBox from '../JSONBox';
 
@@ -30,7 +34,7 @@ interface IProps {
     pvs: IPropertyValueSpecification;
   }[];
   requestMapping: RequestMapping | undefined;
-  requestMappingType: 'json' | 'xml' | 'js';
+  requestMappingType: RequestType;
   responseMappingType?: 'json' | 'xml' | 'yarrrml';
   requestMethod: string;
   testWithResponseMapping?: boolean;
@@ -121,7 +125,6 @@ class TestRequest extends React.Component<IProps, IState> {
       alert('There is some error with your mapping!');
       return;
     }
-    console.log(this.props.requestMapping);
     const mappingOutput = await requestMapping(
       JSON.parse(this.state.editorValue),
       this.props.requestMapping,

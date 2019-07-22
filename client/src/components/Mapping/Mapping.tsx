@@ -618,6 +618,7 @@ class Mapping extends React.Component<IProps, IState> {
         <TestResponse
           disabled={!responseMappingIsValid}
           responseMapping={responseMapping}
+          responseMappingType={getMappingType(this.state.payloadResponseType)}
         />
         <br />
         <br />

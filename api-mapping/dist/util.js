@@ -341,22 +341,25 @@ exports.xmlToJson = function(xml) {
       return [
         2,
         new Promise(function(resolve, reject) {
-          xml2js.parseString(xml, { explicitCharkey: true }, function(
-            err,
-            result,
-          ) {
-            if (err) {
-              reject(err);
-            }
-            resolve(result);
-          });
+          xml2js.parseString(
+            xml,
+            { explicitCharkey: true, trim: true },
+            function(err, result) {
+              if (err) {
+                reject(err);
+              }
+              resolve(result);
+            },
+          );
         }),
       ];
     });
   });
 };
 exports.jsonToXml = function(json) {
-  var xmlBuilder = new xml2js.Builder({ renderOpts: { pretty: true } });
+  var xmlBuilder = new xml2js.Builder({
+    renderOpts: { pretty: true },
+  });
   return xmlBuilder.buildObject(json);
 };
 exports.logError = function(e) {
@@ -367,9 +370,12 @@ exports.parsePathStr = function(pathStr, keepDollar) {
   if (keepDollar === void 0) {
     keepDollar = false;
   }
-  var _a = pathStr.split(/\|>/).map(function(s) {
-      return s.trim();
-    }),
+  var _a = pathStr
+      .trim()
+      .split(/\|>/)
+      .map(function(s) {
+        return s.trim();
+      }),
     path = _a[0],
     transformFunction = _a[1];
   return {
@@ -390,4 +396,11 @@ exports.runCode = function(code, evalMethodType) {
     default:
       return eval(code);
   }
+};
+exports.clone = function(o) {
+  return typeof o === 'object'
+    ? JSON.parse(JSON.stringify(o))
+    : typeof o === 'string'
+    ? o.slice()
+    : o;
 };

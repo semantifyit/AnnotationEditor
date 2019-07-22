@@ -4,12 +4,16 @@ import { Button } from 'reactstrap';
 import ButtonModal from './ButtonModal';
 import AceEditor from 'react-ace';
 import { stringIsValidJSON } from '../../helpers/util';
-import { ResponseMapping } from 'api-mapping/dist/responseMapping';
+import {
+  ResponseMapping,
+  ResponseType,
+} from 'api-mapping/dist/responseMapping';
 import JSONBox from '../JSONBox';
 
 interface IProps {
   responseMapping: ResponseMapping | undefined;
   disabled: boolean;
+  responseMappingType: ResponseType;
 }
 
 interface IState {
@@ -36,7 +40,7 @@ class TestResponse extends React.Component<IProps, IState> {
     });
   };
 
-  public runResponseMapping = () => {
+  public runResponseMapping = async () => {
     if (!this.props.responseMapping) {
       alert('There is some error with your mapping!');
       return;
@@ -44,16 +48,31 @@ class TestResponse extends React.Component<IProps, IState> {
 
     const input = {
       headers: JSON.parse(this.state.editorHeadersValue),
-      body: JSON.parse(this.state.editorBodyValue),
+      body:
+        this.props.responseMappingType === 'json'
+          ? JSON.parse(this.state.editorBodyValue)
+          : this.state.editorBodyValue,
     };
-    const mappingOutput = responseMapping(input, this.props.responseMapping);
+    console.log(JSON.stringify(input));
+    console.log(JSON.stringify(this.props.responseMapping));
+    console.log(JSON.stringify(this.props.responseMappingType));
+    const mappingOutput = await responseMapping(
+      input,
+      this.props.responseMapping,
+      {
+        type: this.props.responseMappingType,
+      },
+    );
+    console.log(JSON.stringify(mappingOutput));
     this.setState({ mappingOutput });
   };
 
   public render() {
     const runMappingDisabled = !(
       stringIsValidJSON(this.state.editorHeadersValue) &&
-      stringIsValidJSON(this.state.editorBodyValue)
+      (this.props.responseMappingType === 'json'
+        ? stringIsValidJSON(this.state.editorBodyValue)
+        : true)
     );
     const { mappingOutput } = this.state;
     return (
@@ -89,7 +108,13 @@ class TestResponse extends React.Component<IProps, IState> {
         <br />
         <AceEditor
           name="editor-body-test-response"
-          mode="json"
+          mode={
+            this.props.responseMappingType === 'json'
+              ? 'json'
+              : this.props.responseMappingType === 'xml'
+              ? 'xml'
+              : 'text'
+          }
           theme="tomorrow"
           onChange={this.onChangeEditorBody}
           fontSize={14}

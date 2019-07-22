@@ -14,7 +14,7 @@ export interface RequestOutput {
   body?: object | string;
 }
 declare type EvalMethod = 'eval' | 'vm-runInNewContext';
-declare type RequestType = 'json' | 'xml' | 'js';
+export declare type RequestType = 'json' | 'xml' | 'js';
 interface RequestOptions {
   type?: RequestType;
   locator?: 'simple' | 'json-path';
@@ -22,7 +22,7 @@ interface RequestOptions {
 }
 export declare const requestMapping: (
   inputAction: object,
-  mapping: RequestMapping,
+  userMapping: RequestMapping,
   options?: RequestOptions | undefined,
 ) => Promise<RequestOutput>;
 export {};

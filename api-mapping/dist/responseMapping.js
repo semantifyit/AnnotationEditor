@@ -177,7 +177,7 @@ var doMapping = function(mappingObj, input, result, iterators, options) {
           value = _a[1];
         if (
           typeof value === 'string' &&
-          value.startsWith('$') &&
+          value.trim().startsWith('$') &&
           input[key] !== undefined
         ) {
           var _b = util_1.parsePathStr(value, true),
@@ -202,63 +202,78 @@ var doMapping = function(mappingObj, input, result, iterators, options) {
     console.log('mapping not object');
   }
 };
-exports.responseMapping = function(inputResponse, mapping, options, mergeObj) {
-  if (options === void 0) {
-    options = defaultResponseOptions;
+exports.responseMapping = function(
+  userInputResponse,
+  userMapping,
+  userOptions,
+  mergeObj,
+) {
+  if (userOptions === void 0) {
+    userOptions = defaultResponseOptions;
   }
   return __awaiter(_this, void 0, void 0, function() {
-    var result, userOptions, _a, _b, rmlStr, rmlResult, e_1;
+    var input,
+      mapping,
+      result,
+      options,
+      _a,
+      _b,
+      yarrrml,
+      rmlStr,
+      rmlResult,
+      e_1;
     return __generator(this, function(_c) {
       switch (_c.label) {
         case 0:
           _c.trys.push([0, 8, , 9]);
+          input = util_1.clone(userInputResponse);
+          mapping = util_1.clone(userMapping);
           result = {};
-          userOptions = Object.assign(defaultResponseOptions, options);
-          if (
-            !(userOptions.type === 'xml' && mapping.body && inputResponse.body)
-          )
+          options = Object.assign(defaultResponseOptions, userOptions);
+          if (!(options.type === 'xml' && mapping.body && input.body))
             return [3, 3];
           _a = mapping;
           return [4, util_1.xmlToJson(mapping.body)];
         case 1:
           _a.body = _c.sent();
-          _b = inputResponse;
-          return [4, util_1.xmlToJson(inputResponse.body)];
+          _b = input;
+          return [4, util_1.xmlToJson(input.body)];
         case 2:
           _b.body = _c.sent();
-          if (!userOptions.iteratorPath) {
-            userOptions.iteratorPath = '$.ite';
+          if (!options.iteratorPath) {
+            options.iteratorPath = '$.ite';
           }
           _c.label = 3;
         case 3:
-          if (userOptions.type === 'json' && typeof mapping.body === 'string') {
+          if (options.type === 'json' && typeof mapping.body === 'string') {
             mapping.body = JSON.parse(mapping.body);
           }
-          if (
-            userOptions.type === 'json' &&
-            typeof inputResponse.body === 'string'
-          ) {
-            inputResponse.body = JSON.parse(inputResponse.body);
+          if (options.type === 'json' && typeof input.body === 'string') {
+            input.body = JSON.parse(input.body);
           }
-          if (!(userOptions.type === 'json' || userOptions.type === 'xml'))
+          if (!(options.type === 'json' || options.type === 'xml'))
             return [3, 4];
-          doMapping(mapping, inputResponse, result, {}, userOptions);
+          doMapping(mapping, input, result, {}, options);
           return [3, 7];
         case 4:
-          if (!(userOptions.type === 'yarrrml')) return [3, 7];
-          return [4, rmlmapper_1.yarrrmlPlusToRml(mapping.body)];
+          if (!(options.type === 'yarrrml')) return [3, 7];
+          yarrrml = mapping;
+          if (mapping.body) {
+            yarrrml = mapping.body;
+          }
+          return [4, rmlmapper_1.yarrrmlPlusToRml(yarrrml)];
         case 5:
           rmlStr = _c.sent();
           return [
             4,
-            rmlmapper_1.runRmlMapping(
-              rmlStr,
-              inputResponse,
-              userOptions.rmlOptions,
-            ),
+            rmlmapper_1.runRmlMapping(rmlStr, input.body, options.rmlOptions),
           ];
         case 6:
           rmlResult = _c.sent();
+          if (mapping.headers && input.headers) {
+            doMapping(mapping.headers, input.headers, result, {}, options);
+            util_1.mergeResult(rmlResult, result.$, new RegExp('$^'));
+          }
           result.$ = rmlResult;
           _c.label = 7;
         case 7:

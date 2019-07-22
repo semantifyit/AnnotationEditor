@@ -20,11 +20,8 @@ import {
   removeNewLines,
   stringIsValidJSON,
 } from '../../helpers/util';
-import {
-  RequestMapping,
-  RequestOutput,
-  ResponseMapping,
-} from 'api-mapping/dist/mapper';
+import { RequestMapping, RequestOutput } from 'api-mapping/dist/requestMapping';
+import { ResponseMapping } from 'api-mapping/dist/responseMapping';
 import JSONBox from '../JSONBox';
 
 interface IProps {

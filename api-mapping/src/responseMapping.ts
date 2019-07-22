@@ -11,6 +11,15 @@ import {
 } from './util';
 import { runRmlMapping, yarrrmlPlusToRml } from './rmlmapper';
 
+interface StringObj<T = string> {
+  [key: string]: T;
+}
+
+export interface ResponseMapping {
+  headers?: StringObj;
+  body?: object;
+}
+
 interface ResponseOptions {
   type?: 'json' | 'xml' | 'yarrrml';
   evalMethod?: EvalMethod;

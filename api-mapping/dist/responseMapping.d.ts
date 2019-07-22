@@ -1,4 +1,11 @@
 import { EvalMethod } from './util';
+interface StringObj<T = string> {
+  [key: string]: T;
+}
+export interface ResponseMapping {
+  headers?: StringObj;
+  body?: object;
+}
 interface ResponseOptions {
   type?: 'json' | 'xml' | 'yarrrml';
   evalMethod?: EvalMethod;

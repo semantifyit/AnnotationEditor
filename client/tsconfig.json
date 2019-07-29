@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es2018", "dom"],
+    "lib": ["esnext", "dom"],
     "target": "es5",
     "allowJs": true,
     "skipLibCheck": false,

@@ -55,10 +55,28 @@ class TypeNode extends React.Component<IProps, IState> {
   public nodeUid = uuidv1();
   public baseUID = `baseid-${joinPaths(this.props.path)}-${this.nodeUid}`;
   public nodeRestrictionIds: string[] = [];
+  public typeSelectOptions: { value: string; label: string }[] = [];
 
   public componentDidMount() {
+    this.setTypeSelectOptions();
     this.update();
   }
+
+  public componentDidUpdate(prevProps: IProps) {
+    if (prevProps.nodeId !== this.props.nodeId) {
+      this.setTypeSelectOptions();
+    }
+  }
+
+  public setTypeSelectOptions = () => {
+    this.typeSelectOptions = this.context.vocab
+      .getSubClasses(this.props.nodeId)
+      .map((c) => ({
+        value: c,
+        label: removeNS(c),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  };
 
   public update() {
     const nodes: INode[] = this.state.nodeIds
@@ -304,13 +322,6 @@ class TypeNode extends React.Component<IProps, IState> {
     if (nodes.length === 0) {
       return <h1>Node not found</h1>;
     }
-    const typeSelectOptions = this.context.vocab
-      .getSubClasses(this.props.nodeId)
-      .map((c) => ({
-        value: c,
-        label: removeNS(c),
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
 
     const divStyle = {
       border: this.props.withBorder ? '1px solid lightgrey' : '',
@@ -346,11 +357,11 @@ class TypeNode extends React.Component<IProps, IState> {
             })}
             <div className="row">
               <h4 title={typeTitle}>{typeHeader} </h4>
-              {typeSelectOptions.length > 1 && (
+              {this.typeSelectOptions.length > 1 && (
                 <DropDownSelect
                   multiSelect={true}
-                  selectOptions={typeSelectOptions}
-                  selectedOptions={typeSelectOptions.filter((o) =>
+                  selectOptions={this.typeSelectOptions}
+                  selectedOptions={this.typeSelectOptions.filter((o) =>
                     this.state.nodeIds.includes(o.value),
                   )}
                   onChangeSelection={this.changedTypesSelection}

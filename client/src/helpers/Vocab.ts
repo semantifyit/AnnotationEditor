@@ -3,7 +3,14 @@ import jsonld from 'jsonld';
 import axios from 'axios';
 
 import * as p from './properties';
-import { clone, flatten2DArr, haveCommon, Optional, uniqueArray } from './util';
+import {
+  clone,
+  flatten2DArr,
+  haveCommon,
+  memoize,
+  Optional,
+  uniqueArray,
+} from './util';
 import { jsonldMatchesQuery } from './rdfSparql';
 import {
   extractIds,
@@ -63,6 +70,13 @@ const vocabCache: IVocab = {}; // only for default vocabs right now
 export default class Vocab {
   public vocabs: IVocab = {};
   public currentVocabs: string[] = [];
+
+  private caches: { [functionName: string]: { [key: string]: any } } = {};
+  private cacheCounter = 0;
+  private memoize = <T, U>(fn: (...args: U[]) => T): ((...args: U[]) => T) => {
+    this.caches[this.cacheCounter] = {};
+    return memoize(fn, this.caches[this.cacheCounter++]);
+  };
 
   public addVocabWithFormat = async (
     vocabName: string,
@@ -202,8 +216,9 @@ export default class Vocab {
 
   public getCurrentVocabs = (): string[] => this.currentVocabs;
 
-  public getAllNodes = (): INode[] =>
-    flatten2DArr(Object.values(this.vocabs).map((v) => Object.values(v)));
+  public getAllNodes = this.memoize((): INode[] =>
+    flatten2DArr(Object.values(this.vocabs).map((v) => Object.values(v))),
+  );
 
   public getAllNodesFromVocab = (vocabName: string): INode[] =>
     Object.values(this.vocabs[vocabName]);
@@ -262,7 +277,7 @@ export default class Vocab {
     return uniqueArray(types);
   };
 
-  public getSubClasses = (nodeId: string): string[] => {
+  public getSubClasses = this.memoize((nodeId: string): string[] => {
     let types = [nodeId];
     const directSubClasses = this.getAllNodes()
       .filter(
@@ -278,7 +293,7 @@ export default class Vocab {
       );
     }
     return uniqueArray(types);
-  };
+  });
 
   public getTypePropertyNodeForType = (type: string): INode[] =>
     this.getAllNodes()

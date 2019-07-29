@@ -79,3 +79,20 @@ export const isEmptyObject = (obj: object): boolean =>
   Object.keys(obj).length === 0;
 
 export const removeNewLines = (str: string): string => str.replace(/\n/g, '');
+
+export const memoize = <T, U>(
+  fn: (...args: U[]) => T,
+  userCache?: { [k: string]: T },
+): ((...args: U[]) => T) => {
+  const cache = userCache || {};
+  return (...args) => {
+    const n = JSON.stringify(args);
+    if (n in cache) {
+      return cache[n];
+    } else {
+      const result = fn(...args);
+      cache[n] = result;
+      return result;
+    }
+  };
+};

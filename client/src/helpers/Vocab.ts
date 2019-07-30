@@ -30,6 +30,7 @@ export const defaultVocabs = {
   'schema-bib': 'Schema.org Bibliographic',
   'schema-health-lifesci': 'Schema.org Health and Lifesciences',
   'schema-auto': 'Schema.org Auto',
+  webapi: 'Webapi Shacl shapes',
 };
 
 export interface IIdNode {
@@ -76,6 +77,14 @@ export default class Vocab {
   private memoize = <T, U>(fn: (...args: U[]) => T): ((...args: U[]) => T) => {
     this.caches[this.cacheCounter] = {};
     return memoize(fn, this.caches[this.cacheCounter++]);
+  };
+
+  private clearCaches = () => {
+    for (let fnName in this.caches) {
+      for (let key in this.caches[fnName]) {
+        delete this.caches[fnName][key];
+      }
+    }
   };
 
   public addVocabWithFormat = async (
@@ -160,6 +169,7 @@ export default class Vocab {
         this.vocabs[vocabName][node['@id']] = node;
       }
     });
+    this.clearCaches();
   };
 
   public setDefaultVocabs = async (
@@ -212,6 +222,7 @@ export default class Vocab {
 
   public removeVocab = (vocabName: string) => {
     delete this.vocabs[vocabName];
+    this.clearCaches();
   };
 
   public getCurrentVocabs = (): string[] => this.currentVocabs;

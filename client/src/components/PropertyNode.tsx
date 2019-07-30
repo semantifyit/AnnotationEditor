@@ -46,7 +46,8 @@ class PropertyNode extends React.Component<IProps, IState> {
     nodeId: this.props.nodeId,
   };
 
-  public shouldComponentUpdate(nextProps: IProps, nextState: IState) {
+  // removed since it didnt allow forceUpdate from TypeNode-component to re render children
+  /*public shouldComponentUpdate(nextProps: IProps, nextState: IState) {
     // if the parent type node calls setState, don't re-render properties
     return (
       nextProps.nodeId !== this.props.nodeId ||
@@ -55,7 +56,7 @@ class PropertyNode extends React.Component<IProps, IState> {
       this.state.nodeId !== nextState.nodeId ||
       this.state.selectedRange !== nextState.selectedRange
     );
-  }
+  }*/
 
   public changedPropSelection = (e: ISingleOption) => {
     this.setState({ nodeId: e.value, selectedRange: '' });

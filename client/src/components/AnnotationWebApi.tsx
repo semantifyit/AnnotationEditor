@@ -11,6 +11,7 @@ import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
 import Mapping from './Mapping/Mapping';
 import { removeNSFromJSONLD } from '../helpers/rdf';
+import VocabSelection from './VocabSelection';
 
 interface IState {
   ready: boolean;
@@ -130,6 +131,9 @@ class AnnotationWebApi extends React.Component<{}, IState> {
                 </h1>
               </div>
             </section>
+            <div className="float-right">
+              <VocabSelection reloadClick={() => this.forceUpdate()} />
+            </div>
             <h4>
               {this.steps[this.state.currentStep].title}{' '}
               {this.state.currentStep > 0 && `(${this.state.currentStep})`}

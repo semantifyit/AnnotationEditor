@@ -1,5 +1,5 @@
 import jsonld from 'jsonld';
-import N3 from 'n3';
+import * as N3 from 'n3';
 
 export const quadsToJsonLD = async (nquads: string): Promise<object[]> =>
   jsonld.fromRDF(nquads, { format: 'application/n-quads' });
@@ -7,7 +7,7 @@ export const quadsToJsonLD = async (nquads: string): Promise<object[]> =>
 export const turtleToJsonLD = (turtleString: string): Promise<object[]> =>
   new Promise((resolve, reject) => {
     const parser = new N3.Parser();
-    const writer = N3.Writer({ format: 'N-Triples' });
+    const writer = new N3.Writer({ format: 'N-Triples' });
     parser.parse(turtleString, (error: any, quad: any) => {
       if (error) {
         reject(error);

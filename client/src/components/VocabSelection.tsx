@@ -167,7 +167,7 @@ class VocabSelection extends React.Component<IProps, IState> {
                 data-placement={placement}
               >
                 <div>
-                  <span>Choose schema.org vocabularies:</span>
+                  <span>Choose default vocabularies:</span>
                   {Object.entries(defaultVocabs).map(([name, desc], i) => (
                     <div className="form-check" key={i}>
                       <input

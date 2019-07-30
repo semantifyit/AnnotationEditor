@@ -17,6 +17,7 @@ import PropertyNode from './PropertyNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
 import { IContext, VocabContext } from '../helpers/VocabContext';
 import { flatten2DArr } from '../helpers/util';
+import * as p from '../helpers/properties';
 
 interface IProps {
   nodeId: string;
@@ -298,6 +299,13 @@ class TypeNode extends React.Component<IProps, IState> {
     const propertyNodeObj = Object.entries(
       this.context.vocab.getPropertyNodeForTypes(this.state.nodeIds),
     ).filter(([k, v]) => v.length > 0);
+
+    if (
+      canUseDashIOProps &&
+      this.context.vocab.currentVocabs.includes('shaclExt')
+    ) {
+      propertyNodeObj.push(['Shacl Extension', [{ '@id': p.shShapesGraph }]]);
+    }
 
     let selectedProp = this.state.selectedProp;
 

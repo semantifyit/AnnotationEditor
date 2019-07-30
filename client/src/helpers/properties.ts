@@ -1,4 +1,11 @@
-export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh';
+export type Namespace =
+  | 'xsd'
+  | 'rdf'
+  | 'rdfs'
+  | 'owl'
+  | 'schema'
+  | 'sh'
+  | 'action';
 
 export const commonNamespaces = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
@@ -7,6 +14,7 @@ export const commonNamespaces = {
   owl: 'http://www.w3.org/2002/07/owl#',
   schema: 'http://schema.org/',
   sh: 'http://www.w3.org/ns/shacl#',
+  action: 'https://actions.semantify.it/vocab/',
 };
 
 export const joinNS = (namespace: Namespace, nodeId: string): string =>
@@ -78,11 +86,15 @@ export const shTarget = joinNS('sh', 'target');
 export const shSelect = joinNS('sh', 'select');
 export const shTargetClass = joinNS('sh', 'targetClass');
 export const shTargetNode = joinNS('sh', 'targetNode');
+export const shShapesGraph = joinNS('sh', 'shapesGraph');
 
 // OWL
 export const owlClass = joinNS('owl', 'Class');
 export const owlDatatypeProperty = joinNS('owl', 'DatatypeProperty');
 export const owlObjectProperty = joinNS('owl', 'Class');
+
+// Own
+export const actionJsonDSBox = joinNS('action', 'JsonDSBox');
 
 // Property groups
 export const ranges = [schemaRangeIncludes, rdfsRange];
@@ -117,4 +129,6 @@ export const terminalNodes = [
   schemaDateTime,
   // special case schema
   schemaQuantity,
+  // own terminals
+  actionJsonDSBox,
 ];

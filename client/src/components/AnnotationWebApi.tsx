@@ -49,6 +49,7 @@ class AnnotationWebApi extends React.Component<{}, IState> {
       'schema',
       'schema-pending',
       'webapi',
+      'shaclExt',
     );
     this.setState({ ready: true });
   }

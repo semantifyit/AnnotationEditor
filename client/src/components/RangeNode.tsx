@@ -14,6 +14,8 @@ import {
 import TypeNode from './TypeNode';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
+import JsonDsBox from './JsonDsBox';
+import ButtonModal from './Mapping/ButtonModal';
 
 interface IProps {
   nodeId: string;
@@ -225,6 +227,20 @@ class RangeNode extends React.Component<IProps, IState> {
               typeof e !== 'string' && this.handleTime(e, 'HH:mm')
             }
           />
+        );
+      case p.actionJsonDSBox:
+        return (
+          <ButtonModal
+            modalTitle="Edit Shacl Graph"
+            triggerType="button"
+            btnTitle="Edit Shacl Graph"
+            btnColor="primary"
+          >
+            <JsonDsBox
+              onChange={(value) => this.setState({ value })}
+              value={this.state.value}
+            />
+          </ButtonModal>
         );
       default:
         const node = this.context.vocab.getNode(nodeId);

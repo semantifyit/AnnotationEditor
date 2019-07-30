@@ -31,6 +31,7 @@ export const defaultVocabs = {
   'schema-health-lifesci': 'Schema.org Health and Lifesciences',
   'schema-auto': 'Schema.org Auto',
   webapi: 'Webapi Shacl shapes',
+  shaclExt: 'Webapi Shacl-DS extension',
 };
 
 export interface IIdNode {

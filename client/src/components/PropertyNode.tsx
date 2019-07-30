@@ -11,7 +11,7 @@ import {
 import { INode } from '../helpers/Vocab';
 import RangeNode from './RangeNode';
 import DropDownSelect, { ISingleOption } from './DropDownSelect';
-import { arraysAreEquals, makeArray } from '../helpers/util';
+import { makeArray } from '../helpers/util';
 import { VocabContext, IContext } from '../helpers/VocabContext';
 import * as p from '../helpers/properties';
 

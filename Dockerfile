@@ -11,9 +11,9 @@ COPY ./api-mapping/package*.json /var/src/api-mapping/
 WORKDIR /var/src
 
 # npm packages need node-gyp, which requires gcc make and python
-RUN apk add --no-cache make gcc g++ python && \
+RUN apk add --no-cache git make gcc g++ python && \
   npm install && \
-  apk del make gcc g++ python
+  apk del git make gcc g++ python
 
 COPY . /var/src
 

@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AceEditor from 'react-ace';
 import 'brace';
 import 'brace/mode/json';
-import 'brace/snippets/json';
 import 'brace/theme/tomorrow';
-import 'brace/ext/language_tools';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { fetchPublicDS, IDSMap } from '../helpers/semantify';
 
 interface IProps {
   onChange(val: string): void;
@@ -14,14 +13,35 @@ interface IProps {
 }
 
 const JsonDsBox = (props: IProps) => {
-  const [dsHash, setDsHash] = useState('');
+  const [selectedDsId, setSelectedDsId] = useState('');
+  const [jsonDsContent, setJsonDsContent] = useState(
+    'No Domain Specification Selected',
+  );
+  const [dsList, setDsList] = useState<IDSMap[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const ds = await fetchPublicDS();
+      setDsList(ds);
+    };
+    fetchData();
+  }, []);
 
   const importClick = async () => {
     try {
-      const res = await axios.get(
-        `https://semantify.it/api/domainSpecification/hash/${dsHash}`,
-      );
-      props.onChange(JSON.stringify(res.data.content, null, 4));
+      if (selectedDsId === '') {
+        setJsonDsContent('No Domain Specification Selected');
+        props.onChange('');
+        return;
+      }
+      const selectedDS = dsList.find(({ id }) => id === selectedDsId);
+      if (!selectedDS) {
+        return;
+      }
+      const url = `https://semantify.it/api/domainSpecification/hash/${selectedDS.hash}`;
+      const res = await axios.get(url);
+      setJsonDsContent(JSON.stringify(res.data.content, null, 2));
+      props.onChange(url);
     } catch (e) {
       toast.error(`Couldn't fetch domainspecification: ${e}`);
     }
@@ -30,14 +50,21 @@ const JsonDsBox = (props: IProps) => {
   return (
     <>
       Import Shacl from Semantify: <br />
-      <div className="input-group mb-3">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Domainspecification Hash"
-          value={dsHash}
-          onChange={(e) => setDsHash(e.target.value)}
-        />
+      <br />
+      <div className="input-group">
+        <select
+          className="custom-select"
+          id="dsSelection"
+          onChange={(e) => setSelectedDsId(e.target.value)}
+          value={selectedDsId}
+        >
+          <option value="">Choose DS...</option>
+          {dsList.map((ds) => (
+            <option key={ds.id} value={ds.id} title={ds.description || ''}>
+              {ds.name}
+            </option>
+          ))}
+        </select>
         <div className="input-group-append">
           <button
             className="btn btn-outline-primary"
@@ -48,17 +75,16 @@ const JsonDsBox = (props: IProps) => {
           </button>
         </div>
       </div>
+      <br />
       <AceEditor
-        mode="json"
+        mode={props.value === '' ? 'text' : 'json'}
         theme="tomorrow"
         name="jsondsbox"
-        onChange={props.onChange}
+        readOnly={true}
         editorProps={{ $blockScrolling: Infinity }}
         fontSize={14}
-        setOptions={{ enableSnippets: true }}
         width="100%"
-        value={props.value}
-        enableBasicAutocompletion={true}
+        value={jsonDsContent}
       />
     </>
   );

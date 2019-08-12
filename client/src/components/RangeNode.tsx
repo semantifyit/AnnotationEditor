@@ -235,6 +235,7 @@ class RangeNode extends React.Component<IProps, IState> {
             triggerType="button"
             btnTitle="Edit Shacl Graph"
             btnColor="primary"
+            unmountOnClose={false}
           >
             <JsonDsBox
               onChange={(value) => this.setState({ value })}

@@ -11,6 +11,7 @@ interface IProps {
   btnTitle?: string;
   disabled?: boolean;
   tooltip?: string;
+  unmountOnClose?: boolean;
 }
 
 interface IState {
@@ -56,6 +57,11 @@ class ButtonModal extends React.Component<IProps, IState> {
           isOpen={this.state.modalOpen}
           toggle={this.toggleModal}
           size="lg"
+          unmountOnClose={
+            this.props.unmountOnClose === undefined
+              ? true
+              : this.props.unmountOnClose
+          } // cannot do "||" since allow false
         >
           <ModalHeader toggle={this.toggleModal}>
             {this.props.modalTitle}

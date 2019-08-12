@@ -6,6 +6,8 @@ export interface IDSMap {
   id: string;
   name: string;
   hash: string;
+  description?: string;
+  types: [string];
 }
 
 export interface ISemantifyWebsite {
@@ -22,7 +24,12 @@ export interface ISemantifyUser {
 
 interface IDSResponce {
   data: {
-    [dsId: string]: { name: string; hash: string };
+    [dsId: string]: {
+      name: string;
+      hash: string;
+      description?: string;
+      types: [string];
+    };
   };
 }
 
@@ -57,6 +64,8 @@ export const fetchPublicDS = async (): Promise<IDSMap[]> => {
       id: k,
       name: v.name,
       hash: v.hash,
+      description: v.description,
+      types: v.types,
     }));
   } catch (e) {
     return [];

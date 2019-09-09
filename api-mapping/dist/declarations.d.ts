@@ -1,4 +1,4 @@
 declare module 'rocketrml';
-declare module '@rmlio/yarrrml-parser/lib/yarrrml2rml';
+declare module '@rmlio/yarrrml-parser/lib/rml-generator';
 declare module 'jsonld';
 declare module 'n3';

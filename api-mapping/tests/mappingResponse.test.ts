@@ -123,13 +123,15 @@ describe('new mapping', () => {
 describe('xml', () => {
   it('simple object', async () => {
     const mapping = {
-      body: '<root><data at="$.result.my">$.result.bar</data></root>',
+      body:
+        '<root><data at="$.result.my" _set="$.result.@type=mytype">$.result.bar</data></root>',
     };
     const input = {
       body: '<root><data at="123">foo</data></root>',
     };
     const expectedResult = {
       result: {
+        '@type': 'mytype',
         bar: 'foo',
         my: '123',
       },
@@ -146,6 +148,30 @@ describe('xml', () => {
       result: {
         name: 'foo',
       },
+    };
+    expect(await responseMapping(input, mapping, { type: 'xml' })).toEqual(
+      expectedResult,
+    );
+  });
+
+  it('iterator', async () => {
+    const mapping = {
+      headers: {},
+      body: '<data><ele ite="i">$.result[i].name</ele></data>',
+    };
+    const input = {
+      headers: {},
+      body: '<data><ele>one</ele><ele>two</ele></data>',
+    };
+    const expectedResult = {
+      result: [
+        {
+          name: 'one',
+        },
+        {
+          name: 'two',
+        },
+      ],
     };
     expect(await responseMapping(input, mapping, { type: 'xml' })).toEqual(
       expectedResult,

@@ -130,7 +130,7 @@ var __generator =
 var _this = this;
 Object.defineProperty(exports, '__esModule', { value: true });
 var N3 = require('n3');
-var yarrrmlParser = require('@rmlio/yarrrml-parser/lib/yarrrml2rml');
+var yarrrmlParser = require('@rmlio/yarrrml-parser/lib/rml-generator');
 var rmlMapperNode = require('rocketrml');
 exports.yarrrmlParse = function(yaml) {
   return new Promise(function(resolve) {
@@ -167,7 +167,7 @@ exports.runRmlMapping = function(mappingFile, inputFile, options) {
 };
 exports.yarrrmlExtend = function(yarrrml) {
   var str = yarrrml.replace(
-    /((?:parameters|pms): *\[)([\w@\^\.\/\$\(\)\"\' ,\[\]]+)(\])/g,
+    /((?:parameters|pms): *\[)([\w@\^\.\/\$\(\)\"\' ,\[\]\|\=]+)(\])/g,
     function() {
       var e = [];
       for (var _i = 0; _i < arguments.length; _i++) {
@@ -179,15 +179,15 @@ exports.yarrrmlExtend = function(yarrrml) {
         cg3 = _a[3];
       var params = cg2
         .split(',')
-        .map(function(e, i) {
-          return '[schema:str' + i + ', ' + e.trim() + ']';
+        .map(function(el, i) {
+          return '[schema:str' + i + ', ' + el.trim() + ']';
         })
         .join(', ');
       return cg1 + params + cg3;
     },
   );
   str = str.replace(
-    /join: *\[ *"?([\w@\^\.\/\$\:\-\*\,\ ]+)"? *, *"?([\w@\^\.\/\$\:\-\*\,\ ]+)"? *\]/g,
+    /join: *\[ *"?([\w@\^\.\/\$\:\-\*\,\ \'\)\()]+)"? *, *"?([\w@\^\.\/\$\:\-\*\,\ \'\(\)]+)"? *\]/g,
     'condition:{function:equal,parameters:[[str1,"$($1)"],[str2,"$($2)"]]}',
   );
   return str;
@@ -197,6 +197,49 @@ var escapeTable = {
   ')': '\\$RBR',
   '{': '\\$LCB',
   '}': '\\$RCB',
+};
+var yarrrmlEncodeBrackets = function(str) {
+  var level = 0;
+  var ret = '';
+  for (var i = 0; i < str.length; i += 1) {
+    var c = str[i];
+    if (level < 0) {
+      throw new Error('failed parsing brackets');
+    }
+    if (level === 0) {
+      switch (c) {
+        case '$':
+          if (str[i + 1] === '(') {
+            level += 1;
+            i += 1;
+            ret += '$(';
+          }
+          break;
+        case '(':
+        case ')':
+        default:
+          ret += c;
+      }
+    } else {
+      switch (c) {
+        case '(':
+          level += 1;
+          ret += '$LBR';
+          break;
+        case ')':
+          level -= 1;
+          if (level === 0) {
+            ret += ')';
+          } else {
+            ret += '$RBR';
+          }
+          break;
+        default:
+          ret += c;
+      }
+    }
+  }
+  return ret;
 };
 exports.decodeRMLReplacements = function(rml) {
   return Object.entries(escapeTable).reduce(function(str, _a) {
@@ -212,6 +255,7 @@ exports.yarrrmlPlusToRml = function(yarrrml) {
       switch (_a.label) {
         case 0:
           mappingStr = exports.yarrrmlExtend(yarrrml);
+          mappingStr = yarrrmlEncodeBrackets(mappingStr);
           return [4, exports.yarrrmlParse(mappingStr)];
         case 1:
           mappingStr = _a.sent();

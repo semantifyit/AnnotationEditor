@@ -175,24 +175,33 @@ var doMapping = function(mappingObj, input, result, iterators, options) {
       .forEach(function(_a) {
         var key = _a[0],
           value = _a[1];
-        if (
-          typeof value === 'string' &&
-          value.trim().startsWith('$') &&
-          input[key] !== undefined
-        ) {
-          var _b = util_1.parsePathStr(value, true),
-            path = _b.path,
-            transformFunction = _b.transformFunction;
-          var iteratorPath = util_1.replaceIterators(path, iterators);
-          if (options.evalMethod && transformFunction) {
-            var transformedValue = util_1.transFormValue(
-              input[key],
-              transformFunction,
-              options.evalMethod,
-            );
-            util_1.set(result, iteratorPath, transformedValue);
-          } else {
-            util_1.set(result, iteratorPath, input[key]);
+        if (typeof value === 'string' && value.trim().startsWith('$')) {
+          if (key === '_set') {
+            var setVals = value.split(',');
+            setVals.forEach(function(setVal) {
+              var _a = setVal.split('='),
+                setValPath = _a[0],
+                setValVal = _a[1];
+              var path = util_1.parsePathStr(setValPath, true).path;
+              var iteratorPath = util_1.replaceIterators(path, iterators);
+              util_1.set(result, iteratorPath, setValVal);
+            });
+          } else if (input[key] !== undefined) {
+            var _b = util_1.parsePathStr(value, true),
+              path = _b.path,
+              transformFunction = _b.transformFunction;
+            var iteratorPath = util_1.replaceIterators(path, iterators);
+            console.log(iterators);
+            if (options.evalMethod && transformFunction) {
+              var transformedValue = util_1.transFormValue(
+                input[key],
+                transformFunction,
+                options.evalMethod,
+              );
+              util_1.set(result, iteratorPath, transformedValue);
+            } else {
+              util_1.set(result, iteratorPath, input[key]);
+            }
           }
         } else if (typeof value === 'object') {
           doMapping(value, input[key], result, iterators, options);
@@ -240,7 +249,10 @@ exports.responseMapping = function(
           return [4, util_1.xmlToJson(input.body)];
         case 2:
           _b.body = _c.sent();
-          if (!options.iteratorPath) {
+          if (
+            !options.iteratorPath ||
+            options.iteratorPath === defaultResponseOptions.iteratorPath
+          ) {
             options.iteratorPath = '$.ite';
           }
           _c.label = 3;
@@ -266,7 +278,11 @@ exports.responseMapping = function(
           rmlStr = _c.sent();
           return [
             4,
-            rmlmapper_1.runRmlMapping(rmlStr, input.body, options.rmlOptions),
+            rmlmapper_1.runRmlMapping(
+              rmlStr,
+              input.body ? input.body : input,
+              options.rmlOptions,
+            ),
           ];
         case 6:
           rmlResult = _c.sent();

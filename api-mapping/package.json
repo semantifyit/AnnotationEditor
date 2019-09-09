@@ -17,7 +17,12 @@
       "js",
       "json"
     ],
-    "testRegex": "^.+\\.(test|spec)\\.ts$"
+    "testRegex": "^.+\\.(test|spec)\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "diagnostics": false
+      }
+    }
   },
   "files": [
     "dist"
@@ -32,7 +37,7 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "@rmlio/yarrrml-parser": "^0.3.3",
+    "@rmlio/yarrrml-parser": "^0.3.7",
     "n3": "^1.1.1",
     "rocketrml": "^1.0.6",
     "xml2js": "^0.4.19"

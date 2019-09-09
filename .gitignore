@@ -3,7 +3,7 @@
 swagger/swagger-bundle.yml
 log/*
 misc/*
-*voa*
+*vao*
 
 # backup folder
 backup/

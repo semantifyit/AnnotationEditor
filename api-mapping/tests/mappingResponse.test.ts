@@ -196,7 +196,7 @@ mappings:
       - [schema:language, $(speaks.*)]
 `;
 
-    const input = `{
+    const input = {body:`{
   "persons": [
       {
           "firstname": "John",
@@ -215,7 +215,7 @@ mappings:
           ]
       }
   ]
-}`;
+}`};
     const expectedResult = [
       {
         '@id': 'http://example.com/John',
@@ -236,7 +236,7 @@ mappings:
         },
       },
     ];
-    expect(await responseMapping(input, mapping, { type: 'yarrrml' })).toEqual(
+    expect(await responseMapping(input, {body: mapping}, { type: 'yarrrml' })).toEqual(
       expectedResult,
     );
   });

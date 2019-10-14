@@ -39,7 +39,7 @@
   "dependencies": {
     "@rmlio/yarrrml-parser": "^0.3.7",
     "n3": "^1.1.1",
-    "rocketrml": "^1.0.6",
+    "rocketrml": "git+https://github.com/semantifyit/RocketRML/#955a2b4295a676af7703ff4120bc863a45af70dd",
     "xml2js": "^0.4.19"
   }
 }

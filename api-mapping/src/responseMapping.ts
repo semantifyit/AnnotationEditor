@@ -9,6 +9,7 @@ import {
   xmlToJson,
   EvalMethod,
   clone,
+  isEmptyObject,
 } from './util';
 import { runRmlMapping, yarrrmlPlusToRml } from './rmlmapper';
 
@@ -153,7 +154,7 @@ export const responseMapping = async (
         input.body,
         options.rmlOptions,
       );
-      if (mapping.headers && input.headers) {
+      if (mapping.headers && input.headers && !isEmptyObject(mapping.headers)) {
         doMapping(
           mapping.headers,
           input.headers,
@@ -161,7 +162,9 @@ export const responseMapping = async (
           {},
           options as ResponseOptions,
         );
-        mergeResult(rmlResult, result.$, new RegExp('$^'));
+        if(result.$) {
+            mergeResult(rmlResult, result.$, new RegExp('$^'));
+        }
       }
       result.$ = rmlResult;
     }

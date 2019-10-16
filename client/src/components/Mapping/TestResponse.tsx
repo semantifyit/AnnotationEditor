@@ -53,9 +53,9 @@ class TestResponse extends React.Component<IProps, IState> {
           ? JSON.parse(this.state.editorBodyValue)
           : this.state.editorBodyValue,
     };
-    console.log(JSON.stringify(input));
-    console.log(JSON.stringify(this.props.responseMapping));
-    console.log(JSON.stringify(this.props.responseMappingType));
+    //console.log(JSON.stringify(input));
+    //console.log(JSON.stringify(this.props.responseMapping));
+    //console.log(JSON.stringify(this.props.responseMappingType));
     const mappingOutput = await responseMapping(
       input,
       this.props.responseMapping,
@@ -63,7 +63,7 @@ class TestResponse extends React.Component<IProps, IState> {
         type: this.props.responseMappingType,
       },
     );
-    console.log(JSON.stringify(mappingOutput));
+    //console.log(JSON.stringify(mappingOutput));
     this.setState({ mappingOutput });
   };
 

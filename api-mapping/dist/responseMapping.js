@@ -150,9 +150,11 @@ exports.responseMapping = function (userInputResponse, userMapping, userOptions,
                     return [4, rmlmapper_1.runRmlMapping(rmlStr, input.body, options.rmlOptions)];
                 case 6:
                     rmlResult = _c.sent();
-                    if (mapping.headers && input.headers) {
+                    if (mapping.headers && input.headers && !util_1.isEmptyObject(mapping.headers)) {
                         doMapping(mapping.headers, input.headers, result, {}, options);
-                        util_1.mergeResult(rmlResult, result.$, new RegExp('$^'));
+                        if (result.$) {
+                            util_1.mergeResult(rmlResult, result.$, new RegExp('$^'));
+                        }
                     }
                     result.$ = rmlResult;
                     _c.label = 7;

@@ -7,6 +7,7 @@ const fs = require('fs');
 
 const vocabRouter = require('./routes/vocabs');
 const downloadRouter = require('./routes/downloads');
+const relayRouter = require('./routes/relay');
 
 const app = express();
 app.use(parser.json());
@@ -19,6 +20,7 @@ app.use((req, res, next) => {
 
 app.use('/annotation/api', vocabRouter);
 app.use('/annotation/api', downloadRouter);
+app.use('/annotation/api', relayRouter);
 
 // server app route
 if (process.env.NODE_ENV && process.env.NODE_ENV !== 'default') {

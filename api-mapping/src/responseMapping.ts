@@ -9,29 +9,26 @@ import {
   xmlToJson,
   EvalMethod,
   clone,
+  isEmptyObject,
 } from './util';
 import { runRmlMapping, yarrrmlPlusToRml } from './rmlmapper';
 
-interface StringObj<T = string> {
-  [key: string]: T;
-}
-
-export interface ResponseMapping {
-  headers?: StringObj;
-  body?: object | string;
-}
 
 export type ResponseType = 'json' | 'xml' | 'yarrrml';
 
-interface ResponseOptions {
-  type?: ResponseType;
-  evalMethod?: EvalMethod;
-  iteratorPath?: string;
-  rmlOptions?: object;
+export interface ResponseMappingInput {
+  headers?: Record<string, string>;
+  body?: object | string;
 }
 
-interface ResponseOptionsReq {
-  type: 'json' | 'xml' | 'yarrrml';
+
+export interface ResponseMapping {
+  headers?: Record<string, string>;
+  body?: object | string;
+}
+
+interface ResponseOptions {
+  type: ResponseType;
   evalMethod: EvalMethod;
   iteratorPath: string;
   rmlOptions?: object;
@@ -54,7 +51,7 @@ const doMapping = (
   input: any,
   result: object,
   iterators: { [key: string]: number },
-  options: ResponseOptionsReq,
+  options: ResponseOptions,
 ): void => {
   if (!input || !mappingObj) {
     return;
@@ -97,7 +94,6 @@ const doMapping = (
             // value is path
             const { path, transformFunction } = parsePathStr(value, true);
             const iteratorPath = replaceIterators(path, iterators);
-            console.log(iterators);
             if (options.evalMethod && transformFunction) {
               const transformedValue = transFormValue(
                 input[key],
@@ -119,9 +115,9 @@ const doMapping = (
 };
 
 export const responseMapping = async (
-  userInputResponse: any,
-  userMapping: any,
-  userOptions: ResponseOptions = defaultResponseOptions,
+  userInputResponse: ResponseMappingInput,
+  userMapping: ResponseMapping,
+  userOptions: Partial<ResponseOptions> = defaultResponseOptions,
   mergeObj?: object,
 ): Promise<object> => {
   try {
@@ -133,7 +129,7 @@ export const responseMapping = async (
       userOptions,
     );
 
-    if (options.type === 'xml' && mapping.body && input.body) {
+    if (options.type === 'xml' && mapping.body && typeof mapping.body === 'string' && input.body && typeof input.body === 'string') {
       mapping.body = await xmlToJson(mapping.body);
       input.body = await xmlToJson(input.body);
       if (
@@ -150,27 +146,25 @@ export const responseMapping = async (
       input.body = JSON.parse(input.body);
     }
     if (options.type === 'json' || options.type === 'xml') {
-      doMapping(mapping, input, result, {}, options as ResponseOptionsReq);
-    } else if (options.type === 'yarrrml') {
-      let yarrrml = mapping;
-      if (mapping.body) {
-        yarrrml = mapping.body;
-      }
-      const rmlStr = await yarrrmlPlusToRml(yarrrml);
+      doMapping(mapping, input, result, {}, options as ResponseOptions);
+    } else if (options.type === 'yarrrml' && typeof mapping.body === 'string' && typeof input.body === 'string') {
+      const rmlStr = await yarrrmlPlusToRml(mapping.body);
       const rmlResult = await runRmlMapping(
         rmlStr,
-        input.body ? input.body : input,
+        input.body,
         options.rmlOptions,
       );
-      if (mapping.headers && input.headers) {
+      if (mapping.headers && input.headers && !isEmptyObject(mapping.headers)) {
         doMapping(
           mapping.headers,
           input.headers,
           result,
           {},
-          options as ResponseOptionsReq,
+          options as ResponseOptions,
         );
-        mergeResult(rmlResult, result.$, new RegExp('$^'));
+        if(result.$) {
+            mergeResult(rmlResult, result.$, new RegExp('$^'));
+        }
       }
       result.$ = rmlResult;
     }

@@ -212,7 +212,7 @@ export const xmlToJson = async (xml: string): Promise<object> =>
 
 export const jsonToXml = (json: object): string => {
   const xmlBuilder = new xml2js.Builder({
-    renderOpts: { pretty: true },
+    renderOpts: { pretty: false },
   }); // maybe set false
   return xmlBuilder.buildObject(json);
 };

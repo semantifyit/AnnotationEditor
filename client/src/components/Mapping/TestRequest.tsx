@@ -120,7 +120,7 @@ class TestRequest extends React.Component<IProps, IState> {
     });
   };
 
-  public runRequestMapping = async () => {
+  public runRequestMapping = async () => {      
     if (!this.props.requestMapping) {
       alert('There is some error with your mapping!');
       return;
@@ -150,17 +150,24 @@ class TestRequest extends React.Component<IProps, IState> {
       return;
     }
     try {
-      const response = await axios({
+    //   const response = await axios({
+    //     method: this.props.requestMethod as Method,
+    //     url: mappingOutput.url,
+    //     headers: mappingOutput.headers,
+    //     data: mappingOutput.body,
+    //   });
+      const {data} = await axios.post('/annotation/api/relay', {
         method: this.props.requestMethod as Method,
         url: mappingOutput.url,
         headers: mappingOutput.headers,
         data: mappingOutput.body,
-      });
+      });      
+
       this.setState({
-        apiResponse: response,
+        apiResponse: data,
       });
       if (this.props.testWithResponseMapping) {
-        this.doResponseMapping(response);
+        this.doResponseMapping(data);
       }
       // console.log(response.data);
     } catch (e) {
@@ -184,19 +191,22 @@ class TestRequest extends React.Component<IProps, IState> {
     }
   };
 
-  public doResponseMapping = (response: AxiosResponse) => {
+  public doResponseMapping = async (response: AxiosResponse) => {
     if (!this.props.responseMapping) {
       return;
-    }
+    }    
 
     const input = {
       headers: response.headers,
       body: response.data,
     };
-    const responseMappingOutput = responseMapping(
+    const responseMappingOutput = await responseMapping(
       input,
       this.props.responseMapping,
-    );
+      {
+        type: this.props.responseMappingType,
+      }
+    );    
     this.setState({ responseMappingOutput });
   };
 

@@ -94,6 +94,8 @@ const yarrrmlEncodeBrackets = (str: string) => {
             level += 1;
             i += 1;
             ret += '$(';
+          } else {
+            ret += c;
           }
           break;
         case '(':

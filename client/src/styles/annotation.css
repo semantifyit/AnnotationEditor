@@ -1,0 +1,12 @@
+.typenode {
+  padding: 10px;
+}
+
+.typenode-border {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+}
+
+.popover {
+  max-width: 1000px;
+}

@@ -1,0 +1,21 @@
+{
+  "@context": {
+    "action": "https://actions.semantify.it/vocab/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "schema": "http://schema.org/",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "sh:shapesGraph",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Add a shacl shapes graph to current node",
+      "rdfs:label": "shapesGraph",
+      "schema:rangeIncludes": {
+        "@id": "action:JsonDSBox"
+      }
+    }
+  ]
+}

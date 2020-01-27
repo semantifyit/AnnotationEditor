@@ -1,0 +1,2293 @@
+{
+  "@context": {
+    "dct": "http://purl.org/dc/terms/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "hydra": "http://www.w3.org/ns/hydra/core#",
+    "ns1": "http://www.w3.org/2004/02/skos/core#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfa": "http://www.w3.org/ns/rdfa#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "schema": "http://schema.org/",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "webapi": "https://actions.semantify.it/vocab/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "_:ub136bL245C17",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "schema:defaultValue"
+      }
+    },
+    {
+      "@id": "_:ub136bL519C14",
+      "sh:nodeKind": {
+        "@id": "sh:IRI"
+      },
+      "sh:path": {
+        "@id": "schema:url"
+      }
+    },
+    {
+      "@id": "schema:text",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The textual content of this CreativeWork.",
+      "rdfs:label": "text",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "_:ub136bL470C14",
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:version"
+      },
+      "sh:pattern": "\\bv?\\d+\\.\\d+\\.\\d+(?:\\.[0-9]+)?\\b"
+    },
+    {
+      "@id": "_:ub136bL146C5",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL148C18"
+        },
+        {
+          "@id": "_:ub136bL154C18"
+        },
+        {
+          "@id": "_:ub136bL160C18"
+        }
+      ]
+    },
+    {
+      "@id": "schema:WebAPI",
+      "@type": "rdfs:Class",
+      "dcterms:source": {
+        "@id": "https://github.com/schemaorg/schemaorg/issues/1423"
+      },
+      "rdfs:comment": "An application programming interface accessible over Web/Internet technologies.",
+      "rdfs:label": "WebAPI",
+      "rdfs:subClassOf": {
+        "@id": "schema:Service"
+      },
+      "schema:category": "issue-1423",
+      "schema:isPartOf": {
+        "@id": "http://pending.schema.org"
+      }
+    },
+    {
+      "@id": "_:ub136bL289C11",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL291C16"
+        },
+        {
+          "@id": "_:ub136bL305C16"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL352C14",
+      "sh:class": {
+        "@id": "schema:PropertyValue"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:node": {
+        "@id": "_:ub136bL357C11"
+      },
+      "sh:path": {
+        "@id": "webapi:httpStatusCode"
+      }
+    },
+    {
+      "@id": "_:ub136bL383C11",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL389C16"
+        },
+        {
+          "@id": "_:ub136bL385C16"
+        }
+      ]
+    },
+    {
+      "@id": "webapi:tokenFormat",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Format of the bearer token",
+      "rdfs:label": "tokenFormat",
+      "schema:domainIncludes": {
+        "@id": "webapi:TokenAuthentication"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "schema:additionalType",
+      "@type": "rdf:Property",
+      "rdfs:comment": "An additional type for the item, typically used for adding more specific types from external vocabularies in microdata syntax. This is a relationship between something and a class that the thing is in. In RDFa syntax, it is better to use the native RDFa syntax - the 'typeof' attribute - for multiple types. Schema.org tools may have only weaker understanding of extra types, in particular those defined externally.",
+      "rdfs:label": "additionalType",
+      "schema:domainIncludes": {
+        "@id": "schema:Thing"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:URL"
+      }
+    },
+    {
+      "@id": "schema:review",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A review of the item.",
+      "rdfs:label": "review",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Event"
+        },
+        {
+          "@id": "schema:Product"
+        },
+        {
+          "@id": "schema:Organization"
+        },
+        {
+          "@id": "schema:Place"
+        },
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:Offer"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:Brand"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:Review"
+      }
+    },
+    {
+      "@id": "schema:author",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The author of this content or rating. Please note that author is special in that HTML 5 provides a special mechanism for indicating authorship via the rel tag. That is equivalent to this and may be used interchangeably.",
+      "rdfs:label": "author",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Rating"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Person"
+        },
+        {
+          "@id": "schema:Organization"
+        }
+      ]
+    },
+    {
+      "@id": "schema:potentialAction",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Indicates a potential Action, which describes an idealized action in which this thing would play an 'object' role.",
+      "rdfs:label": "potentialAction",
+      "schema:domainIncludes": {
+        "@id": "schema:Thing"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Action"
+      }
+    },
+    {
+      "@id": "_:ub136bL480C14",
+      "sh:class": {
+        "@id": "schema:Person"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      },
+      "sh:path": {
+        "@id": "schema:accountablePerson"
+      }
+    },
+    {
+      "@id": "webapi:InputOutputPropertyValueSpecification",
+      "@type": "sh:NodeShape",
+      "sh:sparql": {
+        "@id": "_:ub136bL273C12"
+      },
+      "sh:targetClass": {
+        "@id": "rdf:Property"
+      }
+    },
+    {
+      "@id": "schema:value",
+      "@type": "rdf:Property",
+      "rdfs:comment": "<p>The value of the quantitative value or property value node.</p>\n\n<ul>\n<li>For <a class=\"localLink\" href=\"http://schema.org/QuantitativeValue\">QuantitativeValue</a> and <a class=\"localLink\" href=\"http://schema.org/MonetaryAmount\">MonetaryAmount</a>, the recommended type for values is 'Number'.</li>\n<li>For <a class=\"localLink\" href=\"http://schema.org/PropertyValue\">PropertyValue</a>, it can be 'Text;', 'Number', 'Boolean', or 'StructuredValue'.</li>\n</ul>\n",
+      "rdfs:label": "value",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "schema:MonetaryAmount"
+        },
+        {
+          "@id": "schema:QuantitativeValue"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:StructuredValue"
+        },
+        {
+          "@id": "schema:Boolean"
+        },
+        {
+          "@id": "schema:Number"
+        },
+        {
+          "@id": "schema:Text"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL199C14",
+      "sh:class": {
+        "@id": "schema:Thing"
+      },
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:result"
+      }
+    },
+    {
+      "@id": "schema:isBasedOn",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A resource that was used in the creation of this resource. This term can be repeated for multiple sources. For example, http://example.com/great-multiplication-intro.html.",
+      "rdfs:label": "isBasedOn",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:URL"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:Product"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL291C16",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL294C13"
+      },
+      "sh:path": {
+        "@id": "schema:value-output"
+      }
+    },
+    {
+      "@id": "webapi:httpStatusCode",
+      "@type": "rdf:Property",
+      "rdfs:comment": "HTTP status code (RFC) to support the action status. ",
+      "rdfs:label": "httpStatusCode",
+      "schema:domainIncludes": {
+        "@id": "schema:ActionStatusType"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:PropertyValue"
+      }
+    },
+    {
+      "@id": "_:ub136bL257C15",
+      "sh:class": {
+        "@id": "schema:ActionStatusType"
+      },
+      "sh:nodeKind": {
+        "@id": "sh:IRI"
+      },
+      "sh:path": {
+        "@id": "schema:actionStatus"
+      }
+    },
+    {
+      "@id": "webapi:HTTPMessageBody",
+      "@type": "webapi:HTTPMessagePart",
+      "rdfs:comment": "Body of an HTTP message",
+      "rdfs:label": "HTTPMessageBody"
+    },
+    {
+      "@id": "schema:description",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A description of the item.",
+      "rdfs:label": "description",
+      "schema:domainIncludes": {
+        "@id": "schema:Thing"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "webapi:ContactShape",
+      "@type": "sh:NodeShape",
+      "sh:description": "A shape for the essential contact information of a Person or Organization",
+      "sh:name": "ContactShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL511C14"
+        },
+        {
+          "@id": "_:ub136bL515C14"
+        },
+        {
+          "@id": "_:ub136bL519C14"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL187C18",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:path": {
+        "@id": "schema:value-input"
+      }
+    },
+    {
+      "@id": "webapi:DocumentationShape",
+      "@type": "sh:NodeShape",
+      "sh:description": "A shape for WebAPI documentation",
+      "sh:name": "DocumentationShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL470C14"
+        },
+        {
+          "@id": "_:ub136bL451C14"
+        },
+        {
+          "@id": "_:ub136bL461C14"
+        },
+        {
+          "@id": "_:ub136bL466C14"
+        },
+        {
+          "@id": "_:ub136bL485C14"
+        },
+        {
+          "@id": "_:ub136bL493C14"
+        },
+        {
+          "@id": "_:ub136bL480C14"
+        },
+        {
+          "@id": "_:ub136bL456C14"
+        },
+        {
+          "@id": "_:ub136bL476C14"
+        },
+        {
+          "@id": "_:ub136bL489C14"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL148C18",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:value-input"
+      }
+    },
+    {
+      "@id": "webapi:HTTPMessageHeader",
+      "@type": "webapi:HTTPMessagePart",
+      "rdfs:comment": "Header of an HTTP message",
+      "rdfs:label": "HTTPMessageHeader"
+    },
+    {
+      "@id": "schema:target",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Indicates a target EntryPoint for an Action.",
+      "rdfs:label": "target",
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:EntryPoint"
+      }
+    },
+    {
+      "@id": "_:ub136bL240C15",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL243C12"
+      },
+      "sh:path": {
+        "@id": "schema:description-output"
+      }
+    },
+    {
+      "@id": "webapi:authentication",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The authentication specification for the action. ",
+      "rdfs:label": "authentication",
+      "rdfs:subPropertyOf": {
+        "@id": "schema:instrument"
+      },
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "webapi:AuthenticationSpecification"
+      }
+    },
+    {
+      "@id": "schema:Service",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "A service provided by an organization, e.g. delivery service, print services, etc.",
+      "rdfs:label": "Service",
+      "rdfs:subClassOf": {
+        "@id": "schema:Intangible"
+      }
+    },
+    {
+      "@id": "schema:publisher",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The publisher of the creative work.",
+      "rdfs:label": "publisher",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Person"
+        },
+        {
+          "@id": "schema:Organization"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL173C18",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:path": {
+        "@id": "schema:value-input"
+      }
+    },
+    {
+      "@id": "_:ub136bL171C5",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL173C18"
+        },
+        {
+          "@id": "_:ub136bL177C18"
+        }
+      ]
+    },
+    {
+      "@id": "webapi:ActionStatusTarget",
+      "@type": "sh:SPARQLTargetType",
+      "rdfs:subClassOf": {
+        "@id": "sh:Target"
+      },
+      "sh:labelTemplate": "Target action annotations with {$actionStatus} status",
+      "sh:parameter": {
+        "@id": "_:ub136bL257C15"
+      },
+      "sh:prefixes": {
+        "@id": "https://actions.semantify.it/vocab"
+      },
+      "sh:select": "\n\t\tSELECT ?this\n\t\tWHERE {\n\t\t\t?this a schema:Action .\n\t\t\t?this schema:actionStatus $actionStatus .\n\t\t}\n\t\t"
+    },
+    {
+      "@id": "webapi:PotentialActionShape",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL195C14"
+        },
+        {
+          "@id": "_:ub136bL199C14"
+        },
+        {
+          "@id": "_:ub136bL139C14"
+        },
+        {
+          "@id": "_:ub136bL231C14"
+        },
+        {
+          "@id": "_:ub136bL204C14"
+        }
+      ],
+      "sh:target": {
+        "@id": "_:ub136bL135C12"
+      }
+    },
+    {
+      "@id": "_:ub136bL476C14",
+      "sh:or": {
+        "@list": [
+          {
+            "@id": "_:ub136bL478C10"
+          },
+          {
+            "@id": "_:ub136bL478C64"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "schema:author"
+      }
+    },
+    {
+      "@id": "_:ub136bL380C14",
+      "sh:class": {
+        "@id": "schema:PropertyValue"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL383C11"
+      },
+      "sh:path": {
+        "@id": "webapi:httpStatusCode"
+      }
+    },
+    {
+      "@id": "_:ub136bL445C32",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      }
+    },
+    {
+      "@id": "_:ub136bL451C14",
+      "sh:in": {
+        "@list": [
+          "application/ld+json",
+          "text/html"
+        ]
+      },
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:encodingFormat"
+      }
+    },
+    {
+      "@id": "schema:isSimilarTo",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A pointer to another, functionally similar product (or multiple products).",
+      "rdfs:label": "isSimilarTo",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:Product"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:Product"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL456C14",
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:url"
+      }
+    },
+    {
+      "@id": "schema:minValue",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The lower value of some characteristic or property.",
+      "rdfs:label": "minValue",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "schema:QuantitativeValue"
+        },
+        {
+          "@id": "schema:MonetaryAmount"
+        },
+        {
+          "@id": "schema:PropertyValueSpecification"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:Number"
+      }
+    },
+    {
+      "@id": "_:ub136bL461C14",
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:name"
+      }
+    },
+    {
+      "@id": "_:ub136bL429C14",
+      "sh:minCount": 1,
+      "sh:or": {
+        "@list": [
+          {
+            "@id": "_:ub136bL434C4"
+          },
+          {
+            "@id": "_:ub136bL438C4"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "schema:documentation"
+      }
+    },
+    {
+      "@id": "_:ub136bL487C64",
+      "sh:class": {
+        "@id": "schema:Organization"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      }
+    },
+    {
+      "@id": "_:ub136bL324C14",
+      "sh:class": {
+        "@id": "schema:PropertyValue"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:node": {
+        "@id": "_:ub136bL329C11"
+      },
+      "sh:path": {
+        "@id": "webapi:httpStatusCode"
+      }
+    },
+    {
+      "@id": "schema:offers",
+      "@type": "rdf:Property",
+      "rdfs:comment": "An offer to provide this item&#x2014;for example, an offer to sell a product, rent the DVD of a movie, perform a service, or give away tickets to an event.",
+      "rdfs:label": "offers",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:AggregateOffer"
+        },
+        {
+          "@id": "schema:MenuItem"
+        },
+        {
+          "@id": "schema:Event"
+        },
+        {
+          "@id": "schema:Product"
+        },
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:Offer"
+      }
+    },
+    {
+      "@id": "schema:PropertyValue",
+      "@type": "rdfs:Class",
+      "dcterms:source": {
+        "@id": "http://www.w3.org/wiki/WebSchemas/SchemaDotOrgSources#source_GoodRelationsClass"
+      },
+      "rdfs:comment": "A property-value pair, e.g. representing a feature of a product or place. Use the 'name' property for the name of the property. If there is an additional human-readable version of the value, put that into the 'description' property.<br/><br/>",
+      "rdfs:label": "PropertyValue"
+    },
+    {
+      "@id": "schema:provider",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The service provider, service operator, or service performer; the goods producer. Another party (a seller) may offer those services or goods on behalf of the provider. A provider may also serve as the seller.",
+      "rdfs:label": "provider",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:Flight"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:Reservation"
+        },
+        {
+          "@id": "schema:BusTrip"
+        },
+        {
+          "@id": "schema:ParcelDelivery"
+        },
+        {
+          "@id": "schema:TrainTrip"
+        },
+        {
+          "@id": "schema:Invoice"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Person"
+        },
+        {
+          "@id": "schema:Organization"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL331C16",
+      "sh:datatype": {
+        "@id": "xsd:integer"
+      },
+      "sh:maxCount": 1,
+      "sh:maxInclusive": 599,
+      "sh:minCount": 1,
+      "sh:minInclusive": 400,
+      "sh:path": {
+        "@id": "schema:value"
+      }
+    },
+    {
+      "@id": "schema:version",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The version of the CreativeWork embodied by a specified resource.",
+      "rdfs:label": "version",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Text"
+        },
+        {
+          "@id": "schema:Number"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL139C14",
+      "sh:or": {
+        "@list": [
+          {
+            "@id": "_:ub136bL143C4"
+          },
+          {
+            "@id": "_:ub136bL168C4"
+          },
+          {
+            "@id": "_:ub136bL183C4"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "webapi:authentication"
+      }
+    },
+    {
+      "@id": "_:ub136bL210C16",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "schema:contentType"
+      }
+    },
+    {
+      "@id": "_:ub136bL417C14",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:description": "An authentication specification must have one value.",
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:value"
+      }
+    },
+    {
+      "@id": "https://actions.semantify.it/vocab",
+      "@type": "owl:Ontology",
+      "sh:declare": {
+        "@id": "_:ub136bL15C49"
+      },
+      "sh:entailment": {
+        "@id": "http://www.w3.org/ns/entailment/RDFS"
+      }
+    },
+    {
+      "@id": "_:ub136bL389C16",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:path": {
+        "@id": "schema:description"
+      }
+    },
+    {
+      "@id": "schema:contributor",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A secondary contributor to the CreativeWork or Event.",
+      "rdfs:label": "contributor",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Event"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Organization"
+        },
+        {
+          "@id": "schema:Person"
+        }
+      ]
+    },
+    {
+      "@id": "schema:aggregateRating",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The overall rating, based on a collection of reviews or ratings, of the item.",
+      "rdfs:label": "aggregateRating",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Brand"
+        },
+        {
+          "@id": "schema:Event"
+        },
+        {
+          "@id": "schema:Place"
+        },
+        {
+          "@id": "schema:Organization"
+        },
+        {
+          "@id": "schema:Offer"
+        },
+        {
+          "@id": "schema:Product"
+        },
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:AggregateRating"
+      }
+    },
+    {
+      "@id": "_:ub136bL177C18",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "webapi:tokenFormat"
+      }
+    },
+    {
+      "@id": "webapi:CompletedActionStatusShape",
+      "@type": "sh:NodeShape",
+      "sh:deactivated": true,
+      "sh:property": {
+        "@id": "_:ub136bL352C14"
+      },
+      "sh:targetNode": {
+        "@id": "schema:CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "webapi:FailedActionStatusShape",
+      "@type": "sh:NodeShape",
+      "sh:deactivated": true,
+      "sh:property": {
+        "@id": "_:ub136bL324C14"
+      },
+      "sh:targetNode": {
+        "@id": "schema:FailedActionStatus"
+      }
+    },
+    {
+      "@id": "_:ub136bL273C12",
+      "sh:message": "An input-output parameter must have a PropertyValueSpecification value.",
+      "sh:prefixes": {
+        "@id": "https://actions.semantify.it/vocab"
+      },
+      "sh:select": "\n\t\t\tselect $this \n\t\t\twhere { \n    \t\t\t?s $this ?o.\n    \t\t\tFILTER ((contains(str($this), \"-input\") || contains(str($this), \"-output\")) && NOT EXISTS{?o a schema:PropertyValueSpecification})\n\t\t\t\t} \n\t\t"
+    },
+    {
+      "@id": "webapi:HTTPMessageURL",
+      "@type": "webapi:HTTPMessagePart",
+      "rdfs:comment": "URL in the start line of an HTTP message",
+      "rdfs:label": "HTTPMessageURL"
+    },
+    {
+      "@id": "schema:maxValue",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The upper value of some characteristic or property.",
+      "rdfs:label": "maxValue",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:MonetaryAmount"
+        },
+        {
+          "@id": "schema:PropertyValueSpecification"
+        },
+        {
+          "@id": "schema:QuantitativeValue"
+        },
+        {
+          "@id": "schema:PropertyValue"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:Number"
+      }
+    },
+    {
+      "@id": "_:ub136bL231C14",
+      "sh:class": {
+        "@id": "webapi:Error"
+      },
+      "sh:description": "Human readable error messages for potential errors for this action.",
+      "sh:path": {
+        "@id": "schema:error"
+      },
+      "sh:property": [
+        {
+          "@id": "_:ub136bL240C15"
+        },
+        {
+          "@id": "_:ub136bL235C15"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL294C13",
+      "@type": "sh:NodeShape",
+      "sh:property": {
+        "@id": "_:ub136bL296C18"
+      }
+    },
+    {
+      "@id": "_:ub136bL214C16",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "schema:encodingType"
+      }
+    },
+    {
+      "@id": "schema:termsOfService",
+      "@type": "rdf:Property",
+      "dcterms:source": {
+        "@id": "https://github.com/schemaorg/schemaorg/issues/1423"
+      },
+      "rdfs:comment": "Human-readable terms of service documentation.",
+      "rdfs:label": "termsOfService",
+      "schema:category": "issue-1423",
+      "schema:domainIncludes": {
+        "@id": "schema:Service"
+      },
+      "schema:isPartOf": {
+        "@id": "http://pending.schema.org"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:URL"
+        },
+        {
+          "@id": "schema:Text"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL204C14",
+      "sh:class": {
+        "@id": "schema:EntryPoint"
+      },
+      "sh:minCount": 1,
+      "sh:node": {
+        "@id": "_:ub136bL208C11"
+      },
+      "sh:path": {
+        "@id": "schema:target"
+      }
+    },
+    {
+      "@id": "_:ub136bL493C14",
+      "sh:class": {
+        "@id": "schema:CreativeWork"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL496C11"
+      },
+      "sh:path": {
+        "@id": "schema:license"
+      }
+    },
+    {
+      "@id": "webapi:FormBasedAuthentication",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "Custom form-based authentication method specification",
+      "rdfs:label": "FormBasedAuthentication",
+      "rdfs:subClassOf": {
+        "@id": "webapi:AuthenticationSpecification"
+      }
+    },
+    {
+      "@id": "schema:valueReference",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A pointer to a secondary value that provides additional information on the original value, e.g. a reference temperature.",
+      "rdfs:label": "valueReference",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:QuantitativeValue"
+        },
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "schema:QualitativeValue"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:QuantitativeValue"
+        },
+        {
+          "@id": "schema:QualitativeValue"
+        },
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "schema:StructuredValue"
+        },
+        {
+          "@id": "schema:Enumeration"
+        }
+      ]
+    },
+    {
+      "@id": "schema:instrument",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The object that helped the agent perform the action. In the context of web apis, this property can be used with webapi:AuthenticationSpecification",
+      "rdfs:label": "instrument",
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "_:ub136bL168C4",
+      "sh:class": {
+        "@id": "webapi:TokenAuthentication"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL171C5"
+      }
+    },
+    {
+      "@id": "_:ub136bL160C18",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:name-input"
+      }
+    },
+    {
+      "@id": "schema:keywords",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas.",
+      "rdfs:label": "keywords",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "_:ub136bL445C10",
+      "sh:nodeKind": {
+        "@id": "sh:IRI"
+      }
+    },
+    {
+      "@id": "schema:sameAs",
+      "@type": "rdf:Property",
+      "rdfs:comment": "URL of a reference Web page that unambiguously indicates the item's identity. E.g. the URL of the item's Wikipedia page, Wikidata entry, or official website.",
+      "rdfs:label": "sameAs",
+      "schema:domainIncludes": {
+        "@id": "schema:Thing"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:URL"
+      }
+    },
+    {
+      "@id": "_:ub136bL385C16",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:path": {
+        "@id": "schema:value"
+      }
+    },
+    {
+      "@id": "schema:copyrightYear",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The year during which the claimed copyright for the CreativeWork was first asserted.",
+      "rdfs:label": "copyrightYear",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Number"
+      }
+    },
+    {
+      "@id": "webapi:PotentialActionStatusShape",
+      "@type": "sh:NodeShape",
+      "sh:property": {
+        "@id": "_:ub136bL286C14"
+      },
+      "sh:targetNode": {
+        "@id": "schema:PotentialActionStatus"
+      }
+    },
+    {
+      "@id": "schema:object",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The object upon which the action is carried out, whose state is kept intact or changed. Also known as the semantic roles patient, affected or undergoer (which change their state) or theme (which doesn't). e.g. John read <em>a book</em>.",
+      "rdfs:label": "object",
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "_:ub136bL496C11",
+      "@type": "sh:NodeShape",
+      "sh:nodeKind": {
+        "@id": "sh:IRI"
+      },
+      "sh:property": {
+        "@id": "_:ub136bL499C16"
+      }
+    },
+    {
+      "@id": "_:ub136bL466C14",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "schema:description"
+      }
+    },
+    {
+      "@id": "schema:mainEntity",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Indicates the primary entity described in some page or other CreativeWork.",
+      "rdfs:label": "mainEntity",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "_:ub136bL208C11",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL224C16"
+        },
+        {
+          "@id": "_:ub136bL210C16"
+        },
+        {
+          "@id": "_:ub136bL218C16"
+        },
+        {
+          "@id": "_:ub136bL214C16"
+        }
+      ]
+    },
+    {
+      "@id": "schema:isRelatedTo",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A pointer to another, somehow related product (or multiple products).",
+      "rdfs:label": "isRelatedTo",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:Product"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Service"
+        },
+        {
+          "@id": "schema:Product"
+        }
+      ]
+    },
+    {
+      "@id": "webapi:AuthenticationAction",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "An action performed to complete an authentication flow for obtaining a token.<br/><br/>",
+      "rdfs:label": "Action",
+      "rdfs:subClassOf": {
+        "@id": "schema:Action"
+      }
+    },
+    {
+      "@id": "schema:dateCreated",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The date on which the CreativeWork was created or the item was added to a DataFeed.",
+      "rdfs:label": "dateCreated",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:DataFeedItem"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Date"
+        },
+        {
+          "@id": "schema:DateTime"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL438C4",
+      "sh:nodeKind": {
+        "@id": "sh:IRI"
+      }
+    },
+    {
+      "@id": "schema:accountablePerson",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Specifies the Person that is legally accountable for the CreativeWork.",
+      "rdfs:label": "accountablePerson",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Person"
+      }
+    },
+    {
+      "@id": "_:ub136bL235C15",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:description:": "An internal ID for the error message.",
+      "sh:path": {
+        "@id": "schema:propertyID"
+      }
+    },
+    {
+      "@id": "_:ub136bL511C14",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "schema:name"
+      }
+    },
+    {
+      "@id": "schema:unitCode",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The unit of measurement given using the UN/CEFACT Common Code (3 characters) or a URL. Other codes than the UN/CEFACT Common Code may be used with a prefix followed by a colon.",
+      "rdfs:label": "unitCode",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:TypeAndQuantityNode"
+        },
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "schema:UnitPriceSpecification"
+        },
+        {
+          "@id": "schema:QuantitativeValue"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Text"
+        },
+        {
+          "@id": "schema:URL"
+        }
+      ]
+    },
+    {
+      "@id": "webapi:TokenAuthentication",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "Values of this specification is mapped to 'Bearer <token>' pattern in the Authentication header of a request.",
+      "rdfs:label": "TokenAuthentication",
+      "rdfs:subClassOf": {
+        "@id": "webapi:AuthenticationSpecification"
+      }
+    },
+    {
+      "@id": "_:ub136bL434C4",
+      "sh:class": {
+        "@id": "schema:CreativeWork"
+      },
+      "sh:node": {
+        "@id": "webapi:DocumentationShape"
+      }
+    },
+    {
+      "@id": "schema:name",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The name of the item.",
+      "rdfs:label": "name",
+      "schema:domainIncludes": {
+        "@id": "schema:Thing"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "schema:encodingFormat",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Media type typically expressed using a MIME format (see <a href=\"http://www.iana.org/assignments/media-types/media-types.xhtml\">IANA site</a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types\">MDN reference</a>) e.g. application/zip for a SoftwareApplication binary, audio/mpeg for .mp3 etc.).<br/><br/>",
+      "rdfs:label": "encodingFormat",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:MediaObject"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Text"
+        },
+        {
+          "@id": "schema:URL"
+        }
+      ]
+    },
+    {
+      "@id": "schema:unitText",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A string or text indicating the unit of measurement. Useful if you cannot provide a standard unit code for\n<a href='unitCode'>unitCode</a>.",
+      "rdfs:label": "unitText",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:TypeAndQuantityNode"
+        },
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "schema:QuantitativeValue"
+        },
+        {
+          "@id": "schema:UnitPriceSpecification"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "schema:result",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The result produced in the action. e.g. John wrote <em>a book</em>.",
+      "rdfs:label": "result",
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "schema:Thing",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "The most generic type of item.",
+      "rdfs:label": "Thing"
+    },
+    {
+      "@id": "webapi:HTTPBasicAuthentication",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "Values of this specification is mapped to 'Basic <token>' pattern in the Authentication header of a request.",
+      "rdfs:label": "HTTPBasicAuthentication",
+      "rdfs:subClassOf": {
+        "@id": "webapi:AuthenticationSpecification"
+      }
+    },
+    {
+      "@id": "webapi:ActiveActionStatusShape",
+      "@type": "sh:NodeShape",
+      "sh:property": {
+        "@id": "_:ub136bL380C14"
+      },
+      "sh:targetNode": {
+        "@id": "schema:ActiveActionStatus"
+      }
+    },
+    {
+      "@id": "schema:propertyID",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A commonly used identifier for the characteristic represented by the property, e.g. a manufacturer or a standard code for a property. propertyID can be\n(1) a prefixed string, mainly meant to be used with standards for product properties; (2) a site-specific, non-prefixed string (e.g. the primary key of the property or the vendor-specific id of the property), or (3)\na URL indicating the type of the property, either pointing to an external vocabulary, or a Web resource that describes the property (e.g. a glossary entry).\nStandards bodies should promote a standard prefix for the identifiers of properties from their standards.",
+      "rdfs:label": "propertyID",
+      "schema:domainIncludes": {
+        "@id": "schema:PropertyValue"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:URL"
+        },
+        {
+          "@id": "schema:Text"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL308C13",
+      "@type": "sh:NodeShape",
+      "sh:property": {
+        "@id": "_:ub136bL310C18"
+      }
+    },
+    {
+      "@id": "_:ub136bL296C18",
+      "sh:datatype": {
+        "@id": "xsd:integer"
+      },
+      "sh:maxInclusive": 599,
+      "sh:minCount": 1,
+      "sh:minInclusive": 100,
+      "sh:path": {
+        "@id": "schema:defaultValue"
+      }
+    },
+    {
+      "@id": "_:ub136bL310C18",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:defaultValue"
+      }
+    },
+    {
+      "@id": "schema:actionStatus",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Indicates the current disposition of the Action.",
+      "rdfs:label": "actionStatus",
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:ActionStatusType"
+      }
+    },
+    {
+      "@id": "_:ub136bL487C10",
+      "sh:class": {
+        "@id": "schema:Person"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      }
+    },
+    {
+      "@id": "_:ub136bL478C10",
+      "sh:class": {
+        "@id": "schema:Person"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      }
+    },
+    {
+      "@id": "_:ub136bL123C14",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:maxCount": 1,
+      "sh:path": {
+        "@id": "schema:name"
+      }
+    },
+    {
+      "@id": "schema:license",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A license document that applies to this content, typically indicated by URL.",
+      "rdfs:label": "license",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:URL"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL154C18",
+      "sh:class": {
+        "@id": "webapi:HTTPMessagePart"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "webapi:sentIn"
+      }
+    },
+    {
+      "@id": "_:ub136bL224C16",
+      "sh:datetype": {
+        "@id": "xsd:string"
+      },
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:urlTemplate"
+      }
+    },
+    {
+      "@id": "webapi:PropertyValueSpecificationShape",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL116C14"
+        },
+        {
+          "@id": "_:ub136bL128C14"
+        },
+        {
+          "@id": "_:ub136bL123C14"
+        }
+      ],
+      "sh:targetClass": {
+        "@id": "schema:PropertyValueSpecification"
+      }
+    },
+    {
+      "@id": "_:ub136bL491C10",
+      "sh:class": {
+        "@id": "schema:Person"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      }
+    },
+    {
+      "@id": "_:ub136bL135C12",
+      "@type": "webapi:ActionStatusTarget",
+      "schema:actionStatus": {
+        "@id": "schema:PotentialActionStatus"
+      }
+    },
+    {
+      "@id": "schema:CreativeWork",
+      "@type": "rdfs:Class",
+      "dcterms:source": {
+        "@id": "http://www.w3.org/wiki/WebSchemas/SchemaDotOrgSources#source_rNews"
+      },
+      "rdfs:comment": "The most generic kind of creative work, including books, movies, photographs, software programs, etc.",
+      "rdfs:label": "CreativeWork",
+      "rdfs:subClassOf": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "schema:url",
+      "@type": "rdf:Property",
+      "rdfs:comment": "URL of the item.",
+      "rdfs:label": "url",
+      "schema:domainIncludes": {
+        "@id": "schema:Thing"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:URL"
+      }
+    },
+    {
+      "@id": "_:ub136bL357C11",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL368C16"
+        },
+        {
+          "@id": "_:ub136bL359C16"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL368C16",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:description"
+      }
+    },
+    {
+      "@id": "schema:about",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The subject matter of the content.",
+      "rdfs:label": "about",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:CommunicateAction"
+        },
+        {
+          "@id": "schema:Event"
+        },
+        {
+          "@id": "schema:CreativeWork"
+        }
+      ],
+      "schema:rangeIncludes": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "webapi:WebAPIShape",
+      "@type": "sh:NodeShape",
+      "sh:description": "A shape that constrains the WebAPI type.",
+      "sh:name": "WebAPIShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL429C14"
+        },
+        {
+          "@id": "_:ub136bL443C14"
+        }
+      ],
+      "sh:targetClass": {
+        "@id": "schema:WebAPI"
+      }
+    },
+    {
+      "@id": "_:ub136bL128C14",
+      "sh:maxCount": 1,
+      "sh:nodeKind": {
+        "@id": "sh:IRIOrLiteral"
+      },
+      "sh:path": {
+        "@id": "schema:defaultValue"
+      }
+    },
+    {
+      "@id": "webapi:AuthenticationSpecificationShape",
+      "@type": "sh:NodeShape",
+      "sh:description": "A shape describing constraints on authentication specifications",
+      "sh:name": "AuthenticationSpecificationShape",
+      "sh:property": {
+        "@id": "_:ub136bL417C14"
+      },
+      "sh:targetClass": {
+        "@id": "webapi:AuthenticationSpecification"
+      }
+    },
+    {
+      "@id": "schema:error",
+      "@type": "rdf:Property",
+      "rdfs:comment": "For failed actions, more information on the cause of the failure.",
+      "rdfs:label": "error",
+      "schema:domainIncludes": {
+        "@id": "schema:Action"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "_:ub136bL478C64",
+      "sh:class": {
+        "@id": "schema:Organization"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      }
+    },
+    {
+      "@id": "_:ub136bL185C13",
+      "@type": "sh:NodeShape",
+      "sh:property": {
+        "@id": "_:ub136bL187C18"
+      }
+    },
+    {
+      "@id": "_:ub136bL218C16",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:in": {
+        "@list": [
+          "GET",
+          "HEAD",
+          "POST",
+          "PUT",
+          "DELETE",
+          "CONNECT",
+          "OPTIONS",
+          "TRACE"
+        ]
+      },
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:httpMethod"
+      }
+    },
+    {
+      "@id": "schema:category",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A category for the item. Greater signs or slashes can be used to informally indicate a category hierarchy.",
+      "rdfs:label": "category",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:Product"
+        },
+        {
+          "@id": "schema:Offer"
+        },
+        {
+          "@id": "schema:Invoice"
+        },
+        {
+          "@id": "schema:Service"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Thing"
+        },
+        {
+          "@id": "schema:Text"
+        }
+      ]
+    },
+    {
+      "@id": "schema:datePublished",
+      "@type": "rdf:Property",
+      "rdfs:comment": "Date of first broadcast/publication.",
+      "rdfs:label": "datePublished",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Date"
+      }
+    },
+    {
+      "@id": "_:ub136bL116C14",
+      "sh:datatype": {
+        "@id": "xsd:boolean"
+      },
+      "sh:defaultValue": true,
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:valueRequired"
+      }
+    },
+    {
+      "@id": "webapi:FormBasedAuthenticationShape",
+      "@type": "sh:NodeShape",
+      "sh:description": "The shape that defines constraints on the form based authentication descriptions",
+      "sh:name": "FormBasedAuthenticationShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL401C14"
+        },
+        {
+          "@id": "_:ub136bL405C14"
+        }
+      ],
+      "sh:targetClass": {
+        "@id": "webapi:FormBasedAuthentication"
+      }
+    },
+    {
+      "@id": "_:ub136bL443C14",
+      "sh:or": {
+        "@list": [
+          {
+            "@id": "_:ub136bL445C10"
+          },
+          {
+            "@id": "_:ub136bL445C32"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "schema:termsOfService"
+      }
+    },
+    {
+      "@id": "_:ub136bL243C12",
+      "@type": "sh:NodeShape",
+      "sh:property": {
+        "@id": "_:ub136bL245C17"
+      }
+    },
+    {
+      "@id": "_:ub136bL109C14",
+      "sh:class": {
+        "@id": "webapi:AuthenticationSpecification"
+      },
+      "sh:path": {
+        "@id": "webapi:authentication"
+      }
+    },
+    {
+      "@id": "_:ub136bL339C16",
+      "sh:datatype": {
+        "@id": "xsd:integer"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:description"
+      }
+    },
+    {
+      "@id": "_:ub136bL491C64",
+      "sh:class": {
+        "@id": "schema:Organization"
+      },
+      "sh:node": {
+        "@id": "webapi:ContactShape"
+      }
+    },
+    {
+      "@id": "schema:discussionUrl",
+      "@type": "rdf:Property",
+      "rdfs:comment": "A link to the page containing the comments of the CreativeWork.",
+      "rdfs:label": "discussionUrl",
+      "schema:domainIncludes": {
+        "@id": "schema:CreativeWork"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:URL"
+      }
+    },
+    {
+      "@id": "_:ub136bL405C14",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:description": "A custom form based authentication must have one name.",
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:name"
+      }
+    },
+    {
+      "@id": "webapi:ActionsShape",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL109C14"
+        },
+        {
+          "@id": "_:ub136bL102C14"
+        }
+      ],
+      "sh:targetClass": {
+        "@id": "schema:Action"
+      }
+    },
+    {
+      "@id": "_:ub136bL401C14",
+      "sh:in": {
+        "@list": [
+          {
+            "@id": "webapi:HTTPMessageBody"
+          },
+          {
+            "@id": "webapi:HTTPMessageHeader"
+          },
+          {
+            "@id": "webapi:HTTPMessageURL"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "webapi:sentIn"
+      }
+    },
+    {
+      "@id": "_:ub136bL485C14",
+      "sh:or": {
+        "@list": [
+          {
+            "@id": "_:ub136bL487C10"
+          },
+          {
+            "@id": "_:ub136bL487C64"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "schema:contributor"
+      }
+    },
+    {
+      "@id": "schema:dateModified",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The date on which the CreativeWork was most recently modified or when the item's entry was modified within a DataFeed.",
+      "rdfs:label": "dateModified",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:DataFeedItem"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:DateTime"
+        },
+        {
+          "@id": "schema:Date"
+        }
+      ]
+    },
+    {
+      "@id": "_:ub136bL102C14",
+      "sh:class": {
+        "@id": "schema:ActionStatusType"
+      },
+      "sh:defaultValue": {
+        "@id": "schema:PotentialActionStatus"
+      },
+      "sh:maxCount": 1,
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:actionStatus"
+      }
+    },
+    {
+      "@id": "_:ub136bL15C49",
+      "@type": "sh:PrefixDeclaration",
+      "sh:namespace": {
+        "@type": "xsd:anyURI",
+        "@value": "http://schema.org/"
+      },
+      "sh:prefix": "schema"
+    },
+    {
+      "@id": "schema:documentation",
+      "@type": "rdf:Property",
+      "dcterms:source": {
+        "@id": "https://github.com/schemaorg/schemaorg/issues/1423"
+      },
+      "rdfs:comment": "Further documentation describing the Web API in more detail.",
+      "rdfs:label": "documentation",
+      "schema:category": "issue-1423",
+      "schema:domainIncludes": {
+        "@id": "schema:WebAPI"
+      },
+      "schema:isPartOf": {
+        "@id": "http://pending.schema.org"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:URL"
+        }
+      ]
+    },
+    {
+      "@id": "webapi:sentIn",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The part of the HTTP request where the credentials are sent.",
+      "rdfs:label": "sentIn",
+      "schema:domainIncludes": {
+        "@id": "webapi:FormBasedAuthentication"
+      },
+      "schema:rangeIncludes": {
+        "@id": "schema:Text"
+      }
+    },
+    {
+      "@id": "_:ub136bL286C14",
+      "sh:class": {
+        "@id": "schema:PropertyValue"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL289C11"
+      },
+      "sh:path": {
+        "@id": "webapi:httpStatusCode"
+      }
+    },
+    {
+      "@id": "webapi:HTTPMessagePart",
+      "@type": "rdf:Class",
+      "rdfs:comment": "A part of the HTTP message where the content is sent.",
+      "rdfs:label": "HTTPMessagePart",
+      "rdfs:subClassOf": {
+        "@id": "schema:Enumeration"
+      }
+    },
+    {
+      "@id": "_:ub136bL515C14",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:path": {
+        "@id": "schema:email"
+      }
+    },
+    {
+      "@id": "_:ub136bL183C4",
+      "sh:class": {
+        "@id": "webapi:HTTPBasicAuthentication"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL185C13"
+      }
+    },
+    {
+      "@id": "_:ub136bL305C16",
+      "sh:class": {
+        "@id": "schema:PropertyValueSpecification"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL308C13"
+      },
+      "sh:path": {
+        "@id": "schema:description-output"
+      }
+    },
+    {
+      "@id": "schema:Action",
+      "@type": "rdfs:Class",
+      "dcterms:source": {
+        "@id": "http://www.w3.org/wiki/WebSchemas/SchemaDotOrgSources#source_ActionCollabClass"
+      },
+      "rdfs:comment": "An action performed by a direct agent and indirect participants upon a direct object. Optionally happens at a location with the help of an inanimate instrument. The execution of the action may produce a result. Specific action sub-type documentation specifies the exact expectation of each argument/role.<br/><br/>",
+      "rdfs:label": "Action"
+    },
+    {
+      "@id": "_:ub136bL143C4",
+      "sh:class": {
+        "@id": "webapi:FormBasedAuthentication"
+      },
+      "sh:node": {
+        "@id": "_:ub136bL146C5"
+      }
+    },
+    {
+      "@id": "_:ub136bL329C11",
+      "@type": "sh:NodeShape",
+      "sh:property": [
+        {
+          "@id": "_:ub136bL331C16"
+        },
+        {
+          "@id": "_:ub136bL339C16"
+        }
+      ]
+    },
+    {
+      "@id": "schema:Intangible",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "A utility class that serves as the umbrella for a number of 'intangible' things such as quantities, structured values, etc.",
+      "rdfs:label": "Intangible",
+      "rdfs:subClassOf": {
+        "@id": "schema:Thing"
+      }
+    },
+    {
+      "@id": "_:ub136bL489C14",
+      "sh:or": {
+        "@list": [
+          {
+            "@id": "_:ub136bL491C10"
+          },
+          {
+            "@id": "_:ub136bL491C64"
+          }
+        ]
+      },
+      "sh:path": {
+        "@id": "schema:provider"
+      }
+    },
+    {
+      "@id": "_:ub136bL195C14",
+      "sh:class": {
+        "@id": "schema:Thing"
+      },
+      "sh:path": {
+        "@id": "schema:object"
+      }
+    },
+    {
+      "@id": "webapi:Error",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "An error specification",
+      "rdfs:label": "Error",
+      "rdfs:subClassOf": [
+        {
+          "@id": "schema:PropertyValue"
+        },
+        {
+          "@id": "hydra:Error"
+        }
+      ]
+    },
+    {
+      "@id": "webapi:AuthenticationSpecification",
+      "@type": "rdfs:Class",
+      "rdfs:comment": "Specification of the authentication method required to perfom the on a web resource.",
+      "rdfs:label": "AuthenticationSpecification",
+      "rdfs:subClassOf": {
+        "@id": "schema:PropertyValue"
+      }
+    },
+    {
+      "@id": "_:ub136bL499C16",
+      "sh:datatype": {
+        "@id": "xsd:string"
+      },
+      "sh:minCount": 1,
+      "sh:path": {
+        "@id": "schema:name"
+      }
+    },
+    {
+      "@id": "_:ub136bL359C16",
+      "sh:datatype": {
+        "@id": "xsd:integer"
+      },
+      "sh:defaultValue": 200,
+      "sh:maxCount": 1,
+      "sh:maxInclusive": 299,
+      "sh:minCount": 1,
+      "sh:minInclusive": 200,
+      "sh:path": {
+        "@id": "schema:value"
+      }
+    },
+    {
+      "@id": "schema:inLanguage",
+      "@type": "rdf:Property",
+      "rdfs:comment": "The language of the content or performance or used in an action. Please use one of the language codes from the <a href=\"http://tools.ietf.org/html/bcp47\">IETF BCP 47 standard</a>. See also <a class=\"localLink\" href=\"http://schema.org/availableLanguage\">availableLanguage</a>.",
+      "rdfs:label": "inLanguage",
+      "schema:domainIncludes": [
+        {
+          "@id": "schema:CreativeWork"
+        },
+        {
+          "@id": "schema:WriteAction"
+        },
+        {
+          "@id": "schema:Event"
+        },
+        {
+          "@id": "schema:CommunicateAction"
+        }
+      ],
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Text"
+        },
+        {
+          "@id": "schema:Language"
+        }
+      ]
+    }
+  ]
+}

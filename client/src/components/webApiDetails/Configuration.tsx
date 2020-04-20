@@ -22,7 +22,7 @@ const Configuration = ({ config, setConfig }: Props) => {
           onChange={(e) => setUseMapping(e.target.checked)}
         />
         <label className="custom-control-label" htmlFor="enableMapping">
-          Enable mapping
+          Enable mapping (coming soon...)
         </label>
       </div>
       <div className="custom-control custom-switch mb-2">

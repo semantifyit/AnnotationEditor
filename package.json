@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "install_deps": "npm i && (cd api-mapping && npm i) && (cd client && npm i) && (cd server && npm i)",
-    "prod": "cd client && npm run build && cd ../server && npm run prod",
+    "install_deps": "npm i && (cd client && npm i) && (cd server && npm i)",
+    "prod": "(cd client && npm run build) && (cd server && npm run prod)",
     "dev": "concurrently -–kill-others-on-fail \"cd client && npm run start\" \"cd server && npm run dev\""
   },
   "keywords": [],

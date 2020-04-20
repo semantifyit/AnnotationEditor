@@ -23,7 +23,7 @@ import VocabHandler, { unUsePrefix } from './VocabHandler';
 
 // TODO default schema.org vocab ObjectId("5db83278871c4f3b742776f7")
 
-const defaultVocabsIds = ['5db83278871c4f3b742776f7', '5dc2abe94c377c586007db35', '5dbffa643c467a707677dcb0'];
+const defaultVocabsIds: string[] = [];
 
 const sameNameBracket = (numSameName: number): string => `${numSameName !== 0 ? ` (${numSameName})` : ''}`;
 

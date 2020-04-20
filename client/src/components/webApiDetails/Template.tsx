@@ -4,7 +4,11 @@ import { FaFileImport } from 'react-icons/fa';
 import ky from 'ky';
 
 import VocabHandler, { unUsePrefix } from '../../util/VocabHandler';
-import { AnnotationSrc, Template as ITemplate, WebApiConfig } from '../../../../server/src/models/WebApi';
+import {
+  Template as ITemplate,
+  WebApiConfig,
+  TemplateRessourceDesc,
+} from '../../../../server/src/models/WebApi';
 import Annotation from './Annotation';
 import { dsToTemplate } from '../../util/webApi';
 import { toArray } from '../../util/utils';
@@ -13,12 +17,13 @@ import ModalBtn from '../ModalBtn';
 interface Props {
   template: ITemplate;
   setBaseType: (type: string) => void;
-  setAnnotation: (ann: AnnotationSrc) => void;
+  setAnnotation: (ann: TemplateRessourceDesc) => void;
   vocabHandler: VocabHandler;
   config: WebApiConfig;
+  potTemplates: ITemplate[];
 }
 
-const Template = ({ template, setAnnotation, setBaseType, vocabHandler, config }: Props) => {
+const Template = ({ template, setAnnotation, setBaseType, vocabHandler, config, potTemplates }: Props) => {
   const [dsHash, setDsHash] = useState('');
   const [dsImportResult, setDsImportResult] = useState<[undefined | 'success' | 'danger', string]>([
     undefined,
@@ -118,6 +123,7 @@ const Template = ({ template, setAnnotation, setBaseType, vocabHandler, config }
           setAnnotation={setAnnotation}
           vocabHandler={vocabHandler}
           config={config}
+          potTemplates={potTemplates}
         />
       )}
     </>

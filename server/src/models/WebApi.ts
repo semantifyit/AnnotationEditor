@@ -1,43 +1,47 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { RequestMapping, RequestType } from 'api-mapping/dist/requestMapping';
-import { ResponseMapping, ResponseType } from 'api-mapping/dist/responseMapping';
+import mongoose, { Schema } from 'mongoose';
 
 import { MongoDoc, MongoLeanDoc } from './helper';
-import { Vocab } from './Vocab';
+import { LoweringConfig } from '../mapping/lowering/lowering';
+import { LiftingConfig } from '../mapping/lifting/lifting';
+
+export interface ActionRef {
+  id: string;
+  name: string;
+  actions: {
+    name: string;
+    id: string;
+    action?: Action;
+  }[];
+}
+export type ActionRefs = ActionRef[];
 
 export interface Template {
   id: string;
   name: string;
   baseType?: string;
-  src: AnnotationSrc;
+  src: TemplateRessourceDesc;
 }
 
-export interface AnnotationSrcProp {
+export interface RessourceDescProp {
   type: 'annotation';
   id: string;
   path: string;
-  val: string | AnnotationSrc;
+  val: string | RessourceDesc;
   range: string;
 }
 
 export type TemplatePropertyGroupType = 'input' | 'output';
 
 export interface RangeTemplate {
-  templateId: string;
+  templateId: Template['id'];
 }
 
-export interface RangeActionInOut {
-  actionId: string;
-  path: string; // ? for now string jsonpath/pointer
-}
+export type TemplatePropertyRange = TemplateRessourceDesc | RangeTemplate;
 
-export type TemplatePropertyRange = AnnotationSrc | RangeTemplate | RangeActionInOut;
-
-export interface TemplateProperty {
+export interface DefaultTemplateProperty {
   type: 'template';
   id: string;
   path: string;
-  range: TemplatePropertyRange[];
   io?: TemplatePropertyGroupType; // only at top level?
   required: boolean;
   multAllowed: boolean;
@@ -64,6 +68,14 @@ export interface TemplateProperty {
   hasValue?: string[];
 }
 
+export interface TemplateProperty extends DefaultTemplateProperty {
+  range: TemplatePropertyRange[];
+}
+
+export interface ExpandedTemplateProperty extends DefaultTemplateProperty {
+  range: ExpandedTemplateRessourceDesc[];
+}
+
 export type SchaclRestrPairProps = 'equals' | 'disjoint' | 'lessThan' | 'lessThanOrEquals';
 export type SchaclRestrOtherProps = 'in' | 'hasValue';
 
@@ -80,10 +92,39 @@ export type ShaclRestrProps =
   | 'maxLength'
   | 'pattern';
 
-export interface AnnotationSrc {
-  type?: 'template';
+export interface DefaultRessourceDesc {
+  type: 'annotation' | 'action' | 'template';
   types: string[];
-  props: (AnnotationSrcProp | TemplateProperty)[];
+  props: (RessourceDescProp | TemplateProperty)[];
+  input?: TemplateProperty[];
+  output?: TemplateProperty[];
+}
+
+export interface RessourceDesc extends DefaultRessourceDesc {
+  type: 'annotation';
+  props: RessourceDescProp[];
+}
+
+export interface ActionRessourceDesc extends DefaultRessourceDesc {
+  type: 'action';
+  props: RessourceDescProp[];
+  input: TemplateProperty[];
+  output: TemplateProperty[];
+}
+
+export interface TemplateRessourceDesc extends DefaultRessourceDesc {
+  type: 'template';
+  props: TemplateProperty[];
+}
+
+export interface ExpandedTemplateRessourceDesc extends DefaultRessourceDesc {
+  type: 'template';
+  props: ExpandedTemplateProperty[];
+}
+
+export interface ExpendedActionRessourceDesc extends ActionRessourceDesc {
+  input: ExpandedTemplateProperty[];
+  output: ExpandedTemplateProperty[];
 }
 
 export interface AnnotationNode {
@@ -114,31 +155,64 @@ export interface ActionAnnotation extends Annotation {
   };
 }
 
+export interface Mapping {
+  value: string;
+}
+
+export interface LoweringMapping extends Mapping {
+  type: LoweringConfig['type'];
+}
+
+export interface LiftingMapping extends Mapping {
+  type: LiftingConfig['type'];
+}
+
 export interface RequestMappingSave {
   isValid: boolean;
-  type: RequestType;
   method: string;
-  url: string;
-  path: string;
-  query: string;
-  headers: string;
-  body: string;
+  url: LoweringMapping;
+  headers: LoweringMapping;
+  body: LoweringMapping;
 }
 
 export interface ResponseMappingSave {
   isValid: boolean;
-  type: ResponseType;
-  headers: string;
-  body: string;
+  addToResult: boolean;
+  autoStatus: boolean;
+  autoError: boolean;
+  body: LiftingMapping;
+}
+
+export interface TemplatePath {
+  id: string; // node-id
+  path: string[]; // path
+}
+
+export interface PropertyMap {
+  id: string;
+  from: TemplatePath;
+  to: TemplatePath;
+}
+
+export interface ActionLink {
+  id: string;
+  actionId: string;
+  propertyMaps: PropertyMap[];
+  iterator?: string;
 }
 
 export interface Action {
-  path: string;
+  id: string;
+  name: string;
   annotation: ActionAnnotation;
-  annotationSrc: AnnotationSrc;
+  annotationSrc: ActionRessourceDesc;
   requestMapping: RequestMappingSave;
   responseMapping: ResponseMappingSave;
   functions?: string;
+  potentialActionLinks: ActionLink[];
+  preceedingActionLinks: ActionLink[];
+  sampleAction: string;
+  sampleResponse: string; // maybe string[]
 }
 
 export type WebApiDoc = MongoDoc<WebApi>;
@@ -146,10 +220,11 @@ export type WebApiDoc = MongoDoc<WebApi>;
 export type WebApiLeanDoc = MongoLeanDoc<WebApi>;
 
 export interface WebApi {
-  path: string;
+  id: string;
+  name: string;
   author: string;
   annotation: WebApiAnnotation;
-  annotationSrc: AnnotationSrc;
+  annotationSrc: RessourceDesc;
   actions: Action[];
   functions?: string;
   vocabs: string[];
@@ -165,18 +240,24 @@ export interface WebApiConfig {
 
 const WebApiSchema: Schema = new Schema(
   {
-    path: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
     author: { type: String, required: true },
     annotation: { type: Object, required: true },
     annotationSrc: { type: Object, required: true },
     actions: [
       {
-        path: { type: String, required: true },
+        id: { type: String, required: true },
+        name: { type: String, required: true },
         annotation: { type: Object, required: true },
         annotationSrc: { type: Object, required: true },
         requestMapping: { type: Object, required: false },
         responseMapping: { type: Object, required: false },
         functions: { type: String, required: false },
+        potentialActionLinks: { type: Object, required: false },
+        preceedingActionLinks: { type: Object, required: false },
+        sampleAction: { type: String, required: false },
+        sampleResponse: { type: String, required: false },
       },
     ],
     templates: [

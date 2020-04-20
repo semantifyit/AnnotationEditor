@@ -2,19 +2,9 @@ import express from 'express';
 
 import Vocab from '../models/Vocab';
 import { parseVocab } from '../util/vocab';
+import { withTryCatch } from '../util/utils';
 
 const router = express.Router();
-
-const withTryCatch = async (
-  res: express.Response,
-  fn: () => Promise<void>,
-): Promise<void> => {
-  try {
-    await fn();
-  } catch (e) {
-    res.status(400).json({ err: e.toString() });
-  }
-};
 
 router.get('/', (req, res) => {
   withTryCatch(res, async () => {

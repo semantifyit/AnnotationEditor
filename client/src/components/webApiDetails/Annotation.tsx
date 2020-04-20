@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import classNames from 'classnames';
 import set from 'lodash/set';
 import get from 'lodash/get';
@@ -11,11 +11,12 @@ import uuid from 'uuid/v1';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import split from 'split.js';
 
 import {
-  AnnotationSrc,
-  AnnotationSrcProp,
+  DefaultRessourceDesc,
+  RessourceDescProp,
   TemplateProperty,
   TemplatePropertyGroupType,
   TemplatePropertyRange,
@@ -23,25 +24,36 @@ import {
   SchaclRestrPairProps,
   SchaclRestrOtherProps,
   WebApiConfig,
+  Template,
+  TemplateRessourceDesc,
+  RessourceDesc,
+  ActionRessourceDesc,
 } from '../../../../server/src/models/WebApi';
 import VocabHandler, { sortNodeDetails, NodeDetails, Restriction } from '../../util/VocabHandler';
-import { clone, toArray, escapeLineBreaks, cutString, toReadableString, Optional } from '../../util/utils';
+import { clone, toArray, escapeLineBreaks, cutString, toReadableString } from '../../util/utils';
 import * as p from '../../util/rdfProperties';
 
 import '../../styles/annotation.css';
 import 'react-datetime/css/react-datetime.css';
-import { annSrcToAnnJsonLd, isTemplateProp } from '../../util/webApi';
+import { annSrcToAnnJsonLd, isTemplateProp, newIOTemplateProp } from '../../util/webApi';
 import CheckBox from '../Checkbox';
 import { joinReduction } from '../../util/jsxHelpers';
 import CreatableSelect from '../CreatableSelect';
 import Editor from '../Editor';
+import Switch from '../Switch';
+
+type voidFn<T> = (arg: T) => void;
+
+type DefRessourceDesc = RessourceDesc | ActionRessourceDesc | TemplateRessourceDesc;
 
 interface Props {
   baseType: string;
-  annotation: AnnotationSrc;
-  setAnnotation: (ann: AnnotationSrc) => void;
+  annotation: DefaultRessourceDesc;
+  setAnnotation: (ann: any) => void; //voidFn<RessourceDesc> | voidFn<ActionRessourceDesc> | voidFn<TemplateRessourceDesc>;
   vocabHandler: VocabHandler;
   config: WebApiConfig;
+  potTemplates: Template[];
+  isAction?: boolean;
 }
 
 type Path = (string | number)[];
@@ -49,7 +61,25 @@ type PathValue<T = any> = { path: Path; value: T };
 type SetPathVal = (pv: PathValue | PathValue[]) => void;
 type RemovePath = (path: Path) => void;
 
-const Annotation = ({ baseType, annotation: ann, setAnnotation: setAnn, vocabHandler, config }: Props) => {
+interface AnnotationContext {
+  setPathVal: SetPathVal;
+  removePath: RemovePath;
+  vocabHandler: VocabHandler;
+  config: WebApiConfig;
+  potTemplates: Template[];
+}
+
+const AnnotationContext = React.createContext<AnnotationContext>({} as AnnotationContext);
+
+const Annotation = ({
+  baseType,
+  annotation: ann,
+  setAnnotation: setAnn,
+  vocabHandler,
+  config,
+  potTemplates,
+  isAction,
+}: Props) => {
   useEffect(() => {
     if (config.showCodeEditor) {
       split([`#split1`, `#split2`], { sizes: [60, 40], minSize: [100, 100] });
@@ -69,6 +99,9 @@ const Annotation = ({ baseType, annotation: ann, setAnnotation: setAnn, vocabHan
       const newAnn = clone(ann);
       const fatherPath = path.slice(0, -1);
       const indexToRemove = path.slice(-1)[0];
+      console.log(path);
+      console.log(indexToRemove);
+      console.log(fatherPath);
       const props = get(newAnn, fatherPath);
       props.splice(indexToRemove, 1);
       set(newAnn, fatherPath, props);
@@ -76,14 +109,17 @@ const Annotation = ({ baseType, annotation: ann, setAnnotation: setAnn, vocabHan
     };
 
     const getNode = () => (
-      <Node
-        path={[]}
-        vocabHandler={vocabHandler}
-        ann={ann}
-        fromRanges={[baseType]}
-        setPathVal={setPathVal}
-        removePath={removePath}
-      />
+      <AnnotationContext.Provider
+        value={{
+          setPathVal,
+          removePath,
+          vocabHandler,
+          config,
+          potTemplates,
+        }}
+      >
+        <Node path={[]} ann={ann} fromRanges={[baseType]} isAction={isAction} topNode={true} />
+      </AnnotationContext.Provider>
     );
 
     return (
@@ -141,6 +177,7 @@ const selectSubTypes = (options: Option[], selectedOptions: Option[], onChange: 
           isMulti={true}
           defaultValue={selectedOptions}
           isSearchable={true}
+          menuPlacement="auto"
         />
       </div>
     </Popover.Content>
@@ -149,15 +186,15 @@ const selectSubTypes = (options: Option[], selectedOptions: Option[], onChange: 
 
 interface NodeProps {
   path: Path;
-  ann: AnnotationSrc;
+  ann: DefaultRessourceDesc;
   fromRanges: string[];
-  vocabHandler: VocabHandler;
-  setPathVal: SetPathVal;
-  removePath: RemovePath;
   restrictionIds?: string[];
+  isAction?: boolean;
+  topNode?: boolean;
 }
 
-const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, restrictionIds }: NodeProps) => {
+const Node = ({ path, ann, fromRanges, restrictionIds, topNode, isAction }: NodeProps) => {
+  const { setPathVal, vocabHandler } = useContext(AnnotationContext);
   const [isSelectingType, setIsSelectingType] = useState(false);
   const [selectedProp, setSelectedProp] = useState('');
   const [isEmptyTypeSelect, setIsEmptyTypeSelect] = useState(false);
@@ -210,11 +247,12 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
       propId: string,
       value = '',
       index = ann.props.length,
-    ): PathValue<AnnotationSrcProp> => {
+    ): PathValue<RessourceDescProp> => {
       const range = vocabHandler.getDefaultRange(propId);
-      const val = vocabHandler.isTerminalNode(range)
+      const val: string | RessourceDesc = vocabHandler.isTerminalNode(range)
         ? value
         : {
+            type: 'annotation',
             types: [range],
             props: [],
           };
@@ -232,7 +270,7 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
 
     const makeRestrProperty = (propId: string, type?: TemplatePropertyGroupType): TemplateProperty => {
       const defaultRange = vocabHandler.getDefaultRange(propId);
-      const range: AnnotationSrc = {
+      const range: TemplateRessourceDesc = {
         type: 'template',
         types: [defaultRange],
         props: [],
@@ -250,9 +288,14 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
       };
     };
 
-    const addIOPropertyClick = (type?: TemplatePropertyGroupType) => () => {
+    const addTemplatePropClick = () => {
       const prop = selectedProp === '' ? selectRef.current?.value ?? '' : selectedProp;
-      setPathVal({ path: [...path, 'props', ann.props.length], value: makeRestrProperty(prop, type) });
+      setPathVal({ path: [...path, 'props', ann.props.length], value: makeRestrProperty(prop) });
+    };
+
+    const addIOPropertyClick = (type: TemplatePropertyGroupType) => () => {
+      const prop = selectedProp === '' ? selectRef.current?.value ?? '' : selectedProp;
+      setPathVal({ path: [...path, type, ann?.[type]?.length || 0], value: makeRestrProperty(prop, type) });
     };
 
     // restrictions:
@@ -280,10 +323,10 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
         .filter((restr) => restr.property === propId && restr.maxCount)
         .every((restr) => (restr.maxCount ? restr.maxCount > numPropsWithSameId(propId) : true));
 
-    const isTemplateNode = ann.type !== 'template';
+    const isTemplateNode = ann.type === 'template';
 
     return (
-      <div className={classNames('typenode', { 'typenode-border': true })}>
+      <div className={classNames('typenode', { 'typenode-border': !topNode })}>
         <h4 className="p-1 d-flex" style={{ justifyContent: 'space-between' }}>
           <div className="d-flex">
             <span style={{ lineHeight: 1.5 }}>
@@ -330,12 +373,12 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
                 <button
                   className="btn btn-outline-primary"
                   type="button"
-                  onClick={isTemplateNode ? addPropertyClick : addIOPropertyClick()}
+                  onClick={isTemplateNode ? addTemplatePropClick : addPropertyClick}
                 >
                   Add
                 </button>
               </div>
-              {isTemplateNode && (
+              {isAction && (
                 <DropdownButton
                   as={InputGroup.Append}
                   variant="outline-primary"
@@ -344,13 +387,11 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
                   className="mr-3 px-0 dropdown-add-as"
                 >
                   <Dropdown.Item onClick={addIOPropertyClick('input')}>
-                    <span className="borderInput px-2 py-1">Add as input</span>
+                    <span className="px-1 pyb-1">Add as input</span>
                   </Dropdown.Item>
                   <Dropdown.Divider />
-
                   <Dropdown.Item onClick={addIOPropertyClick('output')}>
-                    {' '}
-                    <span className="borderOutput px-2 py-1">Add as output</span>
+                    <span className="px-1 pyb-1">Add as output</span>
                   </Dropdown.Item>
                 </DropdownButton>
               )}
@@ -367,11 +408,30 @@ const Node = ({ path, ann, fromRanges, setPathVal, removePath, vocabHandler, res
               isTemplateProp(prop) ? [] : restrictions.filter((restr) => restr.property === prop.path)
             }
             numPropsWithSameId={numPropsWithSameId(prop.path)}
-            vocabHandler={vocabHandler}
-            setPathVal={setPathVal}
-            removePath={removePath}
           />
         ))}
+        {isAction &&
+          (['input', 'output'] as ['input', 'output']).map((type) => {
+            return (
+              <div className="mt-5" key={type}>
+                <h3 className="font-weight-bold text-capitalize">{type}</h3>
+                {ann?.[type]?.length || 0 > 0 ? (
+                  ann[type]?.map((restrProp, i) => (
+                    <Property
+                      key={restrProp.id}
+                      ann={ann}
+                      prop={restrProp}
+                      path={[...path, type, i]}
+                      restrictions={[]}
+                      numPropsWithSameId={0}
+                    />
+                  ))
+                ) : (
+                  <span className="italicGrey">No {type} properties defined</span>
+                )}
+              </div>
+            );
+          })}
       </div>
     );
   } catch (e) {
@@ -407,17 +467,17 @@ const selectRange = (
 
 interface PropProps {
   path: Path;
-  ann: AnnotationSrc;
-  prop: AnnotationSrcProp | TemplateProperty;
+  ann: DefaultRessourceDesc;
+  prop: RessourceDescProp | TemplateProperty;
   restrictions: Restriction[];
   numPropsWithSameId: number;
-  vocabHandler: VocabHandler;
-  setPathVal: SetPathVal;
-  removePath: RemovePath;
+  noDelBtn?: boolean;
 }
 
 const Property = (props: PropProps) => {
-  const { prop, path, vocabHandler, setPathVal, removePath, restrictions, numPropsWithSameId } = props;
+  const { prop, path, restrictions, numPropsWithSameId, noDelBtn } = props;
+  const { setPathVal, removePath, vocabHandler } = useContext(AnnotationContext);
+
   const [isSelectingRange, setIsSelectingRange] = useState(false);
 
   try {
@@ -454,11 +514,8 @@ const Property = (props: PropProps) => {
       }
     };
 
-    const getBorder = (io?: TemplatePropertyGroupType): Optional<string> =>
-      io && { input: 'borderInput', output: 'borderOutput' }[io];
-
     return (
-      <div className={classNames('d-block mb-4 p-1', prop.type === 'template' && getBorder(prop.io))}>
+      <div className="d-block mb-4 p-1">
         <h5
           className="d-inline-block align-top"
           style={{
@@ -498,9 +555,11 @@ const Property = (props: PropProps) => {
           <div className="d-inline-block" style={{ width: 'calc(100% - 25px)' }}>
             <Range {...props} />
           </div>
-          <button type="button" className="close ml-2" title="Remove this property" onClick={removeProp}>
-            <span aria-hidden="true">&times;</span>
-          </button>
+          {!noDelBtn && (
+            <button type="button" className="close ml-2" title="Remove this property" onClick={removeProp}>
+              <span aria-hidden="true">&times;</span>
+            </button>
+          )}
         </div>
       </div>
     );
@@ -513,15 +572,11 @@ interface TemplateProps extends PropProps {
   prop: TemplateProperty;
 }
 
-const isDefaultRange = (r: TemplatePropertyRange): r is AnnotationSrc => 'type' in r && r.type === 'template';
+const isDefaultRange = (r: TemplatePropertyRange): r is TemplateRessourceDesc =>
+  'type' in r && r.type === 'template';
 
-const templateRangeSelectionPopover = ({
-  vocabHandler,
-  prop,
-  path,
-  setPathVal,
-  removePath,
-}: TemplateProps) => {
+const templateRangeSelectionPopover = ({ prop, path }: TemplateProps, context: AnnotationContext) => {
+  const { setPathVal, removePath, vocabHandler, potTemplates } = context;
   const defaultRanges = vocabHandler.getRanges(prop.path);
 
   // selectedDefaultRange={prop.range.filter(isDefaultRange).types} */
@@ -536,15 +591,39 @@ const templateRangeSelectionPopover = ({
       },
     });
 
+  const newTemplateRangeClick = () =>
+    setPathVal({
+      path: [...path, 'range', prop.range.length],
+      value: {
+        templateId: potTemplates[0]?.id, // set it to first template
+      },
+    });
+
   const removeRange = (index: number) => removePath([...path, 'range', index]);
 
   return (
     <Popover id="popover-template-range-select">
       <Popover.Title className="d-flex flexSpaceBetween">
         <span>Select range </span>
-        <button className="btn btn-primary btn-sm" onClick={newRangeClick}>
-          <FaPlus /> new range
-        </button>
+        <Dropdown as={ButtonGroup}>
+          <button className="btn btn-primary btn-sm" onClick={newRangeClick}>
+            <FaPlus /> New range
+          </button>
+          <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />
+
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={newRangeClick}>Normal range</Dropdown.Item>
+            <Dropdown.Item
+              onClick={newTemplateRangeClick}
+              disabled={potTemplates.length === 0}
+              title={
+                potTemplates.length === 0 ? 'No templates available' : 'Choose from your existing template'
+              }
+            >
+              Template range
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
       </Popover.Title>
       <Popover.Content>
         <div
@@ -562,9 +641,16 @@ const templateRangeSelectionPopover = ({
                   props: [],
                 },
               });
-            if (isDefaultRange(range)) {
-              return (
-                <div className="mb-3 d-flex flexSpaceBetween" key={i}>
+            const onChangeTemplateSelect = (val: string) =>
+              setPathVal({
+                path: [...path, 'range', i],
+                value: {
+                  templateId: val,
+                },
+              });
+            return (
+              <div className="mb-3 d-flex flexSpaceBetween" key={i}>
+                {isDefaultRange(range) ? (
                   <select
                     className="custom-select"
                     value={range.types.length > 1 ? 'mult' : range.types[0]}
@@ -577,20 +663,31 @@ const templateRangeSelectionPopover = ({
                     ))}
                     {range.types.length > 1 && <option value="mult">Multi-type</option>}
                   </select>
-                  {prop.range.length > 1 && (
-                    <button
-                      type="button"
-                      className="close ml-2"
-                      title="Remove this range"
-                      onClick={() => removeRange(i)}
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  )}
-                </div>
-              );
-            }
-            return <h1>Range not supported</h1>;
+                ) : (
+                  <select
+                    className="custom-select"
+                    value={range.templateId}
+                    onChange={(e) => onChangeTemplateSelect(e.target.value)}
+                  >
+                    {potTemplates.map((potTemplate) => (
+                      <option key={potTemplate.id} value={potTemplate.id}>
+                        {potTemplate.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {prop.range.length > 1 && (
+                  <button
+                    type="button"
+                    className="close ml-2"
+                    title="Remove this range"
+                    onClick={() => removeRange(i)}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                )}
+              </div>
+            );
           })}
         </div>
       </Popover.Content>
@@ -601,13 +698,22 @@ const templateRangeSelectionPopover = ({
 const TemplateRangeSelectionBtn = (props: TemplateProps) => {
   const {
     prop: { range },
-    vocabHandler,
   } = props;
+  const context = useContext(AnnotationContext);
+  const { vocabHandler, potTemplates } = context;
+
   const [isOpen, setIsOpen] = useState(false);
-  const rangeText = (propRange: TemplatePropertyRange): string =>
-    isDefaultRange(propRange)
-      ? cutString(toReadableString(propRange.types.map(vocabHandler.usePrefix), ', '), 35)
-      : 'Custom ...';
+  const rangeText = (propRange: TemplatePropertyRange): string | JSX.Element =>
+    isDefaultRange(propRange) ? (
+      cutString(toReadableString(propRange.types.map(vocabHandler.usePrefix), ', '), 35)
+    ) : (
+      <>
+        <b className="mr-1">Template:</b>
+        {potTemplates.find((t) => t.id === propRange.templateId)?.name ?? (
+          <span className="italicGrey">not found</span>
+        )}
+      </>
+    );
 
   const btnText = range.length === 1 ? rangeText(range[0]) : 'Multiple ...';
   return (
@@ -615,7 +721,7 @@ const TemplateRangeSelectionBtn = (props: TemplateProps) => {
       rootClose
       trigger="click"
       placement="bottom-start"
-      overlay={templateRangeSelectionPopover(props)}
+      overlay={templateRangeSelectionPopover(props, context)}
       onEnter={() => setIsOpen(true)}
       onExit={() => setIsOpen(false)}
     >
@@ -636,7 +742,9 @@ type Changes = [string, string | boolean | number | undefined | string[]][];
 const AdvRestrInput = (
   props: TemplateProps & { name: ShaclRestrProps; type: 'text' | 'number' | 'select' | 'enum' },
 ) => {
-  const { prop, path, setPathVal, name, type, ann, vocabHandler } = props;
+  const { prop, path, name, type, ann } = props;
+  const { setPathVal, vocabHandler } = useContext(AnnotationContext);
+
   const pathStr = path.join('.');
 
   const setVal = (arr: Changes) =>
@@ -725,7 +833,9 @@ const AdvRestrInput = (
 const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) => {
   const [isAdvancedView, setIsAdvancedView] = useState(false);
 
-  const { nodeRangeOptions, prop, path, vocabHandler, setPathVal, removePath } = props;
+  const { nodeRangeOptions, prop, path } = props;
+  const { setPathVal, vocabHandler, potTemplates } = useContext(AnnotationContext);
+
   const pathStr = path.join('.');
 
   const setVal = (arr: Changes) =>
@@ -817,24 +927,26 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
             if (range.types.length === 1 && vocabHandler.isTerminalNode(range.types[0])) {
               // only when more than 1 range, else see in range select button
               if (prop.range.length > 1) {
+                // case Text or URL
                 return <h4 key={key}>{vocabHandler.usePrefix(range.types[0])}</h4>;
               }
-              return <></>;
+              return <></>; // case Text
             }
 
+            return <Node key={key} fromRanges={nodeRangeOptions} path={[...path, 'range', i]} ann={range} />;
+          }
+
+          if (prop.range.length > 1) {
             return (
-              <Node
-                key={key}
-                fromRanges={nodeRangeOptions}
-                path={[...path, 'range', i]}
-                vocabHandler={vocabHandler}
-                ann={range}
-                setPathVal={setPathVal}
-                removePath={removePath}
-              />
+              <div key={key}>
+                <b className="mr-1">Template:</b>
+                {potTemplates.find((t) => t.id === range.templateId)?.name ?? (
+                  <span className="italicGrey">not found</span>
+                )}
+              </div>
             );
           }
-          return <h1>Unexpected range</h1>;
+          return <></>;
         })
         .reduce(joinReduction(<b key={uuid()}>or</b>) as any)}
     </>
@@ -842,7 +954,8 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
 };
 
 const Range = (props: PropProps) => {
-  const { prop, path, vocabHandler, setPathVal, removePath, restrictions } = props;
+  const { prop, path, restrictions } = props;
+  const { setPathVal, vocabHandler } = useContext(AnnotationContext);
 
   try {
     const nodeRangeOptions = vocabHandler
@@ -896,11 +1009,8 @@ const Range = (props: PropProps) => {
         <Node
           fromRanges={nodeRangeOptions}
           path={[...path, 'val']}
-          vocabHandler={vocabHandler}
           ann={prop.val}
           restrictionIds={restrIds}
-          setPathVal={setPathVal}
-          removePath={removePath}
         />
       );
     }

@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
-
-const mongoUrl = 'mongodb://localhost:27017/';
+import config from '../config';
 
 export const connect = async (db = 'actions'): Promise<void> => {
   mongoose.set('useCreateIndex', true);
   mongoose.set('useFindAndModify', false);
   try {
-    await mongoose.connect(mongoUrl + db, {
+    await mongoose.connect(config.mongoUrl + db, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

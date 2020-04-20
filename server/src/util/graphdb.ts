@@ -2,7 +2,7 @@ import got from 'got';
 
 import { Annotation } from '../models/WebApi';
 import config from '../config';
-import { withTries, clone, toArray } from './util';
+import { withTries, clone, toArray } from './utils';
 
 const graphDbBaseUrl = `${config.graphdb.url}/repositories/${config.graphdb.repo}/statements`;
 
@@ -15,10 +15,7 @@ const cleanContext = (jsonLd: Annotation | Annotation[]): Annotation[] =>
     return ann;
   });
 
-const postData = async (
-  graphName: string,
-  jsonLd: Annotation | Annotation[],
-): Promise<void> => {
+const postData = async (graphName: string, jsonLd: Annotation | Annotation[]): Promise<void> => {
   const encodedGraphName = encodeURIComponent(`<${graphName}>`);
   const url = `${graphDbBaseUrl}?baseUri=${encodedGraphName}&context=${encodedGraphName}`;
 
@@ -43,18 +40,14 @@ const update = async (
   jsonLd: Annotation | Annotation[],
 ): Promise<void> => {
   await deleteGraph(typeof graphName === 'string' ? graphName : graphName.old);
-  return postData(
-    typeof graphName === 'string' ? graphName : graphName.new,
-    jsonLd,
-  );
+  return postData(typeof graphName === 'string' ? graphName : graphName.new, jsonLd);
 };
 
 const graphDB = {
   post: withTries(postData, 10, 10000),
   upsert: withTries(update, 10, 10000),
   delete: withTries(deleteGraph, 10, 10000),
-  getGraphName: (webApiPath: string): string =>
-    `${config.url}/graphs/${webApiPath}`,
+  getGraphName: (webApiPath: string): string => `${config.url}/graphs/${webApiPath}`,
 };
 
 export default graphDB;

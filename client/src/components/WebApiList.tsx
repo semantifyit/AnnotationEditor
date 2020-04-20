@@ -43,16 +43,13 @@ const webApiActionTooltip = (webApi: WebApi) => (
 const confirmDelete = (webApi: WebApi) => {
   if (
     // eslint-disable-next-line no-alert
-    window.confirm(
-      `Are you sure you wish to delete the WebAPI entry for ${webApi.annotation.name}`,
-    )
+    window.confirm(`Are you sure you wish to delete the WebAPI entry for ${webApi.annotation.name}`)
   ) {
     // TODO delete
   }
 };
 
-const optionsBlockBtn =
-  'btn btn-light btn-block back-bor-white shadow-none text-left';
+const optionsBlockBtn = 'btn btn-light btn-block back-bor-white shadow-none text-left';
 
 const webApiOptions = (webApi: WebApi) => (
   <Popover id={`popover-webapi-${webApi._id}`}>
@@ -71,7 +68,7 @@ const webApiOptions = (webApi: WebApi) => (
       <a
         className={optionsBlockBtn}
         href={`https://graphdb.sti2.at/resource?uri=${encodeURIComponent(
-          `https://actions.semantify.it/graphs/${webApi.path}`,
+          `https://actions.semantify.it/graphs/${webApi.id}`,
         )}`}
         target="_blank"
         rel="noopener noreferrer"
@@ -93,14 +90,9 @@ const webApiOptions = (webApi: WebApi) => (
 const webApiCard = (webApi: WebApi) => (
   <div className="card">
     <div className="card-body">
-      <h5 className="card-title d-flex">
+      <h5 className="card-title d-flex flexSpaceBetween flexStartAlign">
         <span>{toReadableString(webApi.annotation.name, '')}</span>
-        <OverlayTrigger
-          rootClose
-          trigger="click"
-          placement="bottom"
-          overlay={webApiOptions(webApi)}
-        >
+        <OverlayTrigger rootClose trigger="click" placement="bottom" overlay={webApiOptions(webApi)}>
           <button
             className="btn btn-light float-right back-bor-white shadow-none"
             style={{ transform: 'translate(20px, -20px)' }}
@@ -121,7 +113,7 @@ const webApiCard = (webApi: WebApi) => (
       <p className="card-text">
         <small className="text-muted">
           {toDateString(webApi.updatedAt)}
-          <span className="font-italic float-right">/{webApi.path}</span>
+          <span className="font-italic float-right">/{webApi.id}</span>
         </small>
       </p>
     </div>

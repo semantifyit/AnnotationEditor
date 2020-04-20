@@ -208,6 +208,10 @@ const cleanBlankNodes = (nodes: Node[]): Node[] => {
   return nodes;
 };
 
+export const usePrefixWith = (prefix: Record<string, string>) => (nodeId: string) =>
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  usePrefix(nodeId, prefix);
+
 export const usePrefix = (nodeId: string, prefix: Record<string, string>): string => {
   if (nodeId.startsWith(prefix['@vocab'])) {
     return nodeId.replace(prefix['@vocab'], '');

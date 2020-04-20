@@ -5,11 +5,17 @@ import {
   Action,
   WebApiAnnotation,
   ActionAnnotation,
-  AnnotationSrc,
   Annotation,
   Template,
-  AnnotationSrcProp,
+  RessourceDescProp,
   TemplateProperty,
+  DefaultRessourceDesc,
+  TemplateRessourceDesc,
+  TemplatePropertyGroupType,
+  ActionRessourceDesc,
+  ExpendedActionRessourceDesc,
+  ExpandedTemplateProperty,
+  ExpandedTemplateRessourceDesc,
   // AnnotationSrcProp,
 } from '../../../server/src/models/WebApi';
 import { fromArray, toArray, stringOrNil } from './utils';
@@ -23,42 +29,93 @@ const sameNameBracket = (numSameName: number): string => `${numSameName !== 0 ? 
 
 export const defaultNewActionName = 'New Action';
 
-export const createEmptyAction = (numSameName: number): Action => ({
-  path: uuid(),
-  annotation: ({
-    '@context': { '@vocab': 'http://schema.org/' },
-    '@type': 'Action',
-    name: `${defaultNewActionName}${sameNameBracket(numSameName)}`,
-  } as unknown) as ActionAnnotation,
-  annotationSrc: {
-    types: ['http://schema.org/Action'],
-    props: [
-      {
-        type: 'annotation',
-        id: uuid(),
-        path: 'http://schema.org/name',
-        val: `${defaultNewActionName}${sameNameBracket(numSameName)}`,
-        range: 'http://schema.org/Text',
-      },
-    ],
-  },
-  requestMapping: {
-    isValid: true,
-    type: 'json',
-    method: 'GET',
-    url: '',
-    path: '[]',
-    query: '{}',
-    headers: '{}',
-    body: '{}',
-  },
-  responseMapping: {
-    isValid: true,
-    type: 'json',
-    headers: '{}',
-    body: '{}',
-  },
+const ioTemplateProps = {
+  input: 'http://schema.org/object',
+  output: 'http://schema.org/result',
+};
+
+export const newIOTemplateProp = (io: TemplatePropertyGroupType): TemplateProperty =>
+  newTemplateProp(ioTemplateProps[io], io);
+
+export const newTemplateProp = (prop: string, io: TemplatePropertyGroupType): TemplateProperty => ({
+  type: 'template',
+  id: uuid(),
+  path: prop,
+  io: io,
+  range: [
+    {
+      type: 'template',
+      types: ['http://schema.org/Thing'],
+      props: [],
+    },
+  ],
+  required: true,
+  multAllowed: false,
+  minCount: 1,
+  maxCount: 1,
 });
+
+export const createEmptyAction = (numSameName: number): Action => {
+  const name = `${defaultNewActionName}${sameNameBracket(numSameName)}`;
+  return {
+    id: uuid(),
+    name,
+    annotation: ({
+      '@context': { '@vocab': 'http://schema.org/' },
+      '@type': 'Action',
+      name,
+    } as unknown) as ActionAnnotation,
+    annotationSrc: {
+      type: 'action',
+      types: ['http://schema.org/Action'],
+      props: [
+        {
+          type: 'annotation',
+          id: uuid(),
+          path: 'http://schema.org/name',
+          val: name,
+          range: 'http://schema.org/Text',
+        },
+      ],
+      input: [newIOTemplateProp('input')],
+      output: [newIOTemplateProp('output')],
+    },
+    requestMapping: {
+      isValid: true,
+      method: 'GET',
+      url: { type: 'handlebars', value: 'http://example.com' },
+      headers: { type: 'handlebars', value: '{\n\t"Content-Type": "text/plain"\n}' },
+      body: {
+        type: 'handlebars',
+        value: '',
+      },
+    },
+    responseMapping: {
+      isValid: true,
+      addToResult: true,
+      autoError: true,
+      autoStatus: true,
+      body: {
+        type: 'yarrrml',
+        value:
+          'prefixes:\n  schema: "http://schema.org/"\n  myfunc: "http://myfunc.com/"\nmappings:\n  result:\n    sources:\n      - ["input~jsonpath", "$.*"]\n    po:\n      - [a, schema:Thing]\n      - [schema:name, "example"]\n',
+      },
+    },
+    potentialActionLinks: [],
+    preceedingActionLinks: [],
+    sampleAction: JSON.stringify(
+      {
+        '@context': { '@vocab': 'http://schema.org/' },
+        '@type': 'Action',
+        actionStatus: 'http://schema.org/ActiveActionStatus',
+        name: 'foo',
+      },
+      null,
+      2,
+    ),
+    sampleResponse: '',
+  };
+};
 
 export const defaultNewTemplateName = 'New Template';
 
@@ -69,7 +126,8 @@ export const createEmptyTemplate = (numSameName: number): Template => ({
 });
 
 export const createEmptyWebApi = (): WebApi => ({
-  path: uuid(),
+  id: uuid(),
+  name: 'New WebAPI',
   author: 'Me',
   annotation: ({
     '@context': { '@vocab': 'http://schema.org/' },
@@ -77,6 +135,7 @@ export const createEmptyWebApi = (): WebApi => ({
     name: 'New WebAPI',
   } as unknown) as WebApiAnnotation,
   annotationSrc: {
+    type: 'annotation',
     types: ['http://schema.org/WebAPI'],
     props: [
       {
@@ -95,16 +154,18 @@ export const createEmptyWebApi = (): WebApi => ({
   },
   config: {
     useMapping: true,
-    showCodeEditor: true,
+    showCodeEditor: false,
   },
   templates: [],
 });
 
-export const getNameOfAction = (action: Action): string =>
-  stringOrNil(
-    action.annotationSrc.props.filter(isAnnotationSrcProp).find((p) => p.path === 'http://schema.org/name')
-      ?.val,
-  ) ?? '';
+export const getNameOfAnnotation = (ann: DefaultRessourceDesc): string =>
+  stringOrNil(ann.props.filter(isAnnotationSrcProp).find((p) => p.path === 'http://schema.org/name')?.val) ??
+  '';
+
+export const getNameOfAction = (action: Action): string => getNameOfAnnotation(action.annotationSrc);
+
+export const getNameOfWebApi = (webApi: WebApi): string => getNameOfAnnotation(webApi.annotationSrc);
 
 export const setNameOfAction = (action: Action, str: string) => {
   const prop = action.annotationSrc.props
@@ -116,7 +177,7 @@ export const setNameOfAction = (action: Action, str: string) => {
 };
 
 export const annSrcToAnnJsonLd = (
-  annSrc: AnnotationSrc,
+  annSrc: DefaultRessourceDesc,
   vocabHandler: VocabHandler,
   withContext = true,
 ): Annotation => {
@@ -138,7 +199,7 @@ export const annSrcToAnnJsonLd = (
   return ann;
 };
 
-export const annJsonLDToAnnSrc = (annSrc: Annotation, vocabHandler: VocabHandler): AnnotationSrc => {
+export const annJsonLDToAnnSrc = (annSrc: Annotation, vocabHandler: VocabHandler): DefaultRessourceDesc => {
   const ann = {} as any;
   ann.types = toArray(annSrc['@type']).map(vocabHandler.unUsePrefix);
 
@@ -168,16 +229,16 @@ export const annJsonLDToAnnSrc = (annSrc: Annotation, vocabHandler: VocabHandler
   return ann;
 };
 
-export const isTemplateProp = (prop: AnnotationSrcProp | TemplateProperty): prop is TemplateProperty =>
+export const isTemplateProp = (prop: RessourceDescProp | TemplateProperty): prop is TemplateProperty =>
   prop.type === 'template';
 
-export const isAnnotationSrcProp = (prop: AnnotationSrcProp | TemplateProperty): prop is AnnotationSrcProp =>
+export const isAnnotationSrcProp = (prop: RessourceDescProp | TemplateProperty): prop is RessourceDescProp =>
   prop.type === 'annotation';
 
-export const dsToTemplate = (ds: any): AnnotationSrc =>
+export const dsToTemplate = (ds: any): TemplateRessourceDesc =>
   dsPartToTemplate(ds['@graph'][0], ds['@graph'][0]['sh:targetClass'], ds['@context']);
 
-export const dsPartToTemplate = (ds: any, classes: any, context: any): AnnotationSrc => ({
+export const dsPartToTemplate = (ds: any, classes: any, context: any): TemplateRessourceDesc => ({
   type: 'template',
   types: toArray(classes).map((s) => unUsePrefix(s, context)),
   props: ds['sh:property'].map((prop: any) => ({
@@ -195,3 +256,49 @@ export const dsPartToTemplate = (ds: any, classes: any, context: any): Annotatio
     maxCount: prop['sh:maxCount'],
   })),
 });
+
+export const expandUsedActionTemplates = (
+  ann: ActionRessourceDesc,
+  templates: Template[],
+): ExpendedActionRessourceDesc => ({
+  ...ann,
+  input: ann.input?.map((t) => expandTemplateProp(t, templates)),
+  output: ann.output?.map((t) => expandTemplateProp(t, templates)),
+});
+
+export const expandTemplateRessource = (
+  template: TemplateRessourceDesc,
+  templates: Template[],
+): ExpandedTemplateRessourceDesc => ({
+  ...template,
+  props: template.props.map((prop) => expandTemplateProp(prop, templates)),
+});
+
+export const expandTemplateProp = (
+  prop: TemplateProperty,
+  templates: Template[],
+): ExpandedTemplateProperty => {
+  return {
+    ...prop,
+    range: prop.range.map((range) => {
+      if ('templateId' in range) {
+        const template = templates.find((template) => template.id === range.templateId);
+        if (!template) {
+          throw new Error(`Template <${range.templateId}> not found`);
+        }
+        return expandTemplateRessource(template.src, templates);
+      }
+      return expandTemplateRessource(range, templates);
+    }),
+  };
+};
+
+// export const replaceAnnotationTemplates = (
+//   annotation: AnnotationSrc,
+//   templates: Template[],
+// ): ExpandedTemplate => {
+//   const src = clone(annotation);
+//   src.props =
+
+//   return src;
+// };

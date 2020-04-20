@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 // eslint-disable-next-line import/prefer-default-export
 export const autoLink = (text: string): React.ReactElement => {
@@ -29,3 +29,29 @@ export const autoLink = (text: string): React.ReactElement => {
 };
 
 export const joinReduction = (seperator: any) => (prev: any, curr: any) => [prev, seperator, curr];
+
+export function useHover(): [React.MutableRefObject<any>, boolean] {
+  const [value, setValue] = useState(false);
+  const ref = useRef<any>(null);
+  // eslint-disable-next-line no-sequences
+  const handleMouseOver = (e: any) => (e.stopPropagation(), setValue(true));
+  // eslint-disable-next-line no-sequences
+  const handleMouseOut = (e: any) => (e.stopPropagation(), setValue(false));
+  useEffect(
+    () => {
+      const node = ref.current;
+      if (node) {
+        node.addEventListener('mouseover', handleMouseOver);
+        node.addEventListener('mouseout', handleMouseOut);
+
+        return () => {
+          node.removeEventListener('mouseover', handleMouseOver);
+          node.removeEventListener('mouseout', handleMouseOut);
+        };
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ref.current], // Recall only if ref changes
+  );
+  return [ref, value];
+}

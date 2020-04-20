@@ -14,5 +14,13 @@
     { "directory": "./server", "changeProcessCWD": true }
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
-  "eslint.enable": true
+  "eslint.enable": true,
+  "spellright.language": [
+    "en"
+  ],
+  "spellright.documentTypes": [
+    "markdown",
+    "latex",
+    "plaintext"
+  ]
 }

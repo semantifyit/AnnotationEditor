@@ -1,37 +1,34 @@
 import { WebApiLeanDoc as WebApi, Annotation } from '../models/WebApi';
 import config from '../config';
 import GraphDB from './graphdb';
-import { clone } from './util';
+import { clone } from './utils';
 
 export const preProcessWebAPI = (webApiObj: WebApi): void => {
   // webapi documentation url points to action list
-  const actionListUrl = `${config.url}/api/action/${webApiObj.path}/actions`;
+  const actionListUrl = `${config.url}/api/action/${webApiObj.id}/actions`;
   if (Array.isArray(webApiObj.annotation.documentation)) {
     // eslint-disable-next-line no-param-reassign
-    webApiObj.annotation.documentation = webApiObj.annotation.documentation.map(
-      (doc) => {
-        // eslint-disable-next-line no-param-reassign
-        doc.url = actionListUrl;
-        return doc;
-      },
-    );
+    webApiObj.annotation.documentation = webApiObj.annotation.documentation.map((doc) => {
+      // eslint-disable-next-line no-param-reassign
+      doc.url = actionListUrl;
+      return doc;
+    });
   } else if (typeof webApiObj.annotation.documentation === 'object') {
     // eslint-disable-next-line no-param-reassign
     webApiObj.annotation.documentation.url = actionListUrl;
   }
 
-  const actionTargetUrl = `${config.url}/api/action/${webApiObj.path}/`;
+  const actionTargetUrl = `${config.url}/api/action/${webApiObj.id}/`;
 
   // eslint-disable-next-line no-param-reassign
   webApiObj.actions = webApiObj.actions.map((action) => {
     // eslint-disable-next-line no-param-reassign
-    action.annotation.target.urlTemplate = actionTargetUrl + action.path;
+    action.annotation.target.urlTemplate = actionTargetUrl + action.id;
     return action;
   });
 };
 
-export const webAPIToGN = (webApi: WebApi): string =>
-  GraphDB.getGraphName(webApi.path);
+export const webAPIToGN = (webApi: WebApi): string => GraphDB.getGraphName(webApi.id);
 
 export const webAPIToAnn = (webApiObj: WebApi): [string, Annotation[]] => {
   const webApi = clone(webApiObj);

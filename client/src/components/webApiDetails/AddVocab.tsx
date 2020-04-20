@@ -3,6 +3,7 @@ import ky from 'ky';
 
 import { VocabLeanDoc as Vocab } from '../../../../server/src/models/Vocab';
 import Editor from '../Editor';
+import { Loading } from '../Loading';
 
 interface Props {
   addVocab: (vocab: Vocab) => void;
@@ -189,11 +190,7 @@ const AddVocab = ({ addVocab }: Props) => {
       >
         Add Vocab
       </button>
-      {isLoading && (
-        <div className="spinner-border" role="status">
-          <span className="sr-only">Loading...</span>
-        </div>
-      )}
+      {isLoading && <Loading />}
       <br />
       {finalMessage[1] && (
         <div className={`alert alert-${finalMessage[0]} my-2`} role="alert">

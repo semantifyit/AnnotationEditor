@@ -3,17 +3,53 @@ import express from 'express';
 import WebApi, { WebApiLeanDoc as IWebApi } from '../models/WebApi';
 import GraphDB from '../util/graphdb';
 import { webAPIToAnn, webAPIToGN, enrichWebApi } from '../util/webApi';
+import { withTryCatch } from '../util/utils';
 
 const router = express.Router();
 
+router.get('/actions', (req, res) => {
+  withTryCatch(res, async () => {
+    const webApis: IWebApi[] = await WebApi.find(
+      {},
+      { 'actions.id': 1, 'actions.name': 1, id: 1, name: 1, _id: 0 },
+    ).lean();
+    res.json(webApis);
+  });
+});
+
+router.get('/actions/:ids', (req, res) => {
+  const ids = req.params.ids.split(',');
+  withTryCatch(res, async () => {
+    const webApis: IWebApi[] = await WebApi.find(
+      { 'actions.id': { $in: ids } },
+      {
+        'actions.id': 1,
+        'actions.name': 1,
+        'actions.annotationSrc': 1,
+        id: 1,
+        name: 1,
+        templates: 1,
+        context: 1,
+        _id: 0,
+      },
+    ).lean();
+    res.json(
+      webApis.map((webApi) => ({
+        ...webApi,
+        actions: webApi.actions.filter((act) => ids.includes(act.id)),
+      })),
+    );
+  });
+});
+
 router.get('/', async (req, res) => {
-  const result = (await WebApi.find({}).lean()) as IWebApi[];
-  res.json(result.map((webAPI) => enrichWebApi(webAPI)));
+  const result = await WebApi.find({}).lean();
+  res.json(result.map((webAPI: any) => enrichWebApi(webAPI)));
 });
 
 router.get('/:id', async (req, res) => {
   try {
-    const result = (await WebApi.findById(req.params.id).lean()) as IWebApi;
+    const result = await WebApi.findById(req.params.id).lean();
     if (!result) {
       res.status(404).json({ err: `WebApi with id ${req.params.id} not found` });
       return;

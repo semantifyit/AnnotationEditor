@@ -17,11 +17,14 @@ import {
   FaFeatherAlt,
   FaTimesCircle,
   FaCheckCircle,
+  FaLink,
+  FaProjectDiagram,
 } from 'react-icons/fa';
 import { IconType } from 'react-icons/lib/cjs';
 import ky from 'ky';
 import classnames from 'classnames';
 import { toast } from 'react-toastify';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 // import uuid from 'uuid/v1';
 
@@ -31,7 +34,11 @@ import {
   // Annotation as IAnnotation,
   ActionAnnotation,
   WebApiAnnotation,
-  AnnotationSrc,
+  RessourceDesc,
+  ActionRefs,
+  ActionLink as IActionLink,
+  ActionRessourceDesc,
+  TemplateRessourceDesc,
 } from '../../../../server/src/models/WebApi';
 import { VocabLeanDoc as Vocab } from '../../../../server/src/models/Vocab';
 import {
@@ -43,6 +50,7 @@ import {
   defaultNewActionName,
   getNameOfAction,
   setNameOfAction,
+  getNameOfWebApi,
 } from '../../util/webApi';
 import { clone, memoize, toArray, maxOfArray, Optional } from '../../util/utils';
 import Annotation from './Annotation';
@@ -54,6 +62,9 @@ import TestMapping from './TestMapping';
 import Vocabularies from './Vocabularies';
 import VocabHandler from '../../util/VocabHandler';
 import Template from './Template';
+import ActionLink from './ActionLinks';
+import { useActionStore } from '../../util/ActionStore';
+import { Loading } from '../Loading';
 
 export interface WebApiDetailPageProps {
   webApi: WebApi;
@@ -68,8 +79,10 @@ const pages: [string, IconType][] = [
 
 const actionPages: [string, IconType][] = [
   ['Annotation', FaFileAlt],
+  ['Preceeding Actions', FaLink],
+  ['Potential Actions', FaProjectDiagram],
   ['Request Mapping', FaArrowRight],
-  ['Reponse Mapping', FaArrowLeft],
+  ['Response Mapping', FaArrowLeft],
   ['Testing', FaVial],
 ];
 
@@ -383,17 +396,51 @@ const useAvailableVocabs = (): [Vocab[], (v: Vocab[]) => void, boolean] => {
   return [vocabs, setVocabs, isLoading];
 };
 
+const useOtherActionsRefs = (): [ActionRefs, boolean] => {
+  const [otherActions, setOtherActions] = useState<ActionRefs>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    ky.get('/api/webApi/actions')
+      .json()
+      .then((resp) => {
+        setOtherActions(resp as ActionRefs);
+        setIsLoading(false);
+      });
+  }, []);
+  return [otherActions, isLoading];
+};
+
 const WebApiCreate = () => {
   const params: { id?: string } = useParams();
   const [id, setId] = useState(params.id);
   const [webApi, setWebApi, isLoadingWebApi] = useWebApi(id);
+  const [otherActionRefs, isLoadingOtherActionRefs] = useOtherActionsRefs();
   const [availableVocabs, setAvailableVocabs, isLoadingVocabs] = useAvailableVocabs();
-  const [page, setPage] = useState<SelectedPage>({ type: 'main', main: 0, sub: 0 });
+  const [page, setPage] = useState<SelectedPage>({ type: 'actions', main: 0, sub: 3 }); //({ type: 'main', main: 0, sub: 0 });
   const [isSaving, setIsSaving] = useState(false);
+  const [getActions] = useActionStore();
+
+  useHotkeys('ctrl+s', (e) => {
+    e.preventDefault();
+    save();
+  });
+
+  const actionRefs = [
+    {
+      id: webApi.id,
+      name: getNameOfWebApi(webApi) + ' (This WebApi)',
+      actions: webApi.actions.map((action) => ({
+        id: action.id,
+        name: getNameOfAction(action),
+        action,
+      })),
+    },
+    ...otherActionRefs,
+  ];
 
   // console.log(page, subPage);
 
-  const isReady = !isLoadingVocabs && !isLoadingWebApi;
+  const isReady = !isLoadingVocabs && !isLoadingWebApi && !isLoadingOtherActionRefs;
 
   const namesCount = (names: string[], defaultName: string): number =>
     maxOfArray(
@@ -467,18 +514,18 @@ const WebApiCreate = () => {
 
   const setSubPage = (n: number) => setPage((oldPage) => ({ ...oldPage, sub: n }));
 
+  const goToReqMapping = () => setSubPage(3);
+  const goToRespMapping = () => setSubPage(4);
+  const goToTestMapping = () => setSubPage(5);
+
   const availableVocabsKey = availableVocabs.map((vocab) => vocab._id).join('.');
   const vocabHandler = getVocabHandler(webApi.vocabs, webApi.context, availableVocabsKey, availableVocabs);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let title = '';
-
   const getDetailsPage = () => {
     if (page.type === 'main') {
-      switch (page.main) {
-        case 0: {
-          title = 'WebApi Annotation';
-          const setAnnotation = (annotation: AnnotationSrc) => {
+      switch (pages[page.main][0]) {
+        case 'WebAPI Annotation': {
+          const setAnnotation = (annotation: RessourceDesc) => {
             const newWebApi = clone(webApi);
             newWebApi.annotationSrc = annotation;
             newWebApi.annotation = annSrcToAnnJsonLd(annotation, vocabHandler) as WebApiAnnotation;
@@ -492,11 +539,11 @@ const WebApiCreate = () => {
               annotation={webApi.annotationSrc}
               setAnnotation={setAnnotation}
               config={webApi.config}
+              potTemplates={[]}
             />
           );
         }
-        case 1: {
-          title = 'Vocabularies';
+        case 'Vocabularies': {
           const setContext = (context: Record<string, string>) => {
             const newWebApi = clone(webApi);
             newWebApi.context = context;
@@ -518,12 +565,9 @@ const WebApiCreate = () => {
             />
           );
         }
-        case 2:
-          title = 'Functions';
-
+        case 'Functions':
           return <Functions />;
-        case 3: {
-          title = 'Configuration';
+        case 'Configuration': {
           const setConfig = (newConfig: any) => {
             const newWebApi = clone(webApi);
             newWebApi.config = newConfig;
@@ -537,11 +581,11 @@ const WebApiCreate = () => {
       }
     } else if (page.type === 'actions') {
       const annIndex = page.main;
+      const action = webApi.actions[annIndex];
 
-      switch (page.sub) {
-        case 0: {
-          title = 'Action Annotation';
-          const setAnnotation = (annotation: AnnotationSrc) => {
+      switch (actionPages[page.sub][0]) {
+        case 'Annotation': {
+          const setAnnotation = (annotation: ActionRessourceDesc) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].annotationSrc = annotation;
             newWebApi.actions[annIndex].annotation = annSrcToAnnJsonLd(
@@ -553,40 +597,87 @@ const WebApiCreate = () => {
           // console.log(webApi.actions[annIndex].annotation);
           return (
             <Annotation
+              isAction={true}
               baseType="http://schema.org/Action"
               key={annIndex}
               // annotation={annJsonLDToAnnSrc(webApi.actions[annIndex].annotation, vocabHandler)}
-              annotation={webApi.actions[annIndex].annotationSrc}
+              annotation={action.annotationSrc}
               setAnnotation={setAnnotation}
               vocabHandler={vocabHandler}
               config={webApi.config}
+              potTemplates={webApi.templates}
             />
           );
         }
-        case 1: {
-          title = 'Action Request Mapping';
-          const goToRespMapping = () => setSubPage(2);
+        case 'Potential Actions': {
+          const setActionLink = (actionLinks: IActionLink[]) => {
+            const newWebApi = clone(webApi);
+            newWebApi.actions[annIndex].potentialActionLinks = actionLinks;
+            setWebApi(newWebApi);
+          };
+          return (
+            <ActionLink
+              type="Potential"
+              webApi={webApi}
+              baseAction={webApi.actions[annIndex]}
+              actionRefs={actionRefs}
+              actionLinks={webApi.actions[annIndex].potentialActionLinks}
+              setActionLinks={setActionLink}
+              getActions={getActions}
+            />
+          );
+        }
+        case 'Preceeding Actions': {
+          const setActionLink = (actionLinks: IActionLink[]) => {
+            const newWebApi = clone(webApi);
+            newWebApi.actions[annIndex].preceedingActionLinks = actionLinks;
+            setWebApi(newWebApi);
+          };
+          return (
+            <ActionLink
+              type="Preceeding"
+              webApi={webApi}
+              baseAction={webApi.actions[annIndex]}
+              actionRefs={actionRefs}
+              actionLinks={webApi.actions[annIndex].preceedingActionLinks}
+              setActionLinks={setActionLink}
+              getActions={getActions}
+            />
+          );
+        }
+        case 'Request Mapping': {
           const setRequestMapping = (newReqMapping: any) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].requestMapping = newReqMapping;
             setWebApi(newWebApi);
           };
+          const setSampleAction = (newSampleAction: any) => {
+            const newWebApi = clone(webApi);
+            newWebApi.actions[annIndex].sampleAction = newSampleAction;
+            setWebApi(newWebApi);
+          };
           return (
             <RequestMapping
               goToRespMapping={goToRespMapping}
+              goToTestMapping={goToTestMapping}
               requestMapping={webApi.actions[annIndex].requestMapping}
               setRequestMapping={setRequestMapping}
+              sampleAction={webApi.actions[annIndex].sampleAction}
+              setSampleAction={setSampleAction}
+              prefixes={webApi.context}
             />
           );
         }
 
-        case 2: {
-          title = 'Action Response Mapping';
-          const goToReqMapping = () => setSubPage(1);
-          const goToTestMapping = () => setSubPage(3);
+        case 'Response Mapping': {
           const setRequestMapping = (newReqMapping: any) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].responseMapping = newReqMapping;
+            setWebApi(newWebApi);
+          };
+          const setSampleResponse = (newSampleResponse: any) => {
+            const newWebApi = clone(webApi);
+            newWebApi.actions[annIndex].sampleResponse = newSampleResponse;
             setWebApi(newWebApi);
           };
           return (
@@ -595,20 +686,37 @@ const WebApiCreate = () => {
               goToTestMapping={goToTestMapping}
               responseMapping={webApi.actions[annIndex].responseMapping}
               setResponseMapping={setRequestMapping}
+              sampleResponse={webApi.actions[annIndex].sampleResponse}
+              setSampleResponse={setSampleResponse}
+              prefixes={webApi.context}
             />
           );
         }
 
-        case 3:
-          title = 'Action Test Mapping';
-          return <TestMapping />;
+        case 'Testing': {
+          const setSampleAction = (newSampleAction: any) => {
+            const newWebApi = clone(webApi);
+            newWebApi.actions[annIndex].sampleAction = newSampleAction;
+            setWebApi(newWebApi);
+          };
+          return (
+            <TestMapping
+              requestMapping={webApi.actions[annIndex].requestMapping}
+              responseMapping={webApi.actions[annIndex].responseMapping}
+              sampleAction={webApi.actions[annIndex].sampleAction}
+              setSampleAction={setSampleAction}
+              prefixes={webApi.context}
+              goToReqMapping={goToReqMapping}
+              goToRespMapping={goToRespMapping}
+            />
+          );
+        }
         default:
           return <h1>Page not found</h1>;
       }
     } else {
-      title = 'Action Annotation';
       const templateIndex = page.main;
-      const setAnnotation = (annotation: AnnotationSrc) => {
+      const setAnnotation = (annotation: TemplateRessourceDesc) => {
         setWebApi((oldWebApi) => {
           const newWebApi = clone(oldWebApi);
           newWebApi.templates[templateIndex].src = annotation;
@@ -633,6 +741,7 @@ const WebApiCreate = () => {
           setAnnotation={setAnnotation}
           vocabHandler={vocabHandler}
           config={webApi.config}
+          potTemplates={webApi.templates}
         />
       );
     }
@@ -641,6 +750,13 @@ const WebApiCreate = () => {
   const save = async () => {
     setIsSaving(true);
     console.log(webApi);
+    webApi.name = getNameOfWebApi(webApi);
+    console.log(webApi.name);
+    webApi.actions = webApi.actions.map((a) => {
+      a.name = getNameOfAction(a);
+      return a;
+    });
+
     try {
       const body = {
         ...webApi,
@@ -682,13 +798,7 @@ const WebApiCreate = () => {
       save={save}
     >
       <div className="mt-3" />
-      {isReady ? (
-        detailsPage
-      ) : (
-        <div className="spinner-border" role="status">
-          <span className="sr-only">Loading...</span>
-        </div>
-      )}
+      {isReady ? detailsPage : <Loading />}
     </WebAPIDetailsPage>
   );
 };

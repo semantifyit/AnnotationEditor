@@ -39,6 +39,7 @@ import {
   ActionLink as IActionLink,
   ActionRessourceDesc,
   TemplateRessourceDesc,
+  PotentialActionLink,
 } from '../../../../server/src/models/WebApi';
 import { VocabLeanDoc as Vocab } from '../../../../server/src/models/Vocab';
 import {
@@ -79,7 +80,7 @@ const pages: [string, IconType][] = [
 
 const actionPages: [string, IconType][] = [
   ['Annotation', FaFileAlt],
-  ['Preceeding Actions', FaLink],
+  ['Preceding Actions', FaLink],
   ['Potential Actions', FaProjectDiagram],
   ['Request Mapping', FaArrowRight],
   ['Response Mapping', FaArrowLeft],
@@ -155,7 +156,7 @@ const WebAPIDetailsPage = ({
         <ul className="navbar-nav px-3">
           <li className="nav-item text-nowrap">
             <button onClick={save} className="btn btn-success py-1" disabled={disableSaveBtn}>
-              <FaSave /> Publish
+              <FaSave /> Save
             </button>
           </li>
         </ul>
@@ -416,7 +417,7 @@ const WebApiCreate = () => {
   const [webApi, setWebApi, isLoadingWebApi] = useWebApi(id);
   const [otherActionRefs, isLoadingOtherActionRefs] = useOtherActionsRefs();
   const [availableVocabs, setAvailableVocabs, isLoadingVocabs] = useAvailableVocabs();
-  const [page, setPage] = useState<SelectedPage>({ type: 'actions', main: 0, sub: 3 }); //({ type: 'main', main: 0, sub: 0 });
+  const [page, setPage] = useState<SelectedPage>({ type: 'main', main: 0, sub: 0 }); //({ type: 'main', main: 0, sub: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [getActions] = useActionStore();
 
@@ -442,6 +443,21 @@ const WebApiCreate = () => {
 
   const isReady = !isLoadingVocabs && !isLoadingWebApi && !isLoadingOtherActionRefs;
 
+  const setSelectedVocabs = (vocabs: string[]) => {
+    const newWebApi = clone(webApi);
+    newWebApi.vocabs = vocabs;
+    setWebApi(newWebApi);
+  };
+
+  // only for now set default selected vocabs hardcoded, in future dynamic selection (e.g per user)
+  if (availableVocabs.length > 0 && webApi.vocabs.length === 0) {
+    setSelectedVocabs(
+      availableVocabs
+        .filter((v) => v.name === 'Schema.org' || v.name === 'Schema.org Pending')
+        .map(({ _id }) => _id),
+    );
+  }
+
   const namesCount = (names: string[], defaultName: string): number =>
     maxOfArray(
       names
@@ -460,7 +476,7 @@ const WebApiCreate = () => {
       defaultNewActionName,
     );
 
-    newWebApi.actions.push(createEmptyAction(actionsWithDefaultName));
+    newWebApi.actions.push(createEmptyAction(actionsWithDefaultName, webApi.id));
     setWebApi(newWebApi);
     setPage(newPage('actions', newWebApi.actions.length - 1, 0));
   };
@@ -549,11 +565,6 @@ const WebApiCreate = () => {
             newWebApi.context = context;
             setWebApi(newWebApi);
           };
-          const setSelectedVocabs = (vocabs: string[]) => {
-            const newWebApi = clone(webApi);
-            newWebApi.vocabs = vocabs;
-            setWebApi(newWebApi);
-          };
           return (
             <Vocabularies
               availableVocabs={availableVocabs}
@@ -612,7 +623,7 @@ const WebApiCreate = () => {
         case 'Potential Actions': {
           const setActionLink = (actionLinks: IActionLink[]) => {
             const newWebApi = clone(webApi);
-            newWebApi.actions[annIndex].potentialActionLinks = actionLinks;
+            newWebApi.actions[annIndex].potentialActionLinks = actionLinks as PotentialActionLink[];
             setWebApi(newWebApi);
           };
           return (
@@ -627,19 +638,19 @@ const WebApiCreate = () => {
             />
           );
         }
-        case 'Preceeding Actions': {
+        case 'Preceding Actions': {
           const setActionLink = (actionLinks: IActionLink[]) => {
             const newWebApi = clone(webApi);
-            newWebApi.actions[annIndex].preceedingActionLinks = actionLinks;
+            newWebApi.actions[annIndex].precedingActionLinks = actionLinks;
             setWebApi(newWebApi);
           };
           return (
             <ActionLink
-              type="Preceeding"
+              type="Preceding"
               webApi={webApi}
               baseAction={webApi.actions[annIndex]}
               actionRefs={actionRefs}
-              actionLinks={webApi.actions[annIndex].preceedingActionLinks}
+              actionLinks={webApi.actions[annIndex].precedingActionLinks}
               setActionLinks={setActionLink}
               getActions={getActions}
             />
@@ -748,10 +759,11 @@ const WebApiCreate = () => {
   };
 
   const save = async () => {
-    setIsSaving(true);
     console.log(webApi);
+    setIsSaving(true);
+    // console.log(webApi);
     webApi.name = getNameOfWebApi(webApi);
-    console.log(webApi.name);
+    // console.log(webApi.name);
     webApi.actions = webApi.actions.map((a) => {
       a.name = getNameOfAction(a);
       return a;
@@ -765,7 +777,7 @@ const WebApiCreate = () => {
         method: id ? 'patch' : 'post',
         json: body,
       }).json();
-      console.log(resp);
+      // console.log(resp);
       toast.success('Saved WebAPI!');
       if (!id) {
         setId(resp._id);

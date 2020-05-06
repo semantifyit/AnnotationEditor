@@ -9,20 +9,7 @@ import Popover from 'react-bootstrap/Popover';
 import { EnrichedWebApi as WebApi } from '../../../server/src/util/webApi';
 import { toReadableString, toDateString } from '../util/utils';
 import { autoLink } from '../util/jsxHelpers';
-
-const useWebApis = () => {
-  const [webApis, setWebApis] = useState<WebApi[]>([]);
-
-  useEffect(() => {
-    ky.get('/api/webApi')
-      .json()
-      .then((resp) => {
-        setWebApis(resp as WebApi[]);
-      });
-  }, []);
-
-  return webApis;
-};
+import { toast } from 'react-toastify';
 
 const webApiDescription = (webApi: WebApi) => {
   const desc = toReadableString(webApi.annotation.description);
@@ -40,18 +27,30 @@ const webApiActionTooltip = (webApi: WebApi) => (
   </Tooltip>
 );
 
-const confirmDelete = (webApi: WebApi) => {
+const confirmDelete = async (webApi: WebApi, deleteWebApi: (id: string) => void) => {
   if (
     // eslint-disable-next-line no-alert
     window.confirm(`Are you sure you wish to delete the WebAPI entry for ${webApi.annotation.name}`)
   ) {
     // TODO delete
+    try {
+      await ky.delete(`/api/webApi/${webApi._id}`);
+      deleteWebApi(webApi._id);
+      toast.success('Deleted WebAPI!');
+    } catch (e) {
+      toast.error(`Error deleting WebAPI: ${e}`);
+    }
   }
 };
 
 const optionsBlockBtn = 'btn btn-light btn-block back-bor-white shadow-none text-left';
 
-const webApiOptions = (webApi: WebApi) => (
+interface WebApiProps {
+  webApi: WebApi;
+  deleteWebApi: (id: string) => void;
+}
+
+const webApiOptions = ({ webApi, deleteWebApi }: WebApiProps) => (
   <Popover id={`popover-webapi-${webApi._id}`}>
     {/* <Popover.Title as="h3"></Popover.Title> */}
     <Popover.Content>
@@ -61,7 +60,7 @@ const webApiOptions = (webApi: WebApi) => (
       <Link to={`/webAPI/${webApi._id}/edit`} className={optionsBlockBtn}>
         Edit
       </Link>
-      <button className={optionsBlockBtn} onClick={() => confirmDelete(webApi)}>
+      <button className={optionsBlockBtn} onClick={() => confirmDelete(webApi, deleteWebApi)}>
         Delete
       </button>
       <hr />
@@ -87,12 +86,17 @@ const webApiOptions = (webApi: WebApi) => (
   </Popover>
 );
 
-const webApiCard = (webApi: WebApi) => (
+const WebApiCard = ({ webApi, deleteWebApi }: WebApiProps) => (
   <div className="card">
     <div className="card-body">
       <h5 className="card-title d-flex flexSpaceBetween flexStartAlign">
         <span>{toReadableString(webApi.annotation.name, '')}</span>
-        <OverlayTrigger rootClose trigger="click" placement="bottom" overlay={webApiOptions(webApi)}>
+        <OverlayTrigger
+          rootClose
+          trigger="click"
+          placement="bottom"
+          overlay={webApiOptions({ webApi, deleteWebApi })}
+        >
           <button
             className="btn btn-light float-right back-bor-white shadow-none"
             style={{ transform: 'translate(20px, -20px)' }}
@@ -120,18 +124,38 @@ const webApiCard = (webApi: WebApi) => (
   </div>
 );
 
-const webApiDeck = (webApis: WebApi[]) => (
+interface WebApiListProps {
+  webApis: WebApi[];
+  deleteWebApi: (id: string) => void;
+}
+
+const WebApiDeck = ({ webApis, deleteWebApi }: WebApiListProps) => (
   <div className="row">
     {webApis.map((webApi) => (
       <div key={webApi._id} className="col-lg-4 col-md-6 mb-4">
-        {webApiCard(webApi)}
+        {<WebApiCard webApi={webApi} deleteWebApi={deleteWebApi} />}
       </div>
     ))}
   </div>
 );
 
+const useWebApis = (): [WebApi[], (w: WebApi[]) => void] => {
+  const [webApis, setWebApis] = useState<WebApi[]>([]);
+
+  useEffect(() => {
+    ky.get('/api/webApi')
+      .json()
+      .then((resp) => {
+        setWebApis(resp as WebApi[]);
+      });
+  }, []);
+
+  return [webApis, setWebApis];
+};
+
 const WebApiList = () => {
-  const webApis = useWebApis();
+  const [webApis, setWebApis] = useWebApis();
+  const deleteWebApi = (id: string) => setWebApis(webApis.filter(({ _id }) => _id !== id));
   // TODO Loading
 
   return (
@@ -145,7 +169,10 @@ const WebApiList = () => {
       {webApis.length === 0 ? (
         <i>No Web APIs available</i>
       ) : (
-        webApiDeck(webApis.sort((a, b) => b._id.localeCompare(a._id)))
+        <WebApiDeck
+          webApis={webApis.sort((a, b) => b._id.localeCompare(a._id))}
+          deleteWebApi={deleteWebApi}
+        />
       )}
     </>
   );

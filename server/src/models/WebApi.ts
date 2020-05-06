@@ -28,6 +28,7 @@ export interface RessourceDescProp {
   path: string;
   val: string | RessourceDesc;
   range: string;
+  state?: 'disabled' | 'unremovable';
 }
 
 export type TemplatePropertyGroupType = 'input' | 'output';
@@ -47,6 +48,8 @@ export interface DefaultTemplateProperty {
   multAllowed: boolean;
 
   // shacl
+  nodeKind?: string;
+
   minCount?: number;
   maxCount?: number;
 
@@ -90,10 +93,12 @@ export type ShaclRestrProps =
   | 'maxInclusive'
   | 'minLength'
   | 'maxLength'
-  | 'pattern';
+  | 'pattern'
+  | 'nodeKind';
 
 export interface DefaultRessourceDesc {
   type: 'annotation' | 'action' | 'template';
+  nodeId?: string; // @id of named node
   types: string[];
   props: (RessourceDescProp | TemplateProperty)[];
   input?: TemplateProperty[];
@@ -198,7 +203,10 @@ export interface ActionLink {
   id: string;
   actionId: string;
   propertyMaps: PropertyMap[];
-  iterator?: string;
+  iterator?: TemplatePath;
+}
+export interface PotentialActionLink extends ActionLink {
+  iterator: TemplatePath;
 }
 
 export interface Action {
@@ -209,8 +217,8 @@ export interface Action {
   requestMapping: RequestMappingSave;
   responseMapping: ResponseMappingSave;
   functions?: string;
-  potentialActionLinks: ActionLink[];
-  preceedingActionLinks: ActionLink[];
+  potentialActionLinks: PotentialActionLink[];
+  precedingActionLinks: ActionLink[];
   sampleAction: string;
   sampleResponse: string; // maybe string[]
 }
@@ -255,7 +263,7 @@ const WebApiSchema: Schema = new Schema(
         responseMapping: { type: Object, required: false },
         functions: { type: String, required: false },
         potentialActionLinks: { type: Object, required: false },
-        preceedingActionLinks: { type: Object, required: false },
+        precedingActionLinks: { type: Object, required: false },
         sampleAction: { type: String, required: false },
         sampleResponse: { type: String, required: false },
       },

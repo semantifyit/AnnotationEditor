@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import {
   ActionLink as IActionLink,
   PropertyMap as IPropertyMap,
@@ -9,11 +9,11 @@ import { FaPlus, FaArrowRight } from 'react-icons/fa';
 import { EnrichedAction } from '../../util/ActionStore';
 import uuid from 'uuid';
 import { joinReduction, useHover } from '../../util/jsxHelpers';
-import Modal from 'react-bootstrap/Modal';
 import { expandUsedActionTemplates } from '../../util/webApi';
 import classNames from 'classnames';
+import ModalBtn from '../ModalBtn';
 
-type ActionLinkType = 'Preceeding' | 'Potential';
+type ActionLinkType = 'Preceding' | 'Potential';
 
 interface Props {
   type: ActionLinkType;
@@ -30,28 +30,39 @@ interface PropertyMapProps {
   propertyMap: IPropertyMap;
   setPropertyMap: (pmap: IPropertyMap) => void;
   removePropertyMap: () => void;
+  iterator?: IActionLink['iterator'];
 }
 
 interface PathBtnProps {
+  isIterator?: boolean;
   fromTo: 'from' | 'to';
   usedTemplatePath: TemplatePath;
   action: EnrichedAction;
   setPropertyPath: (p: TemplatePath) => void;
+  iterator?: IActionLink['iterator'];
 }
 
 interface ExpandedTemplatePropertySelectionProps {
   prop: ExpandedTemplateProperty;
   path: string[];
+  iterator?: IActionLink['iterator'];
 }
 
-const ExpandedTemplatePropertySelection = ({ prop, path }: ExpandedTemplatePropertySelectionProps) => {
+const ExpandedTemplatePropertySelection = ({
+  prop,
+  path,
+  iterator,
+}: ExpandedTemplatePropertySelectionProps) => {
   const { usePrefix, setPropertyPath, usedTemplatePath } = useContext(SelectionContext);
   const [ref, isHover] = useHover();
   const range = prop.range[0]; // TODO all ranges
+  const isSelected = usedTemplatePath.id === prop.id;
   const borderClass = isHover
     ? 'borderSelectionSelected'
-    : usedTemplatePath.id === prop.id
+    : isSelected
     ? 'borderSelectionPreSelected'
+    : prop.id === iterator?.id
+    ? 'borderSelectionIterator'
     : 'borderSelection';
   const myPath = [...path, prop.path];
   const click = (e: any) => {
@@ -60,9 +71,14 @@ const ExpandedTemplatePropertySelection = ({ prop, path }: ExpandedTemplatePrope
   };
   return (
     <div ref={ref} onClick={click} className={classNames('p-2 pl-3 my-2', borderClass)}>
-      <div>{usePrefix(prop.path)}</div>
+      <div className={classNames({ 'font-weight-bold': isHover || isSelected })}>{usePrefix(prop.path)}</div>
       {range.props.map((childProp) => (
-        <ExpandedTemplatePropertySelection key={childProp.id} prop={childProp} path={myPath} />
+        <ExpandedTemplatePropertySelection
+          key={childProp.id}
+          prop={childProp}
+          path={myPath}
+          iterator={iterator}
+        />
       ))}
     </div>
   );
@@ -87,6 +103,7 @@ const PropNodeSelection = ({
     usePrefix,
     webApi: { templates },
   },
+  iterator,
 }: PathBtnProps) => {
   const expAction = expandUsedActionTemplates(action.annotationSrc, templates);
   const { input, output } = expAction;
@@ -97,7 +114,12 @@ const PropNodeSelection = ({
         <SelectionContext.Provider value={{ setPropertyPath, usePrefix, usedTemplatePath }}>
           <div className="pointerRec">
             {templateProps.map((templateProp) => (
-              <ExpandedTemplatePropertySelection key={templateProp.id} prop={templateProp} path={[]} />
+              <ExpandedTemplatePropertySelection
+                key={templateProp.id}
+                prop={templateProp}
+                path={[]}
+                iterator={iterator}
+              />
             ))}
           </div>
         </SelectionContext.Provider>
@@ -109,33 +131,45 @@ const PropNodeSelection = ({
 };
 
 const PathBtn = (props: PathBtnProps) => {
-  const { fromTo, usedTemplatePath, action } = props;
-  const [modalshow, setModalShow] = useState(false);
+  const { fromTo, usedTemplatePath, action, isIterator } = props;
 
-  const pathSeperator = <b className="mx-1">/</b>;
+  const pathSeparator = <b className="mx-1">/</b>;
   return (
     <>
-      <button
-        className="borderGrey py-1 px-2 btn btn-light back-bor-white shadow-none"
-        style={{ minWidth: '5rem', textAlign: 'left' }}
-        title="Change path"
-        onClick={() => setModalShow(true)}
+      <ModalBtn
+        btnClassName="borderGrey py-1 px-2 btn btn-light back-bor-white shadow-none"
+        btnStyle={{ minWidth: '5rem', textAlign: 'left' }}
+        btnTitle="Change path"
+        btnContent={() => (
+          <>
+            {pathSeparator}
+            {usedTemplatePath.path.length > 0 &&
+              usedTemplatePath.path.map(action.usePrefix).reduce(joinReduction(pathSeparator) as any)}
+          </>
+        )}
+        modalTitle={() => (
+          <>
+            Change <b>{isIterator ? 'iterator' : fromTo}</b>-path for Action: <b>{action.action.name}</b>
+          </>
+        )}
       >
-        {pathSeperator}
-        {usedTemplatePath.path.length > 0 &&
-          usedTemplatePath.path.map(action.usePrefix).reduce(joinReduction(pathSeperator) as any)}
-      </button>
-      <Modal show={modalshow} onHide={() => setModalShow(false)} animation={false}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Change <b>{fromTo}</b>-path for Action: <b>{action.action.name}</b>
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="mb-3">Select new path by choosing a {fromToToInOut(fromTo)} property node:</div>
-          <PropNodeSelection {...props} />
-        </Modal.Body>
-      </Modal>
+        <div className="mb-3">
+          Select path by choosing a {fromToToInOut(fromTo)} property node:
+          {props.iterator && (
+            <>
+              {' '}
+              (with iterator <b>/{props.iterator.path.map(action.usePrefix).join('/')}</b> )
+            </>
+          )}
+        </div>
+        <PropNodeSelection {...props} />
+        <button
+          className="mt-2 btn btn-outline-primary btn-sm"
+          onClick={() => props.setPropertyPath({ id: '', path: [] })}
+        >
+          Set to base path
+        </button>
+      </ModalBtn>
     </>
   );
 };
@@ -146,6 +180,7 @@ const PropertyMap = ({
   fromAction,
   toAction,
   removePropertyMap,
+  iterator,
 }: PropertyMapProps) => {
   // const [modalBothShow, setModalBothShow] = useState(false);
 
@@ -160,6 +195,7 @@ const PropertyMap = ({
           action={fromAction}
           usedTemplatePath={propertyMap.from}
           setPropertyPath={setPropertyPath('from')}
+          iterator={iterator}
         />
       </td>
       <td>
@@ -238,6 +274,25 @@ const ActionLink = ({
         </button>
       </div>
       <div className="p-2 pl-4">
+        {type === 'Potential' && (
+          <div className="mb-2">
+            <b className="mr-3" title="Where to attach the action to">
+              Iterator:
+            </b>
+            <PathBtn
+              action={fromAction}
+              fromTo="from"
+              isIterator={true}
+              usedTemplatePath={actionLink.iterator!}
+              setPropertyPath={(iterator) => {
+                setActionLink({
+                  ...actionLink,
+                  iterator,
+                });
+              }}
+            />
+          </div>
+        )}
         <div className="d-flex flexSpaceBetween mb-1">
           <b>Property Maps:</b>
           <button className="btn btn-outline-primary btn-sm" onClick={newPropertyMapClick}>
@@ -253,11 +308,11 @@ const ActionLink = ({
                 <th scope="col" className="table-header-width-big">
                   From (Action: "{fromAction.action.name}")
                 </th>
-                <th scope="col" className="table-header-width-small"></th>
+                <th scope="col" className="table-header-width-small" />
                 <th scope="col" className="table-header-width-big">
                   To (Action: "{toAction.action.name}")
                 </th>
-                <th scope="col" className="table-header-width-small"></th>
+                <th scope="col" className="table-header-width-small" />
               </tr>
             </thead>
             <tbody>
@@ -269,6 +324,7 @@ const ActionLink = ({
                   toAction={toAction}
                   setPropertyMap={setPropertyMap(propertyMap.id)}
                   removePropertyMap={removePropertyMap(propertyMap.id)}
+                  iterator={actionLink.iterator}
                 />
               ))}
             </tbody>

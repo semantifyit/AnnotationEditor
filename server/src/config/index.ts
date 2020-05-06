@@ -5,5 +5,5 @@ export default {
     url: 'https://graphdb.sti2.at',
     repo: 'sdo-webapi',
   },
-  mongoUrl: 'mongodb://mongodb:27017/',
+  mongoUrl: process.env.LOCAL ? 'mongodb://localhost:27017/' : 'mongodb://mongodb:27017/',
 };

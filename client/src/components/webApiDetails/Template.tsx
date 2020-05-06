@@ -77,7 +77,7 @@ const Template = ({ template, setAnnotation, setBaseType, vocabHandler, config, 
         <ModalBtn
           modalTitle="Import Template"
           btnClassName="btn-primary"
-          btnChildren={() => (
+          btnContent={() => (
             <>
               <FaFileImport /> Import
             </>

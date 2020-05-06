@@ -6,7 +6,7 @@
   "scripts": {
     "install_deps": "npm i && (cd client && npm i) && (cd server && npm i)",
     "prod": "(cd client && npm run build) && (cd server && npm run prod)",
-    "dev": "concurrently -–kill-others-on-fail \"cd client && npm run start\" \"cd server && npm run dev\""
+    "dev": "cross-env LOCAL=true concurrently -–kill-others-on-fail \"cd client && npm run start\" \"cd server && npm run dev\""
   },
   "keywords": [],
   "author": "",
@@ -73,6 +73,7 @@
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
     "concurrently": "^5.1.0",
+    "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.10.0",

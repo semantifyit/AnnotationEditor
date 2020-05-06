@@ -9,7 +9,7 @@ import { Loading } from '../Loading';
 import ActionLink from './ActionLink';
 
 interface Props {
-  type: 'Preceeding' | 'Potential';
+  type: 'Preceding' | 'Potential';
   webApi: WebApi;
   baseAction: Action;
   actionRefs: ActionRefs;
@@ -23,7 +23,20 @@ const ActionLinks = (props: Props) => {
   const [newActionLink, setNewActionLink] = useState(false);
   const newActionLinkClick = () => setNewActionLink(true);
   const setNewActionId = (id: string) => {
-    setActionLinks(actionLinks.concat({ id: uuid(), actionId: id, propertyMaps: [] }));
+    setActionLinks(
+      actionLinks.concat({
+        id: uuid(),
+        actionId: id,
+        propertyMaps: [],
+        iterator:
+          type === 'Potential'
+            ? {
+                id: '',
+                path: [],
+              }
+            : undefined,
+      }),
+    );
     setNewActionLink(false);
   };
 

@@ -120,7 +120,7 @@ router.delete('/:id', async (req, res) => {
       return;
     }
 
-    await GraphDB.delete(webAPIToGN(result));
+    // await GraphDB.delete(webAPIToGN(result));
 
     res.json(result);
   } catch (e) {

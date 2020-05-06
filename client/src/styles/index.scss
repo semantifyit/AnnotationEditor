@@ -39,6 +39,10 @@ body {
   cursor: pointer;
 }
 
+.row-resize {
+  cursor: row-resize;
+}
+
 .pointerRec * {
   cursor: pointer;
 }
@@ -141,7 +145,12 @@ body {
 
 .borderSelectionPreSelected {
   border-radius: 0.7rem;
-  border: 2px solid rgb(9, 198, 223);
+  border: 2px solid rgb(0, 41, 128); //rgb(9, 198, 223);
+}
+
+.borderSelectionIterator {
+  border-radius: 0.7rem;
+  border: 2px solid grey;
 }
 
 .resizable {

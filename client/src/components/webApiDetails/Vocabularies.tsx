@@ -145,7 +145,7 @@ const Vocabularies = ({
         <ModalBtn
           modalTitle="Add new Vocabulary"
           btnClassName="btn-outline-primary float-right mb-1"
-          btnChildren={() => (
+          btnContent={() => (
             <>
               <FaPlus /> Add Vocabulary
             </>

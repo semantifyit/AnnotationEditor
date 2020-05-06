@@ -55,10 +55,24 @@ export const newTemplateProp = (prop: string, io: TemplatePropertyGroupType): Te
   maxCount: 1,
 });
 
-export const createEmptyAction = (numSameName: number): Action => {
+const newSchemaTextNode = (
+  prop: string,
+  val: string,
+  state?: Action['annotationSrc']['props'][number]['state'],
+): Action['annotationSrc']['props'][number] => ({
+  type: 'annotation',
+  id: uuid(),
+  path: `http://schema.org/${prop}`,
+  range: 'http://schema.org/Text',
+  val,
+  state,
+});
+
+export const createEmptyAction = (numSameName: number, webApiId: string): Action => {
   const name = `${defaultNewActionName}${sameNameBracket(numSameName)}`;
+  const actionId = uuid();
   return {
-    id: uuid(),
+    id: actionId,
     name,
     annotation: ({
       '@context': { '@vocab': 'http://schema.org/' },
@@ -69,12 +83,28 @@ export const createEmptyAction = (numSameName: number): Action => {
       type: 'action',
       types: ['http://schema.org/Action'],
       props: [
+        newSchemaTextNode('name', name, 'unremovable'),
+        newSchemaTextNode('description', 'A sample description'),
         {
           type: 'annotation',
           id: uuid(),
-          path: 'http://schema.org/name',
-          val: name,
-          range: 'http://schema.org/Text',
+          path: 'http://schema.org/target',
+          val: {
+            type: 'annotation',
+            types: ['http://schema.org/EntryPoint'],
+            props: [
+              newSchemaTextNode('httpMethod', 'POST', 'disabled'),
+              newSchemaTextNode('contentType', 'application/ld+json', 'disabled'),
+              newSchemaTextNode('encodingType', 'application/ld+json', 'disabled'),
+              newSchemaTextNode(
+                'urlTemplate',
+                `https://actions.semantify.it/api/action/${webApiId}/${actionId}`,
+                'disabled',
+              ),
+            ],
+          },
+          range: 'http://schema.org/EntryPoint',
+          state: 'unremovable',
         },
       ],
       input: [newIOTemplateProp('input')],
@@ -102,7 +132,7 @@ export const createEmptyAction = (numSameName: number): Action => {
       },
     },
     potentialActionLinks: [],
-    preceedingActionLinks: [],
+    precedingActionLinks: [],
     sampleAction: JSON.stringify(
       {
         '@context': { '@vocab': 'http://schema.org/' },
@@ -125,39 +155,42 @@ export const createEmptyTemplate = (numSameName: number): Template => ({
   src: { type: 'template', types: [], props: [] },
 });
 
-export const createEmptyWebApi = (): WebApi => ({
-  id: uuid(),
-  name: 'New WebAPI',
-  author: 'Me',
-  annotation: ({
-    '@context': { '@vocab': 'http://schema.org/' },
-    '@type': 'WebAPI',
+export const createEmptyWebApi = (): WebApi => {
+  const webApiId = uuid();
+  return {
+    id: webApiId,
     name: 'New WebAPI',
-  } as unknown) as WebApiAnnotation,
-  annotationSrc: {
-    type: 'annotation',
-    types: ['http://schema.org/WebAPI'],
-    props: [
-      {
-        type: 'annotation',
-        id: uuid(),
-        path: 'http://schema.org/name',
-        val: 'New WebAPI',
-        range: 'http://schema.org/Text',
-      },
-    ],
-  },
-  actions: [createEmptyAction(0)],
-  vocabs: defaultVocabsIds,
-  context: {
-    '@vocab': 'http://schema.org/',
-  },
-  config: {
-    useMapping: true,
-    showCodeEditor: false,
-  },
-  templates: [],
-});
+    author: 'Me',
+    annotation: ({
+      '@context': { '@vocab': 'http://schema.org/' },
+      '@type': 'WebAPI',
+      name: 'New WebAPI',
+    } as unknown) as WebApiAnnotation,
+    annotationSrc: {
+      type: 'annotation',
+      types: ['http://schema.org/WebAPI'],
+      props: [
+        {
+          type: 'annotation',
+          id: uuid(),
+          path: 'http://schema.org/name',
+          val: 'New WebAPI',
+          range: 'http://schema.org/Text',
+        },
+      ],
+    },
+    actions: [createEmptyAction(0, webApiId)],
+    vocabs: defaultVocabsIds,
+    context: {
+      '@vocab': 'http://schema.org/',
+    },
+    config: {
+      useMapping: true,
+      showCodeEditor: false,
+    },
+    templates: [],
+  };
+};
 
 export const getNameOfAnnotation = (ann: DefaultRessourceDesc): string =>
   stringOrNil(ann.props.filter(isAnnotationSrcProp).find((p) => p.path === 'http://schema.org/name')?.val) ??

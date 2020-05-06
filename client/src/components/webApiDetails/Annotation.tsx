@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import set from 'lodash/set';
 import get from 'lodash/get';
 import Select from 'react-select';
-import { FaAngleUp, FaAngleDown, FaPlus } from 'react-icons/fa';
+import { FaAngleUp, FaAngleDown, FaPlus, FaEllipsisH } from 'react-icons/fa';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
 import DateTime from 'react-datetime';
@@ -13,6 +13,9 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import split from 'split.js';
+import isURL from 'validator/lib/isURL';
+import { SortableContainer, SortableElement, SortableHandle, SortEndHandler } from 'react-sortable-hoc';
+import arrayMove from 'array-move';
 
 import {
   DefaultRessourceDesc,
@@ -35,12 +38,16 @@ import * as p from '../../util/rdfProperties';
 
 import '../../styles/annotation.css';
 import 'react-datetime/css/react-datetime.css';
-import { annSrcToAnnJsonLd, isTemplateProp, newIOTemplateProp } from '../../util/webApi';
+import { annSrcToAnnJsonLd, isTemplateProp } from '../../util/webApi';
 import CheckBox from '../Checkbox';
 import { joinReduction } from '../../util/jsxHelpers';
 import CreatableSelect from '../CreatableSelect';
 import Editor from '../Editor';
-import Switch from '../Switch';
+import ModalBtn from '../ModalBtn';
+
+const SortableListItem = SortableElement(({ children }: any) => <div>{children}</div>);
+const DragHandle = SortableHandle(({ children }: any) => <span className="row-resize">{children}</span>);
+const SortableList = SortableContainer(({ children }: any) => <div>{children}</div>);
 
 type voidFn<T> = (arg: T) => void;
 
@@ -99,8 +106,8 @@ const Annotation = ({
       const newAnn = clone(ann);
       const fatherPath = path.slice(0, -1);
       const indexToRemove = path.slice(-1)[0];
-      console.log(path);
-      console.log(indexToRemove);
+      // console.log(path);
+      // console.log(indexToRemove);
       console.log(fatherPath);
       const props = get(newAnn, fatherPath);
       props.splice(indexToRemove, 1);
@@ -163,26 +170,52 @@ interface Option {
   label: string;
 }
 
-const selectSubTypes = (options: Option[], selectedOptions: Option[], onChange: (val: any) => void) => (
-  <Popover id="popover-basic">
-    <Popover.Content>
-      <div
-        style={{
-          width: '320px',
-        }}
-      >
-        <Select
-          options={options}
-          onChange={onChange}
-          isMulti={true}
-          defaultValue={selectedOptions}
-          isSearchable={true}
-          menuPlacement="auto"
-        />
-      </div>
-    </Popover.Content>
-  </Popover>
-);
+interface NodeMoreProps {
+  typeOptions: Option[];
+  typeSelectedOptions: Option[];
+  typeOnChange: (val: any) => void;
+  nodeId: string | undefined;
+  setNodeId: (v: string) => void;
+}
+
+const selectSubTypes = ({
+  typeOptions,
+  typeSelectedOptions,
+  typeOnChange,
+  nodeId,
+  setNodeId,
+}: NodeMoreProps) => {
+  const nodeIdIsValid = nodeId ? isURL(nodeId) : true;
+  return (
+    <Popover id="popover-basic">
+      <Popover.Content>
+        <div
+          style={{
+            width: '320px',
+          }}
+        >
+          <h6>Select types:</h6>
+          <Select
+            options={typeOptions}
+            onChange={typeOnChange}
+            isMulti={true}
+            defaultValue={typeSelectedOptions}
+            isSearchable={true}
+            menuPlacement="auto"
+          />
+          <h6 className="mt-3">Set RDF named node id (optional)</h6>
+          <input
+            className={classNames('form-control', { 'is-invalid': !nodeIdIsValid })}
+            placeholder="http://example.com"
+            value={nodeId || ''}
+            onChange={(e) => setNodeId(e.target.value)}
+          />
+          {!nodeIdIsValid && <div className="invalid-feedback">Not a valid url</div>}
+        </div>
+      </Popover.Content>
+    </Popover>
+  );
+};
 
 interface NodeProps {
   path: Path;
@@ -193,9 +226,10 @@ interface NodeProps {
   topNode?: boolean;
 }
 
-const Node = ({ path, ann, fromRanges, restrictionIds, topNode, isAction }: NodeProps) => {
+const Node = (props: NodeProps) => {
+  const { path, ann, fromRanges, restrictionIds, topNode, isAction } = props;
   const { setPathVal, vocabHandler } = useContext(AnnotationContext);
-  const [isSelectingType, setIsSelectingType] = useState(false);
+  const [moreIsOpen, setMoreIsOpen] = useState(false);
   const [selectedProp, setSelectedProp] = useState('');
   const [isEmptyTypeSelect, setIsEmptyTypeSelect] = useState(false);
   const selectRef = useRef<HTMLSelectElement>(null);
@@ -217,7 +251,7 @@ const Node = ({ path, ann, fromRanges, restrictionIds, topNode, isAction }: Node
       label: name,
     }));
     const typeSelectedOptions = typeOptions.filter((opt) => ann.types.includes(opt.value));
-    const onChangeTypeSelection = (options: Option[]) => {
+    const typeOnChange = (options: Option[]) => {
       if (options && options.length > 0) {
         const newTypes = options.map(({ value }) => value);
         if (vocabHandler.haveCommonSuperTypes(newTypes, fromRanges)) {
@@ -325,23 +359,39 @@ const Node = ({ path, ann, fromRanges, restrictionIds, topNode, isAction }: Node
 
     const isTemplateNode = ann.type === 'template';
 
+    const nodeId = ann.nodeId;
+    const setNodeId = (val: string) =>
+      setPathVal({
+        path: [...path, 'nodeId'],
+        value: val === '' ? undefined : val,
+      });
+
+    const onSortEnd: SortEndHandler = ({ oldIndex, newIndex }) => {
+      setPathVal({ path: [...path, 'props'], value: arrayMove(ann.props, oldIndex, newIndex) });
+    };
+
+    const onSortEndIO = (type: TemplatePropertyGroupType): SortEndHandler => ({ oldIndex, newIndex }) => {
+      if (ann[type]) {
+        setPathVal({ path: [...path, type], value: arrayMove(ann[type] || [], oldIndex, newIndex) });
+      }
+    };
+
     return (
       <div className={classNames('typenode', { 'typenode-border': !topNode })}>
         <h4 className="p-1 d-flex" style={{ justifyContent: 'space-between' }}>
-          <div className="d-flex">
-            <span style={{ lineHeight: 1.5 }}>
-              {nameOfNode || <span className="italicGrey">No Type</span>}
-            </span>
+          <div className="d-flex flexCenterAlign">
+            {nodeId && <span className="font-italic font-weight-light mr-1">{`<${nodeId}>`}</span>}
+            <span>{nameOfNode || <span className="italicGrey">No Type</span>}</span>
             <OverlayTrigger
               rootClose
               trigger="click"
               placement="bottom-start"
-              overlay={selectSubTypes(typeOptions, typeSelectedOptions, onChangeTypeSelection)}
-              onEnter={() => setIsSelectingType(true)}
-              onExit={() => setIsSelectingType(false)}
+              overlay={selectSubTypes({ typeOptions, typeSelectedOptions, typeOnChange, nodeId, setNodeId })}
+              onEnter={() => setMoreIsOpen(true)}
+              onExit={() => setMoreIsOpen(false)}
             >
-              <button className="btn btn-light back-bor-white shadow-none px-1">
-                {isSelectingType ? <FaAngleUp /> : <FaAngleDown />}
+              <button className="btn btn-light back-bor-white shadow-none px-1" title="more...">
+                {moreIsOpen ? <FaAngleUp /> : <FaAngleDown />}
               </button>
             </OverlayTrigger>
           </div>
@@ -398,40 +448,58 @@ const Node = ({ path, ann, fromRanges, restrictionIds, topNode, isAction }: Node
             </div>
           </div>
         </h4>
-        {ann.props.map((prop, index) => (
-          <Property
-            key={prop.id}
-            ann={ann}
-            prop={prop}
-            path={[...path, 'props', index]}
-            restrictions={
-              isTemplateProp(prop) ? [] : restrictions.filter((restr) => restr.property === prop.path)
-            }
-            numPropsWithSameId={numPropsWithSameId(prop.path)}
-          />
-        ))}
+        {/*{ann.props.map((prop, index) => (*/}
+        {/*  <Property*/}
+        {/*    key={prop.id}*/}
+        {/*    ann={ann}*/}
+        {/*    prop={prop}*/}
+        {/*    path={[...path, 'props', index]}*/}
+        {/*    restrictions={*/}
+        {/*      isTemplateProp(prop) ? [] : restrictions.filter((restr) => restr.property === prop.path)*/}
+        {/*    }*/}
+        {/*    numPropsWithSameId={numPropsWithSameId(prop.path)}*/}
+        {/*  />*/}
+        {/*))}*/}
+        <SortableList onSortEnd={onSortEnd} useDragHandle>
+          {ann.props.map((prop, index) => (
+            <SortableListItem index={index} key={index}>
+              <Property
+                key={prop.id}
+                ann={ann}
+                prop={prop}
+                path={[...path, 'props', index]}
+                restrictions={
+                  isTemplateProp(prop) ? [] : restrictions.filter((restr) => restr.property === prop.path)
+                }
+                numPropsWithSameId={numPropsWithSameId(prop.path)}
+              />
+            </SortableListItem>
+          ))}
+        </SortableList>
         {isAction &&
-          (['input', 'output'] as ['input', 'output']).map((type) => {
-            return (
-              <div className="mt-5" key={type}>
-                <h3 className="font-weight-bold text-capitalize">{type}</h3>
-                {ann?.[type]?.length || 0 > 0 ? (
-                  ann[type]?.map((restrProp, i) => (
-                    <Property
-                      key={restrProp.id}
-                      ann={ann}
-                      prop={restrProp}
-                      path={[...path, type, i]}
-                      restrictions={[]}
-                      numPropsWithSameId={0}
-                    />
-                  ))
-                ) : (
-                  <span className="italicGrey">No {type} properties defined</span>
-                )}
-              </div>
-            );
-          })}
+          (['input', 'output'] as ['input', 'output']).map((type) => (
+            <div className="mt-5" key={type}>
+              <h3 className="font-weight-bold text-capitalize">{type}</h3>
+              {(ann?.[type]?.length || 0) > 0 ? (
+                <SortableList onSortEnd={onSortEndIO(type)} useDragHandle>
+                  {ann[type]?.map((restrProp, i) => (
+                    <SortableListItem index={i} key={i}>
+                      <Property
+                        key={restrProp.id}
+                        ann={ann}
+                        prop={restrProp}
+                        path={[...path, type, i]}
+                        restrictions={[]}
+                        numPropsWithSameId={0}
+                      />
+                    </SortableListItem>
+                  ))}
+                </SortableList>
+              ) : (
+                <span className="italicGrey">No {type} properties defined</span>
+              )}
+            </div>
+          ))}
       </div>
     );
   } catch (e) {
@@ -503,9 +571,11 @@ const Property = (props: PropProps) => {
 
     // remove click
     const removeProp = () => {
-      const canRemove = isTemplateProp(prop)
+      let canRemove = isTemplateProp(prop)
         ? true
-        : restrictions.every((restr) => (restr.minCount ? restr.minCount < numPropsWithSameId : true));
+        : restrictions.every((restr) => (restr.minCount ? restr.minCount < numPropsWithSameId : true)) &&
+          prop.state !== 'unremovable' &&
+          prop.state !== 'disabled';
       if (canRemove) {
         removePath(path);
       } else {
@@ -513,6 +583,9 @@ const Property = (props: PropProps) => {
         alert(`Cannot remove ${prop.path}`);
       }
     };
+
+    const withDelBtn =
+      !noDelBtn && !isTemplateProp(prop) && prop.state !== 'unremovable' && prop.state !== 'disabled';
 
     return (
       <div className="d-block mb-4 p-1">
@@ -528,7 +601,7 @@ const Property = (props: PropProps) => {
               /* position: 'fixed', */
             }}
           >
-            {propName}
+            <DragHandle>{propName}</DragHandle>
           </span>
           {!isTemplateProp(prop) && rangeOptions.length > 1 && (
             <OverlayTrigger
@@ -555,7 +628,7 @@ const Property = (props: PropProps) => {
           <div className="d-inline-block" style={{ width: 'calc(100% - 25px)' }}>
             <Range {...props} />
           </div>
-          {!noDelBtn && (
+          {withDelBtn && (
             <button type="button" className="close ml-2" title="Remove this property" onClick={removeProp}>
               <span aria-hidden="true">&times;</span>
             </button>
@@ -740,9 +813,14 @@ const TemplateRangeSelectionBtn = (props: TemplateProps) => {
 type Changes = [string, string | boolean | number | undefined | string[]][];
 
 const AdvRestrInput = (
-  props: TemplateProps & { name: ShaclRestrProps; type: 'text' | 'number' | 'select' | 'enum' },
+  props: TemplateProps & {
+    name: ShaclRestrProps;
+    type: 'text' | 'number' | 'select' | 'enum';
+    options?: string[];
+    isMultiSelect?: boolean;
+  },
 ) => {
-  const { prop, path, name, type, ann } = props;
+  const { prop, path, name, type, ann, options, isMultiSelect } = props;
   const { setPathVal, vocabHandler } = useContext(AnnotationContext);
 
   const pathStr = path.join('.');
@@ -785,20 +863,25 @@ const AdvRestrInput = (
           />
         );
       case 'select': {
-        const options = ann.props
-          .filter(({ id }) => id !== prop.id)
-          .map(({ path: propPath }) => ({ value: propPath, label: vocabHandler.usePrefix(propPath) }));
+        let selectOptions = options
+          ? options.map((o) => ({ value: o, label: o }))
+          : (ann[prop.io || 'props'] ?? [])
+              .filter(({ id }) => id !== prop.id)
+              .map(({ path: propPath }) => ({ value: propPath, label: vocabHandler.usePrefix(propPath) }));
         return (
           <Select
             className="mb-1"
-            options={options}
-            defaultValue={options.filter(({ value }) => prop[name as SchaclRestrPairProps]?.includes(value))}
+            options={selectOptions}
+            defaultValue={selectOptions.filter(({ value }) =>
+              prop[name as SchaclRestrPairProps]?.includes(value),
+            )}
             onChange={(e: any) => {
-              const newValues = (e as null | Option[])?.map(({ value }) => value) ?? [];
+              const newValues = e ? toArray(e as any)?.map(({ value }) => value) : [];
               const changes: Changes = [[name, newValues.length > 0 ? newValues : undefined]];
               setVal(changes);
             }}
-            isMulti={true}
+            isMulti={isMultiSelect !== false}
+            isClearable={true}
             isSearchable={true}
           />
         );
@@ -831,8 +914,6 @@ const AdvRestrInput = (
 };
 
 const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) => {
-  const [isAdvancedView, setIsAdvancedView] = useState(false);
-
   const { nodeRangeOptions, prop, path } = props;
   const { setPathVal, vocabHandler, potTemplates } = useContext(AnnotationContext);
 
@@ -840,6 +921,15 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
 
   const setVal = (arr: Changes) =>
     setPathVal(arr.map(([key, val]) => ({ path: [...path, key], value: val })));
+
+  const shaclNodeKinds = [
+    'BlankNode',
+    'IRI',
+    'Literal',
+    'BlankNodeOrIRI',
+    'BlankNodeOrLiteral',
+    'IRIOrLiteral',
+  ];
 
   return (
     <>
@@ -880,46 +970,51 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
               setVal(changes);
             }}
           />
-          <button
-            className="btn btn-light back-bor-white shadow-none px-1 py-0 ml-1"
-            onClick={() => setIsAdvancedView(!isAdvancedView)}
-            title="advanced"
+          <ModalBtn
+            btnClassName="btn btn-light back-bor-white shadow-none px-1 py-0 ml-1"
+            btnTitle="advanced"
+            btnContent={() => <FaEllipsisH />}
+            modalTitle="Advanced Restrictions (Property)"
+            modalSize="lg"
           >
-            {isAdvancedView ? <FaAngleUp /> : <FaAngleDown />}
-          </button>
+            <div className="mx-0">
+              <div className="px-0">
+                <h6 className="font-weight-bold mt-2">General</h6>
+                <AdvRestrInput
+                  name="nodeKind"
+                  type="select"
+                  options={shaclNodeKinds}
+                  isMultiSelect={false}
+                  {...props}
+                />
+                <h6 className="font-weight-bold mt-2">Cardinality</h6>
+                <AdvRestrInput name="minCount" type="number" {...props} />
+                <AdvRestrInput name="maxCount" type="number" {...props} />
+                <h6 className="font-weight-bold mt-2">Value Range</h6>
+                <AdvRestrInput name="minExclusive" type="number" {...props} />
+                <AdvRestrInput name="minInclusive" type="number" {...props} />
+                <AdvRestrInput name="maxExclusive" type="number" {...props} />
+                <AdvRestrInput name="maxInclusive" type="number" {...props} />
+                <h6 className="font-weight-bold mt-2">Other</h6>
+                <AdvRestrInput name="in" type="enum" {...props} />
+                <AdvRestrInput name="hasValue" type="enum" {...props} />
+              </div>
+              <div className="px-0">
+                <h6 className="font-weight-bold mt-2">String Based</h6>
+                <AdvRestrInput name="minLength" type="number" {...props} />
+                <AdvRestrInput name="maxLength" type="number" {...props} />
+                <AdvRestrInput name="pattern" type="text" {...props} />
+                <h6 className="font-weight-bold mt-2">Property Pair</h6>
+                <AdvRestrInput name="equals" type="select" {...props} />
+                <AdvRestrInput name="disjoint" type="select" {...props} />
+                <AdvRestrInput name="lessThan" type="select" {...props} />
+                <AdvRestrInput name="lessThanOrEquals" type="select" {...props} />
+              </div>
+            </div>
+          </ModalBtn>
         </div>
       </div>
-      {isAdvancedView && (
-        <div className="typenode-border mb-3 p-2">
-          <h5>Advanced Restrictions</h5>
-          <div className="mx-0">
-            <div className="px-0">
-              <h6 className="font-weight-bold mt-2">Cardinality</h6>
-              <AdvRestrInput name="minCount" type="number" {...props} />
-              <AdvRestrInput name="maxCount" type="number" {...props} />
-              <h6 className="font-weight-bold mt-2">Value Range</h6>
-              <AdvRestrInput name="minExclusive" type="number" {...props} />
-              <AdvRestrInput name="minInclusive" type="number" {...props} />
-              <AdvRestrInput name="maxExclusive" type="number" {...props} />
-              <AdvRestrInput name="maxInclusive" type="number" {...props} />
-              <h6 className="font-weight-bold mt-2">Other</h6>
-              <AdvRestrInput name="in" type="enum" {...props} />
-              <AdvRestrInput name="hasValue" type="enum" {...props} />
-            </div>
-            <div className="px-0">
-              <h6 className="font-weight-bold mt-2">String Based</h6>
-              <AdvRestrInput name="minLength" type="number" {...props} />
-              <AdvRestrInput name="maxLength" type="number" {...props} />
-              <AdvRestrInput name="pattern" type="text" {...props} />
-              <h6 className="font-weight-bold mt-2">Property Pair</h6>
-              <AdvRestrInput name="equals" type="select" {...props} />
-              <AdvRestrInput name="disjoint" type="select" {...props} />
-              <AdvRestrInput name="lessThan" type="select" {...props} />
-              <AdvRestrInput name="lessThanOrEquals" type="select" {...props} />
-            </div>
-          </div>
-        </div>
-      )}
+
       {prop.range
         .map((range, i) => {
           const key = [...path, i].join('');
@@ -986,15 +1081,16 @@ const Range = (props: PropProps) => {
         onChange,
       );
     }
+    const isDisabled = prop.state === 'disabled';
     if (isTerminal && typeof prop.val === 'string') {
-      return getInputField(prop.range, prop.val, onChange, vocabHandler);
+      return getInputField(prop.range, prop.val, onChange, vocabHandler, isDisabled);
     }
     const enumNodes = vocabHandler.getEnumNode(prop.range);
     if (enumNodes && typeof prop.val === 'string') {
       if (enumNodes.length > 0) {
         return getEnumField(prop.val, enumNodes, onChange);
       }
-      return getInputField(prop.range, prop.val, onChange, vocabHandler);
+      return getInputField(prop.range, prop.val, onChange, vocabHandler, isDisabled);
     }
 
     const restrIds = restrictions.flatMap(
@@ -1036,6 +1132,7 @@ const getInputField = (
   value: string,
   onChange: (val: string) => void,
   vocabHandler: VocabHandler,
+  disabled: boolean,
 ) => {
   const className = classNames({
     'form-control': true,
@@ -1049,6 +1146,7 @@ const getInputField = (
     case p.xsdInteger:
       return (
         <input
+          disabled={disabled}
           type="number"
           className={className}
           placeholder={vocabHandler.usePrefix(type)}
@@ -1061,6 +1159,7 @@ const getInputField = (
       return (
         <div className="form-check">
           <input
+            disabled={disabled}
             className="form-check-input"
             type="checkbox"
             value={value}
@@ -1072,6 +1171,7 @@ const getInputField = (
     case p.xsdDate:
       return (
         <DateTime
+          inputProps={{ disabled: disabled }}
           timeFormat={false}
           defaultValue={new Date()}
           value={value}
@@ -1082,6 +1182,7 @@ const getInputField = (
     case p.xsdDateTime:
       return (
         <DateTime
+          inputProps={{ disabled: disabled }}
           defaultValue={new Date()}
           value={value ? new Date(value) : new Date()}
           onChange={(e) => typeof e !== 'string' && onChange(e.toISOString())}
@@ -1091,6 +1192,7 @@ const getInputField = (
     case p.xsdTime:
       return (
         <DateTime
+          inputProps={{ disabled: disabled }}
           dateFormat={false}
           defaultValue={new Date()}
           value={value}
@@ -1106,6 +1208,7 @@ const getInputField = (
     default:
       return (
         <input
+          disabled={disabled}
           type="text"
           className={className}
           placeholder={vocabHandler.usePrefix(type)}

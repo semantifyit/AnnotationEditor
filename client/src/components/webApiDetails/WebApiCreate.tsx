@@ -32,8 +32,6 @@ import '../../styles/webApiDetail.css';
 import {
   WebApi,
   // Annotation as IAnnotation,
-  ActionAnnotation,
-  WebApiAnnotation,
   RessourceDesc,
   ActionRefs,
   ActionLink as IActionLink,
@@ -45,15 +43,16 @@ import { VocabLeanDoc as Vocab } from '../../../../server/src/models/Vocab';
 import {
   createEmptyWebApi,
   createEmptyAction,
-  annSrcToAnnJsonLd,
   createEmptyTemplate,
   defaultNewTemplateName,
   defaultNewActionName,
   getNameOfAction,
   setNameOfAction,
   getNameOfWebApi,
+  webApiToAnnotation,
+  actionToAnnotation,
 } from '../../util/webApi';
-import { clone, memoize, toArray, maxOfArray, Optional } from '../../util/utils';
+import { clone, memoize, maxOfArray, Optional } from '../../util/utils';
 import Annotation from './Annotation';
 import Configuration from './Configuration';
 import Functions from './Functions';
@@ -352,10 +351,10 @@ const WebAPIDetailsPage = ({
 };
 
 const getVocabHandler = memoize<any, any>(
-  (vocabIds: string[], context: Record<string, string>, availableVocabsKey: string, availableVocabs: any) =>
+  (vocabIds: string[], prefixes: Record<string, string>, availableVocabsKey: string, availableVocabs: any) =>
     new VocabHandler(
       vocabIds.map((vocabId) => availableVocabs.find((vocab: any) => vocab._id === vocabId)?.vocab ?? '[]'),
-      context,
+      prefixes,
     ),
   undefined,
   [3],
@@ -535,7 +534,7 @@ const WebApiCreate = () => {
   const goToTestMapping = () => setSubPage(5);
 
   const availableVocabsKey = availableVocabs.map((vocab) => vocab._id).join('.');
-  const vocabHandler = getVocabHandler(webApi.vocabs, webApi.context, availableVocabsKey, availableVocabs);
+  const vocabHandler = getVocabHandler(webApi.vocabs, webApi.prefixes, availableVocabsKey, availableVocabs);
 
   const getDetailsPage = () => {
     if (page.type === 'main') {
@@ -544,7 +543,7 @@ const WebApiCreate = () => {
           const setAnnotation = (annotation: RessourceDesc) => {
             const newWebApi = clone(webApi);
             newWebApi.annotationSrc = annotation;
-            newWebApi.annotation = annSrcToAnnJsonLd(annotation, vocabHandler) as WebApiAnnotation;
+            newWebApi.annotation = webApiToAnnotation(webApi, vocabHandler);
             setWebApi(newWebApi);
           };
           return (
@@ -553,6 +552,7 @@ const WebApiCreate = () => {
               key={-1}
               vocabHandler={vocabHandler}
               annotation={webApi.annotationSrc}
+              annotationStr={webApi.annotation}
               setAnnotation={setAnnotation}
               config={webApi.config}
               potTemplates={[]}
@@ -560,9 +560,9 @@ const WebApiCreate = () => {
           );
         }
         case 'Vocabularies': {
-          const setContext = (context: Record<string, string>) => {
+          const setPrefixes = (prefixes: Record<string, string>) => {
             const newWebApi = clone(webApi);
-            newWebApi.context = context;
+            newWebApi.prefixes = prefixes;
             setWebApi(newWebApi);
           };
           return (
@@ -570,8 +570,8 @@ const WebApiCreate = () => {
               availableVocabs={availableVocabs}
               selectedVocabs={webApi.vocabs}
               setSelectedVocabs={setSelectedVocabs}
-              context={webApi.context}
-              setContext={setContext}
+              prefixes={webApi.prefixes}
+              setPrefixes={setPrefixes}
               addVocab={(vocab) => setAvailableVocabs([...availableVocabs, vocab])}
             />
           );
@@ -599,10 +599,11 @@ const WebApiCreate = () => {
           const setAnnotation = (annotation: ActionRessourceDesc) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].annotationSrc = annotation;
-            newWebApi.actions[annIndex].annotation = annSrcToAnnJsonLd(
-              annotation,
+            newWebApi.actions[annIndex].annotation = actionToAnnotation(
+              newWebApi.actions[annIndex],
               vocabHandler,
-            ) as ActionAnnotation;
+              webApi.templates,
+            );
             setWebApi(newWebApi);
           };
           // console.log(webApi.actions[annIndex].annotation);
@@ -613,6 +614,7 @@ const WebApiCreate = () => {
               key={annIndex}
               // annotation={annJsonLDToAnnSrc(webApi.actions[annIndex].annotation, vocabHandler)}
               annotation={action.annotationSrc}
+              annotationStr={action.annotation}
               setAnnotation={setAnnotation}
               vocabHandler={vocabHandler}
               config={webApi.config}
@@ -675,7 +677,7 @@ const WebApiCreate = () => {
               setRequestMapping={setRequestMapping}
               sampleAction={webApi.actions[annIndex].sampleAction}
               setSampleAction={setSampleAction}
-              prefixes={webApi.context}
+              prefixes={webApi.prefixes}
             />
           );
         }
@@ -699,7 +701,7 @@ const WebApiCreate = () => {
               setResponseMapping={setRequestMapping}
               sampleResponse={webApi.actions[annIndex].sampleResponse}
               setSampleResponse={setSampleResponse}
-              prefixes={webApi.context}
+              prefixes={webApi.prefixes}
             />
           );
         }
@@ -716,7 +718,7 @@ const WebApiCreate = () => {
               responseMapping={webApi.actions[annIndex].responseMapping}
               sampleAction={webApi.actions[annIndex].sampleAction}
               setSampleAction={setSampleAction}
-              prefixes={webApi.context}
+              prefixes={webApi.prefixes}
               goToReqMapping={goToReqMapping}
               goToRespMapping={goToRespMapping}
             />
@@ -798,7 +800,7 @@ const WebApiCreate = () => {
     <WebAPIDetailsPage
       webApi={webApi}
       page={page}
-      title={toArray(webApi.annotation.name)[0] || 'WebAPI Documentation'}
+      title={getNameOfWebApi(webApi)}
       setPage={setPage}
       newAction={newAction}
       setActionName={setActionName}

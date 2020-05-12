@@ -1,4 +1,4 @@
-export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh' | 'action';
+export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh' | 'wasa';
 
 export const commonNamespaces = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
@@ -7,8 +7,13 @@ export const commonNamespaces = {
   owl: 'http://www.w3.org/2002/07/owl#',
   schema: 'http://schema.org/',
   sh: 'http://www.w3.org/ns/shacl#',
-  action: 'https://actions.semantify.it/vocab/',
+  wasa: 'https://vocab.sti2.at/wasa/',
 };
+
+type PropertyObj<T extends string> = { [P in T]: string };
+
+const toProperties = <T extends string>(prefix: string, properties: T[]): PropertyObj<T> =>
+  Object.fromEntries(properties.map((p) => [p, prefix + p])) as any;
 
 export const joinNS = (namespace: Namespace, nodeId: string): string => commonNamespaces[namespace] + nodeId;
 
@@ -21,6 +26,19 @@ export const xsdDate = joinNS('xsd', 'date');
 export const xsdTime = joinNS('xsd', 'time');
 export const xsdDateTime = joinNS('xsd', 'dateTime');
 export const xsdAnyURI = joinNS('xsd', 'anyURI');
+
+export const xsd = toProperties(commonNamespaces.schema, [
+  'string',
+  'decimal',
+  'integer',
+  'float',
+  'double',
+  'boolean',
+  'date',
+  'time',
+  'dateTime',
+  'anyURI',
+]);
 
 // RDF
 export const rdfProperty = joinNS('rdf', 'Property');
@@ -54,11 +72,32 @@ export const schemaAction = joinNS('schema', 'Action');
 export const schemaWebAPI = joinNS('schema', 'WebAPI');
 export const schemaPropertyValueSpecification = joinNS('schema', 'PropertyValueSpecification');
 
+export const schema = toProperties(commonNamespaces.schema, [
+  'Boolean',
+  'Date',
+  'Time',
+  'DateTime',
+  'Float',
+  'Number',
+  'Integer',
+  'URL',
+  'domainIncludes',
+  'Enumeration',
+  'Quantity',
+  'DataType',
+  'rangeIncludes',
+  'Text',
+  'Action',
+  'WebAPI',
+  'PropertyValueSpecification',
+]);
+
 // SHACL
 export const shDatatype = joinNS('sh', 'datatype');
 export const shClass = joinNS('sh', 'class');
 export const shNodeKind = joinNS('sh', 'nodeKind');
 export const shNodeShape = joinNS('sh', 'NodeShape');
+export const shPropertyShape = joinNS('sh', 'PropertyShape');
 export const shSPARQLTargetType = joinNS('sh', 'SPARQLTargetType');
 export const shIRI = joinNS('sh', 'IRI');
 export const shPath = joinNS('sh', 'path');
@@ -78,13 +117,51 @@ export const shTargetClass = joinNS('sh', 'targetClass');
 export const shTargetNode = joinNS('sh', 'targetNode');
 export const shShapesGraph = joinNS('sh', 'shapesGraph');
 
+export const sh = toProperties(commonNamespaces.sh, [
+  'datatype',
+  'class',
+  'nodeKind',
+  'NodeShape',
+  'PropertyShape',
+  'SPARQLTargetType',
+  'IRI',
+  'path',
+  'defaultValue',
+  'in',
+  'or',
+  'minInclusive',
+  'maxInclusive',
+  'pattern',
+  'node',
+  'minCount',
+  'maxCount',
+  'property',
+  'target',
+  'select',
+  'targetClass',
+  'targetNode',
+  'shapesGraph',
+  'group',
+]);
+
 // OWL
 export const owlClass = joinNS('owl', 'Class');
 export const owlDatatypeProperty = joinNS('owl', 'DatatypeProperty');
 export const owlObjectProperty = joinNS('owl', 'Class');
 
-// Own
-export const actionJsonDSBox = joinNS('action', 'JsonDSBox');
+// Action / WASA
+export const wasa = toProperties(commonNamespaces.wasa, [
+  'source',
+  'target',
+  'propertyMapping',
+  'from',
+  'to',
+  'potentialActionLink',
+  'precedingActionLink',
+  'actionShape',
+  'Input',
+  'Output',
+]);
 
 // Property groups
 export const ranges = [schemaRangeIncludes, rdfsRange];
@@ -122,5 +199,4 @@ export const terminalNodes = [
   // special case schema
   schemaQuantity,
   // own terminals
-  actionJsonDSBox,
 ];

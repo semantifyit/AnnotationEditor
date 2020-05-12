@@ -3,10 +3,11 @@ import morgan from 'morgan';
 import parser from 'body-parser';
 import path from 'path';
 
-import vocabRouter from '../routes/vocabs';
+import vocabRouter from '../routes/vocab';
 import webAPIRouter from '../routes/webApi';
-import actionHandlerRouter from '../routes/actionHandler';
+import actionRouter from '../routes/action';
 import mappingRouter from '../routes/mapping';
+import rdfRouter from '../routes/rdf';
 
 const app = express();
 
@@ -15,8 +16,9 @@ app.use(morgan('dev'));
 
 app.use('/api/vocab', vocabRouter);
 app.use('/api/webApi', webAPIRouter);
-app.use('/api/action', actionHandlerRouter);
+app.use('/api/action', actionRouter);
 app.use('/api/mapping', mappingRouter);
+app.use('/api/rdf', rdfRouter);
 
 // serve react app in production mode
 if (process.env.NODE_ENV === 'production') {

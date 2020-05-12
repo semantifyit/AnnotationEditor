@@ -2,7 +2,7 @@ import express from 'express';
 
 import WebApi, { WebApiLeanDoc as IWebApi } from '../models/WebApi';
 import GraphDB from '../util/graphdb';
-import { webAPIToAnn, webAPIToGN, enrichWebApi } from '../util/webApi';
+import { enrichWebApi } from '../util/webApi';
 import { withTryCatch } from '../util/utils';
 
 const router = express.Router();
@@ -29,7 +29,7 @@ router.get('/actions/:ids', (req, res) => {
         id: 1,
         name: 1,
         templates: 1,
-        context: 1,
+        prefixes: 1,
         _id: 0,
       },
     ).lean();

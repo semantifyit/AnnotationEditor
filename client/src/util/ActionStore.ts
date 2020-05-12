@@ -22,7 +22,7 @@ export const useActionStore = () => {
       },
       webApi: { id: webApi.id, name: getNameOfWebApi(webApi), templates: webApi.templates },
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      usePrefix: usePrefixWith(webApi.context),
+      usePrefix: usePrefixWith(webApi.prefixes),
     }));
     const allActions = [...actions, ...webApiEnrActions];
 
@@ -40,7 +40,7 @@ export const useActionStore = () => {
                 templates: webApi.templates,
               },
               // eslint-disable-next-line react-hooks/rules-of-hooks
-              usePrefix: usePrefixWith(webApi.context),
+              usePrefix: usePrefixWith(webApi.prefixes),
             })),
           );
           if (newActions.length > 0) {

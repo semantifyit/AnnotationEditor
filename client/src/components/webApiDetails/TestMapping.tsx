@@ -16,7 +16,7 @@ interface Props {
   responseMapping: ResponseMappingSave;
   sampleAction: Action['sampleAction'];
   setSampleAction: (a: Action['sampleAction']) => void;
-  prefixes: WebApi['context'];
+  prefixes: WebApi['prefixes'];
   goToReqMapping: () => void;
   goToRespMapping: () => void;
 }

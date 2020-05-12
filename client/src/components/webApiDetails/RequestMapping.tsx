@@ -11,7 +11,7 @@ import { isOneLevelStringJSON } from '../../util/utils';
 interface Props {
   requestMapping: RequestMappingSave;
   sampleAction: Action['sampleAction'];
-  prefixes: WebApi['context'];
+  prefixes: WebApi['prefixes'];
   setSampleAction: (a: Action['sampleAction']) => void;
   setRequestMapping: (arg: any) => void;
   goToRespMapping: () => void;

@@ -2,20 +2,22 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaPlus, FaPencilAlt, FaTrashAlt, FaSave, FaTimes } from 'react-icons/fa';
 
 import { VocabLeanDoc as Vocab } from '../../../../server/src/models/Vocab';
+import { WebApi } from '../../../../server/src/models/WebApi';
+
 import { cutString } from '../../util/utils';
 import VocabHandler from '../../util/VocabHandler';
 import CheckBox from '../Checkbox';
 import ModalBtn from '../ModalBtn';
 import AddVocab from './AddVocab';
 
-type Context = Record<string, string>;
+type Prefixes = WebApi['prefixes'];
 
 interface Props {
   availableVocabs: Vocab[];
   selectedVocabs: string[];
   setSelectedVocabs: (args: string[]) => void;
-  context: Context;
-  setContext: (arg: Context) => void;
+  prefixes: Prefixes;
+  setPrefixes: (arg: Prefixes) => void;
   addVocab: (vocab: Vocab) => void;
 }
 
@@ -23,8 +25,8 @@ const Vocabularies = ({
   availableVocabs,
   selectedVocabs,
   setSelectedVocabs,
-  context,
-  setContext,
+  prefixes,
+  setPrefixes,
   addVocab,
 }: Props) => {
   const [editPrefix, setEditPrefix] = useState('');
@@ -42,28 +44,28 @@ const Vocabularies = ({
 
   const vocabProcs = availableVocabs
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map((vocab) => new VocabHandler(vocab.vocab, context));
+    .map((vocab) => new VocabHandler(vocab.vocab, prefixes));
 
   const deletePrefixClick = (prefix: string) => {
-    const { [prefix]: old, ...rest } = context;
-    setContext(rest);
+    const { [prefix]: old, ...rest } = prefixes;
+    setPrefixes(rest);
   };
 
   const editPrefixClick = (prefix: string, index: number) => {
     setEditPrefix(prefix);
-    setEditUri(context[prefix]);
+    setEditUri(prefixes[prefix]);
     setEditIndex(index);
   };
 
   const saveEdit = () => {
     if (isEditNew) {
-      setContext({
-        ...context,
+      setPrefixes({
+        ...prefixes,
         [editPrefix]: editUri,
       });
     } else {
-      const { [Object.keys(context)[editIndex]]: old, ...rest } = context;
-      setContext({
+      const { [Object.keys(prefixes)[editIndex]]: old, ...rest } = prefixes;
+      setPrefixes({
         ...rest,
         [editPrefix]: editUri,
       });
@@ -97,6 +99,8 @@ const Vocabularies = ({
               value={editPrefix}
               onChange={(e) => setEditPrefix(e.target.value)}
             />
+          ) : prefix === '' ? (
+            <span className="italicGrey">Empty string</span>
           ) : (
             prefix
           )}
@@ -208,7 +212,7 @@ const Vocabularies = ({
         </thead>
         <tbody>
           {isEditNew && prefixLine('', '', 0, true)}
-          {Object.entries(context)
+          {Object.entries(prefixes)
             .sort(([k], [k2]) => k.localeCompare(k2))
             .map(([prefix, uri], i) => prefixLine(prefix, uri, i))}
         </tbody>

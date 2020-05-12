@@ -212,9 +212,10 @@ export const usePrefixWith = (prefix: Record<string, string>) => (nodeId: string
   // eslint-disable-next-line react-hooks/rules-of-hooks
   usePrefix(nodeId, prefix);
 
+// prefix[''] same as @vocab
 export const usePrefix = (nodeId: string, prefix: Record<string, string>): string => {
-  if (nodeId.startsWith(prefix['@vocab'])) {
-    return nodeId.replace(prefix['@vocab'], '');
+  if (nodeId.startsWith(prefix[''])) {
+    return nodeId.replace(prefix[''], '');
   }
   for (const [pref, uri] of Object.entries(prefix)) {
     if (nodeId.startsWith(uri)) {
@@ -230,8 +231,8 @@ export const unUsePrefix = (nodeId: string, prefix: Record<string, string>): str
       return nodeId.replace(`${pref}:`, uri);
     }
   }
-  if (!isUri(nodeId) && prefix['@vocab']) {
-    return `${prefix['@vocab']}${nodeId}`;
+  if (!isUri(nodeId) && prefix['']) {
+    return `${prefix['']}${nodeId}`;
   }
   return nodeId;
 };
@@ -242,10 +243,10 @@ export const sortNodeDetails = (desc: NodeDetails[]): NodeDetails[] =>
 export default class VocabHandler {
   nodes: Node[];
 
-  prefix: Record<string, string>;
+  prefixes: Record<string, string>;
 
-  constructor(vocabStr: string | string[], prefix: Record<string, string>) {
-    this.prefix = prefix;
+  constructor(vocabStr: string | string[], prefixes: Record<string, string>) {
+    this.prefixes = prefixes;
     if (Array.isArray(vocabStr)) {
       this.nodes = vocabStr.flatMap((str) => cleanBlankNodes(JSON.parse(str)));
       // merging nodes done by jsonld flatten, only needed when mult vocabs
@@ -280,9 +281,9 @@ export default class VocabHandler {
     }
   };
 
-  usePrefix = (nodeId: string): string => usePrefix(nodeId, this.prefix);
+  usePrefix = (nodeId: string): string => usePrefix(nodeId, this.prefixes);
 
-  unUsePrefix = (nodeId: string): string => unUsePrefix(nodeId, this.prefix);
+  unUsePrefix = (nodeId: string): string => unUsePrefix(nodeId, this.prefixes);
 
   getDescForNode = (node: Node): NodeDetails => ({
     id: node['@id'],

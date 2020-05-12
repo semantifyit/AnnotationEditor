@@ -38,7 +38,7 @@ import * as p from '../../util/rdfProperties';
 
 import '../../styles/annotation.css';
 import 'react-datetime/css/react-datetime.css';
-import { annSrcToAnnJsonLd, isTemplateProp } from '../../util/webApi';
+import { isTemplateProp } from '../../util/webApi';
 import CheckBox from '../Checkbox';
 import { joinReduction } from '../../util/jsxHelpers';
 import CreatableSelect from '../CreatableSelect';
@@ -61,6 +61,7 @@ interface Props {
   config: WebApiConfig;
   potTemplates: Template[];
   isAction?: boolean;
+  annotationStr: string;
 }
 
 type Path = (string | number)[];
@@ -86,6 +87,7 @@ const Annotation = ({
   config,
   potTemplates,
   isAction,
+  annotationStr,
 }: Props) => {
   useEffect(() => {
     if (config.showCodeEditor) {
@@ -142,7 +144,7 @@ const Annotation = ({
                 readOnly={true}
                 height="100%"
                 maxLines={Infinity}
-                value={JSON.stringify(annSrcToAnnJsonLd(ann, vocabHandler), null, 2)}
+                value={JSON.stringify(JSON.parse(annotationStr), null, 2)}
               />
             </div>
           </div>

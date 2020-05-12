@@ -142,24 +142,6 @@ interface NamedAnnotationNode extends AnnotationNode {
   description?: string | string[];
 }
 
-export interface Annotation extends NamedAnnotationNode {
-  '@context': string | Record<string, string>;
-}
-
-interface WebApiDocumenation extends Omit<NamedAnnotationNode, 'name'> {
-  url: string;
-}
-
-export interface WebApiAnnotation extends Annotation {
-  documentation: WebApiDocumenation | WebApiDocumenation[];
-}
-
-export interface ActionAnnotation extends Annotation {
-  target: {
-    urlTemplate: string;
-  };
-}
-
 export interface Mapping {
   value: string;
 }
@@ -212,7 +194,7 @@ export interface PotentialActionLink extends ActionLink {
 export interface Action {
   id: string;
   name: string;
-  annotation: ActionAnnotation;
+  annotation: string;
   annotationSrc: ActionRessourceDesc;
   requestMapping: RequestMappingSave;
   responseMapping: ResponseMappingSave;
@@ -231,12 +213,12 @@ export interface WebApi {
   id: string;
   name: string;
   author: string;
-  annotation: WebApiAnnotation;
+  annotation: string;
   annotationSrc: RessourceDesc;
   actions: Action[];
   functions?: string;
   vocabs: string[];
-  context: Record<string, string>;
+  prefixes: Record<string, string>;
   config: WebApiConfig;
   templates: Template[];
 }
@@ -251,13 +233,13 @@ const WebApiSchema: Schema = new Schema(
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     author: { type: String, required: true },
-    annotation: { type: Object, required: true },
+    annotation: { type: String, required: true },
     annotationSrc: { type: Object, required: true },
     actions: [
       {
         id: { type: String, required: true },
         name: { type: String, required: true },
-        annotation: { type: Object, required: true },
+        annotation: { type: String, required: true },
         annotationSrc: { type: Object, required: true },
         requestMapping: { type: Object, required: false },
         responseMapping: { type: Object, required: false },
@@ -278,7 +260,7 @@ const WebApiSchema: Schema = new Schema(
     ],
     functions: { type: String, required: false },
     vocabs: [{ type: Schema.Types.ObjectId, ref: 'Vocab' }],
-    context: { type: Object, required: true },
+    prefixes: { type: Object, required: true },
     config: { type: Object, required: true },
   },
   { timestamps: { createdAt: true, updatedAt: true } },

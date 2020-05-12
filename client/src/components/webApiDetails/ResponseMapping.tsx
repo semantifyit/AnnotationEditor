@@ -11,7 +11,7 @@ import ky from 'ky';
 
 interface Props {
   responseMapping: ResponseMappingSave;
-  prefixes: WebApi['context'];
+  prefixes: WebApi['prefixes'];
   sampleResponse: Action['sampleResponse'];
   setResponseMapping: (arg: any) => void;
   goToTestMapping: () => void;

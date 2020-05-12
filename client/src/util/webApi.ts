@@ -3,9 +3,6 @@ import uuid from 'uuid/v1';
 import {
   WebApi,
   Action,
-  WebApiAnnotation,
-  ActionAnnotation,
-  Annotation,
   Template,
   RessourceDescProp,
   TemplateProperty,
@@ -16,10 +13,13 @@ import {
   ExpendedActionRessourceDesc,
   ExpandedTemplateProperty,
   ExpandedTemplateRessourceDesc,
-  // AnnotationSrcProp,
 } from '../../../server/src/models/WebApi';
-import { fromArray, toArray, stringOrNil } from './utils';
+import { fromArray, toArray, stringOrNil, clone } from './utils';
 import VocabHandler, { unUsePrefix } from './VocabHandler';
+import * as p from './rdfProperties';
+import { joinNS } from './rdfProperties';
+
+const { commonNamespaces, wasa, sh, schema, xsd } = p;
 
 // TODO default schema.org vocab ObjectId("5db83278871c4f3b742776f7")
 
@@ -74,17 +74,13 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
   return {
     id: actionId,
     name,
-    annotation: ({
-      '@context': { '@vocab': 'http://schema.org/' },
-      '@type': 'Action',
-      name,
-    } as unknown) as ActionAnnotation,
+    annotation: '{}',
     annotationSrc: {
       type: 'action',
       types: ['http://schema.org/Action'],
       props: [
         newSchemaTextNode('name', name, 'unremovable'),
-        newSchemaTextNode('description', 'A sample description'),
+        newSchemaTextNode('description', ''),
         {
           type: 'annotation',
           id: uuid(),
@@ -161,28 +157,38 @@ export const createEmptyWebApi = (): WebApi => {
     id: webApiId,
     name: 'New WebAPI',
     author: 'Me',
-    annotation: ({
-      '@context': { '@vocab': 'http://schema.org/' },
-      '@type': 'WebAPI',
-      name: 'New WebAPI',
-    } as unknown) as WebApiAnnotation,
+    annotation: '{}',
     annotationSrc: {
       type: 'annotation',
       types: ['http://schema.org/WebAPI'],
       props: [
+        newSchemaTextNode('name', 'New WebAPI', 'unremovable'),
+        newSchemaTextNode('description', ''),
         {
           type: 'annotation',
           id: uuid(),
-          path: 'http://schema.org/name',
-          val: 'New WebAPI',
-          range: 'http://schema.org/Text',
+          path: 'http://schema.org/documentation',
+          range: 'http://schema.org/CreativeWork',
+          val: {
+            type: 'annotation',
+            types: ['http://schema.org/CreativeWork'],
+            props: [
+              newSchemaTextNode('name', 'Documentation', 'unremovable'),
+              newSchemaTextNode('url', '', 'unremovable'),
+              newSchemaTextNode('encodingFormat', '', 'unremovable'),
+              newSchemaTextNode('version', '', 'unremovable'),
+            ],
+          },
+          state: 'unremovable',
         },
       ],
     },
     actions: [createEmptyAction(0, webApiId)],
     vocabs: defaultVocabsIds,
-    context: {
-      '@vocab': 'http://schema.org/',
+    prefixes: {
+      '': commonNamespaces.schema,
+      sh: commonNamespaces.sh,
+      wasa: commonNamespaces.wasa,
     },
     config: {
       useMapping: true,
@@ -209,6 +215,133 @@ export const setNameOfAction = (action: Action, str: string) => {
   }
 };
 
+const withAtVocab = (pref: VocabHandler['prefixes']): VocabHandler['prefixes'] => {
+  const newPrefixes = clone(pref);
+  if (newPrefixes['']) {
+    newPrefixes['@vocab'] = newPrefixes[''];
+    delete newPrefixes[''];
+  }
+  return newPrefixes;
+};
+
+const idNode = (s: string) => ({ '@id': s });
+
+const baseUrl = 'http://actions.semantify.it/rdf';
+
+const toDataType = (s: string): string =>
+  ({
+    [schema.Text]: xsd.string,
+    [schema.Boolean]: xsd.boolean,
+    [schema.Date]: xsd.date,
+    [schema.DateTime]: xsd.dateTime,
+    [schema.Time]: xsd.time,
+    [schema.Number]: xsd.double,
+    [schema.Float]: xsd.float,
+    [schema.Integer]: xsd.integer,
+    [schema.URL]: xsd.anyURI,
+  }[s] || s);
+
+const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'output') => (
+  prop: ExpandedTemplateProperty,
+) => {
+  const usePref = vocabHandler.usePrefix;
+
+  const shProp: any = {
+    '@id': `${baseUrl}/prop/${prop.id}`,
+    [usePref(sh.path)]: idNode(prop.path),
+  };
+
+  if (group) {
+    shProp[usePref(sh.group)] = idNode(group === 'input' ? wasa.Input : wasa.Output);
+  }
+  console.log(wasa.Input);
+
+  if (prop.nodeKind) {
+    shProp[usePref(sh.nodeKind)] = idNode(prop.nodeKind);
+  }
+
+  // prop values same as sh prop value
+  let oneToOneProps = [
+    'minCount',
+    'maxCount',
+    'minExclusive',
+    'minInclusive',
+    'maxExclusive',
+    'maxInclusive',
+    'minLength',
+    'maxLength',
+    'pattern',
+    'hasValue',
+  ] as const;
+  oneToOneProps.forEach((p) => {
+    if (prop[p]) {
+      shProp[usePref(joinNS('sh', p))] = prop[p];
+    }
+  });
+
+  if (prop.in) {
+    shProp[usePref(sh.in)] = { '@list': prop.in };
+  }
+
+  let pairProps = ['equals', 'disjoint', 'lessThan', 'lessThanOrEquals'] as const;
+  pairProps.forEach((p) => {
+    if (prop[p]) {
+      shProp[usePref(joinNS('sh', p))] = prop[p]?.map(idNode);
+    }
+  });
+
+  const ranges = prop.range.map((range) => {
+    if (range.types.length === 1 && vocabHandler.isTerminalNode(range.types[0])) {
+      return { [usePref(sh.datatype)]: toDataType(range.types[0]) };
+    }
+    const classNode: any = {
+      [usePref(sh.class)]: range.types.map(idNode),
+    };
+
+    if (range.props.length > 0) {
+      classNode[usePref(sh.node)] = {
+        [usePref(sh.property)]: range.props.map((p) => tempPropToShaclProp(vocabHandler)(p)),
+      };
+    }
+
+    return classNode;
+  });
+
+  return ranges.length > 1
+    ? {
+        ...shProp,
+        [usePref(sh.or)]: ranges,
+      }
+    : { ...shProp, ...ranges[0] };
+};
+
+export const actionToAnnotation = (
+  action: Action,
+  vocabHandler: VocabHandler,
+  templates: Template[],
+): string => {
+  const expandedActionAnnSrc = expandUsedActionTemplates(action.annotationSrc, templates);
+  const annotation = annSrcToAnnJsonLd(expandedActionAnnSrc, vocabHandler);
+
+  annotation[vocabHandler.usePrefix(wasa.actionShape)] = {
+    '@type': p.shNodeShape,
+    [vocabHandler.usePrefix(p.shProperty)]: [
+      ...expandedActionAnnSrc.input.map(tempPropToShaclProp(vocabHandler, 'input')),
+      ...expandedActionAnnSrc.output.map(tempPropToShaclProp(vocabHandler, 'output')),
+    ],
+  };
+
+  console.log(annotation);
+
+  return JSON.stringify(annotation);
+};
+
+export const webApiToAnnotation = (webApi: WebApi, vocabHandler: VocabHandler): string => {
+  const annotation = annSrcToAnnJsonLd(webApi.annotationSrc, vocabHandler);
+  // TODO add action links in schema:about
+  return JSON.stringify(annotation);
+};
+
 export const annSrcToAnnJsonLd = (
   annSrc: DefaultRessourceDesc,
   vocabHandler: VocabHandler,
@@ -216,9 +349,8 @@ export const annSrcToAnnJsonLd = (
 ): Annotation => {
   const ann: any = {};
   if (withContext) {
-    ann['@context'] = vocabHandler.prefix;
+    ann['@context'] = withAtVocab(vocabHandler.prefixes); // set @vocab empty prefix
   }
-
   ann['@type'] = fromArray(annSrc.types.map(vocabHandler.usePrefix));
   annSrc.props.forEach((prop) => {
     if (prop.type === 'annotation') {
@@ -232,6 +364,7 @@ export const annSrcToAnnJsonLd = (
   return ann;
 };
 
+// DEPRECATED
 export const annJsonLDToAnnSrc = (annSrc: Annotation, vocabHandler: VocabHandler): DefaultRessourceDesc => {
   const ann = {} as any;
   ann.types = toArray(annSrc['@type']).map(vocabHandler.unUsePrefix);
@@ -271,17 +404,17 @@ export const isAnnotationSrcProp = (prop: RessourceDescProp | TemplateProperty):
 export const dsToTemplate = (ds: any): TemplateRessourceDesc =>
   dsPartToTemplate(ds['@graph'][0], ds['@graph'][0]['sh:targetClass'], ds['@context']);
 
-export const dsPartToTemplate = (ds: any, classes: any, context: any): TemplateRessourceDesc => ({
+export const dsPartToTemplate = (ds: any, classes: any, prefixes: any): TemplateRessourceDesc => ({
   type: 'template',
-  types: toArray(classes).map((s) => unUsePrefix(s, context)),
+  types: toArray(classes).map((s) => unUsePrefix(s, prefixes)),
   props: ds['sh:property'].map((prop: any) => ({
     type: 'template',
     id: uuid(),
-    path: unUsePrefix(prop['sh:path'], context),
+    path: unUsePrefix(prop['sh:path'], prefixes),
     range: prop['sh:or'].map((r: any) =>
       r['sh:node']
-        ? dsPartToTemplate(r['sh:node'], r['sh:class'], context)
-        : { type: 'template', types: [unUsePrefix(r['sh:datatype'] || r['sh:class'], context)], props: [] },
+        ? dsPartToTemplate(r['sh:node'], r['sh:class'], prefixes)
+        : { type: 'template', types: [unUsePrefix(r['sh:datatype'] || r['sh:class'], prefixes)], props: [] },
     ),
     required: prop['sh:minCount'] > 0,
     multAllowed: prop['sh:maxCount'] ? prop['sh:maxCount'] > 1 : true,

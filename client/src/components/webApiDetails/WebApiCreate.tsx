@@ -49,8 +49,6 @@ import {
   getNameOfAction,
   setNameOfAction,
   getNameOfWebApi,
-  webApiToAnnotation,
-  actionToAnnotation,
 } from '../../util/webApi';
 import { clone, memoize, maxOfArray, Optional } from '../../util/utils';
 import Annotation from './Annotation';
@@ -65,6 +63,7 @@ import Template from './Template';
 import ActionLink from './ActionLinks';
 import { useActionStore } from '../../util/ActionStore';
 import { Loading } from '../Loading';
+import { actionToAnnotation, webApiToAnnotation } from '../../util/toAnnotation';
 
 export interface WebApiDetailPageProps {
   webApi: WebApi;
@@ -626,6 +625,11 @@ const WebApiCreate = () => {
           const setActionLink = (actionLinks: IActionLink[]) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].potentialActionLinks = actionLinks as PotentialActionLink[];
+            newWebApi.actions[annIndex].annotation = actionToAnnotation(
+              newWebApi.actions[annIndex],
+              vocabHandler,
+              webApi.templates,
+            );
             setWebApi(newWebApi);
           };
           return (
@@ -644,6 +648,11 @@ const WebApiCreate = () => {
           const setActionLink = (actionLinks: IActionLink[]) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].precedingActionLinks = actionLinks;
+            newWebApi.actions[annIndex].annotation = actionToAnnotation(
+              newWebApi.actions[annIndex],
+              vocabHandler,
+              webApi.templates,
+            );
             setWebApi(newWebApi);
           };
           return (
@@ -765,11 +774,13 @@ const WebApiCreate = () => {
     setIsSaving(true);
     // console.log(webApi);
     webApi.name = getNameOfWebApi(webApi);
+    webApi.annotation = webApiToAnnotation(webApi, vocabHandler);
     // console.log(webApi.name);
-    webApi.actions = webApi.actions.map((a) => {
-      a.name = getNameOfAction(a);
-      return a;
-    });
+    webApi.actions = webApi.actions.map((action) => ({
+      ...action,
+      name: getNameOfAction(action),
+      annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
+    }));
 
     try {
       const body = {

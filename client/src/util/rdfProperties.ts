@@ -161,6 +161,9 @@ export const wasa = toProperties(commonNamespaces.wasa, [
   'actionShape',
   'Input',
   'Output',
+  'PotentialActionLink',
+  'PrecedingActionLink',
+  'PropertyMap',
 ]);
 
 // Property groups

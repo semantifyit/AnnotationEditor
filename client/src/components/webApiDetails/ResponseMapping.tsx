@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaAngleLeft, FaAngleRight, FaCircleNotch, FaPlay } from 'react-icons/fa';
 import split from 'split.js';
 
-import { switchCase } from '../../util/utils';
+import { stringIsValidJSON, switchCase } from '../../util/utils';
 import { ResponseMappingSave, Action, WebApi } from '../../../../server/src/models/WebApi';
 import Editor from '../Editor';
 import ky from 'ky';
@@ -17,6 +17,7 @@ interface Props {
   goToTestMapping: () => void;
   goToReqMapping: () => void;
   setSampleResponse: (a: Action['sampleResponse']) => void;
+  potentialActionLinks: Action['potentialActionLinks'];
 }
 
 const responseTypes = ['yarrrml', 'rml'];
@@ -31,6 +32,7 @@ const ResponseMapping = ({
   sampleResponse,
   setSampleResponse,
   prefixes,
+  potentialActionLinks,
 }: Props) => {
   const [testResults, setTestResults] = useState<{ value: string; success: boolean } | undefined>();
   const [isRunningTest, setIsRunningTest] = useState(false);
@@ -48,6 +50,7 @@ const ResponseMapping = ({
             input: sampleResponse,
             body: responseMapping.body,
             prefixes,
+            links: potentialActionLinks,
           },
         })
         .json();
@@ -124,9 +127,13 @@ const ResponseMapping = ({
                   <span className="italicGrey">Empty string</span>
                 ) : (
                   <Editor
-                    mode="json"
+                    mode={stringIsValidJSON(testResults.value) ? 'json' : 'text'}
                     height="400"
-                    value={JSON.stringify(JSON.parse(testResults.value), null, 2)}
+                    value={
+                      stringIsValidJSON(testResults.value)
+                        ? JSON.stringify(JSON.parse(testResults.value), null, 2)
+                        : testResults.value
+                    }
                     resizable={true}
                     readOnly={true}
                   />

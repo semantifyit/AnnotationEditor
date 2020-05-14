@@ -50,7 +50,6 @@ const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'outp
   if (group) {
     shProp[usePref(sh.group)] = idNode(group === 'input' ? wasa.Input : wasa.Output);
   }
-  console.log(wasa.Input);
 
   if (prop.nodeKind) {
     shProp[usePref(sh.nodeKind)] = idNode(prop.nodeKind);
@@ -164,8 +163,6 @@ export const actionToAnnotation = (
       preceedingActionLinkToAnn(link, action.id, vocabHandler),
     );
   }
-
-  console.log(annotation);
 
   return JSON.stringify(annotation);
 };

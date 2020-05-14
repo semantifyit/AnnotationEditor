@@ -17,18 +17,16 @@ router.post('/:id', async (req, res) => {
       action.requestMapping,
       action.responseMapping,
       webApi.prefixes,
-      (e) => {
-        res.status(400).json({ err: e });
-      },
+      action.potentialActionLinks,
     );
 
     res.json(resp);
   } catch (e) {
-    console.log(e.stack);
+    //console.log(e.stack);
     // req.body.actionStatus = 'FailedActionStatus';
     // req.body.error = e.toString();
     // res.json(req.body);
-    res.json({ err: e.toString() });
+    res.status(400).json({ err: e.toString() });
   }
 });
 

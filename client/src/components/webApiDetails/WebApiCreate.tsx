@@ -725,15 +725,17 @@ const WebApiCreate = () => {
             newWebApi.actions[annIndex].sampleResponse = newSampleResponse;
             setWebApi(newWebApi);
           };
+          const action = webApi.actions[annIndex];
           return (
             <ResponseMapping
               goToReqMapping={goToReqMapping}
               goToTestMapping={goToTestMapping}
-              responseMapping={webApi.actions[annIndex].responseMapping}
+              responseMapping={action.responseMapping}
               setResponseMapping={setRequestMapping}
-              sampleResponse={webApi.actions[annIndex].sampleResponse}
+              sampleResponse={action.sampleResponse}
               setSampleResponse={setSampleResponse}
               prefixes={webApi.prefixes}
+              potentialActionLinks={action.potentialActionLinks}
             />
           );
         }
@@ -744,15 +746,17 @@ const WebApiCreate = () => {
             newWebApi.actions[annIndex].sampleAction = newSampleAction;
             setWebApi(newWebApi);
           };
+          const action = webApi.actions[annIndex];
           return (
             <TestMapping
-              requestMapping={webApi.actions[annIndex].requestMapping}
-              responseMapping={webApi.actions[annIndex].responseMapping}
-              sampleAction={webApi.actions[annIndex].sampleAction}
+              requestMapping={action.requestMapping}
+              responseMapping={action.responseMapping}
+              sampleAction={action.sampleAction}
               setSampleAction={setSampleAction}
               prefixes={webApi.prefixes}
               goToReqMapping={goToReqMapping}
               goToRespMapping={goToRespMapping}
+              potentialActionLinks={action.potentialActionLinks}
             />
           );
         }

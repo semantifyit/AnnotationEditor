@@ -2,7 +2,7 @@ import express from 'express';
 import got from 'got';
 
 import { lowering, lifting } from '../mapping';
-import { consumeFullAction, doFn, validateHeaders, validateUrl } from '../util/action';
+import { addPotentialActions, consumeFullAction, doFn, validateHeaders, validateUrl } from '../util/action';
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.post('/lowering', async (req, res) => {
 
   const doLowering = doFn(lowering, action, prefixes);
 
-  const resp = {
+  const resp: any = {
     url: await doLowering(req.body.url),
     headers: await doLowering(req.body.headers),
     body: await doLowering(req.body.body),
@@ -44,31 +44,47 @@ router.post('/request', async (req, res) => {
 });
 
 router.post('/lifting', async (req, res) => {
-  const { prefixes, input } = req.body;
+  try {
+    const { prefixes, input, links } = req.body;
 
-  const doLifting = doFn(lifting, input, prefixes);
+    const doLifting = doFn(lifting, input, prefixes);
 
-  const resp = {
-    body: await doLifting(req.body.body),
-  };
+    const liftOut = await doLifting(req.body.body);
 
-  res.json(resp);
+    if (liftOut.success) {
+      const rdf = await addPotentialActions(liftOut.value, links, prefixes);
+
+      res.json({
+        body: { value: rdf, success: true },
+      });
+    } else {
+      res.json({
+        body: liftOut,
+      });
+    }
+  } catch (e) {
+    console.log(e.stack);
+    res.json({
+      body: { value: e.toString(), success: false },
+    });
+  }
 });
 
 router.post('/full', async (req, res) => {
-  const { prefixes, action, method } = req.body;
+  const { prefixes, action, method, links, url, headers, body, response } = req.body;
 
-  const response = await consumeFullAction(
-    action,
-    { method, url: req.body.url, headers: req.body.headers, body: req.body.body },
-    { body: req.body.response },
-    prefixes,
-    (e) => {
-      res.json({ success: false, value: e });
-    },
-  );
-
-  res.json({ success: true, value: response });
+  try {
+    const responseAction = await consumeFullAction(
+      action,
+      { method, url: url, headers: headers, body: body },
+      { body: response },
+      prefixes,
+      links,
+    );
+    res.json({ success: true, value: responseAction });
+  } catch (e) {
+    res.json({ success: false, value: e.toString() });
+  }
 });
 
 export default router;

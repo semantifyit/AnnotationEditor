@@ -122,8 +122,25 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
       autoStatus: true,
       body: {
         type: 'yarrrml',
-        value:
-          'prefixes:\n  schema: "http://schema.org/"\n  myfunc: "http://myfunc.com/"\nmappings:\n  result:\n    sources:\n      - ["input~jsonpath", "$.*"]\n    po:\n      - [a, schema:Thing]\n      - [schema:name, "example"]\n',
+        value: `prefixes:
+  schema: "http://schema.org/"
+  myfunc: "http://myfunc.com/"
+mappings:
+  action:
+    sources:
+      - ["input~jsonpath", "$"]
+    po:
+      - [a, schema:Action]
+      - [schema:actionStatus, "http://schema.org/CompletedActionStatus"]
+      - [schema:result, {mapping: result}]
+      
+  result:
+    sources:
+      - ["input~jsonpath", "$"]
+    po:
+      - [a, schema:Thing]
+      - [schema:name, "$(example)"]
+`,
       },
     },
     potentialActionLinks: [],
@@ -138,7 +155,7 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
       null,
       2,
     ),
-    sampleResponse: '',
+    sampleResponse: '{\n' + '  "example": "hello world"\n' + '}',
   };
 };
 

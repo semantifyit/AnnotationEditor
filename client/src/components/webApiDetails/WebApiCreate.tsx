@@ -60,10 +60,15 @@ import TestMapping from './TestMapping';
 import Vocabularies from './Vocabularies';
 import VocabHandler from '../../util/VocabHandler';
 import Template from './Template';
-import ActionLink from './ActionLinks';
+import ActionLinks from './ActionLinks';
 import { useActionStore } from '../../util/ActionStore';
 import { Loading } from '../Loading';
-import { actionToAnnotation, webApiToAnnotation } from '../../util/toAnnotation';
+import {
+  actionLinksToAnnotation,
+  actionToAnnotation,
+  templateToAnnotation,
+  webApiToAnnotation,
+} from '../../util/toAnnotation';
 
 export interface WebApiDetailPageProps {
   webApi: WebApi;
@@ -542,7 +547,7 @@ const WebApiCreate = () => {
           const setAnnotation = (annotation: RessourceDesc) => {
             const newWebApi = clone(webApi);
             newWebApi.annotationSrc = annotation;
-            newWebApi.annotation = webApiToAnnotation(webApi, vocabHandler);
+            //newWebApi.annotation = webApiToAnnotation(webApi, vocabHandler);
             setWebApi(newWebApi);
           };
           return (
@@ -551,10 +556,10 @@ const WebApiCreate = () => {
               key={-1}
               vocabHandler={vocabHandler}
               annotation={webApi.annotationSrc}
-              annotationStr={webApi.annotation}
               setAnnotation={setAnnotation}
               config={webApi.config}
               potTemplates={[]}
+              getAnnotation={() => webApiToAnnotation(webApi, vocabHandler)}
             />
           );
         }
@@ -598,11 +603,11 @@ const WebApiCreate = () => {
           const setAnnotation = (annotation: ActionRessourceDesc) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].annotationSrc = annotation;
-            newWebApi.actions[annIndex].annotation = actionToAnnotation(
-              newWebApi.actions[annIndex],
-              vocabHandler,
-              webApi.templates,
-            );
+            // newWebApi.actions[annIndex].annotation = actionToAnnotation(
+            //   newWebApi.actions[annIndex],
+            //   vocabHandler,
+            //   webApi.templates,
+            // );
             setWebApi(newWebApi);
           };
           // console.log(webApi.actions[annIndex].annotation);
@@ -613,11 +618,11 @@ const WebApiCreate = () => {
               key={annIndex}
               // annotation={annJsonLDToAnnSrc(webApi.actions[annIndex].annotation, vocabHandler)}
               annotation={action.annotationSrc}
-              annotationStr={action.annotation}
               setAnnotation={setAnnotation}
               vocabHandler={vocabHandler}
               config={webApi.config}
               potTemplates={webApi.templates}
+              getAnnotation={() => actionToAnnotation(action, vocabHandler, webApi.templates)}
             />
           );
         }
@@ -625,15 +630,15 @@ const WebApiCreate = () => {
           const setActionLink = (actionLinks: IActionLink[]) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].potentialActionLinks = actionLinks as PotentialActionLink[];
-            newWebApi.actions[annIndex].annotation = actionToAnnotation(
-              newWebApi.actions[annIndex],
-              vocabHandler,
-              webApi.templates,
-            );
+            // newWebApi.actions[annIndex].annotation = actionToAnnotation(
+            //   newWebApi.actions[annIndex],
+            //   vocabHandler,
+            //   webApi.templates,
+            // );
             setWebApi(newWebApi);
           };
           return (
-            <ActionLink
+            <ActionLinks
               type="Potential"
               webApi={webApi}
               baseAction={webApi.actions[annIndex]}
@@ -641,6 +646,15 @@ const WebApiCreate = () => {
               actionLinks={webApi.actions[annIndex].potentialActionLinks}
               setActionLinks={setActionLink}
               getActions={getActions}
+              config={webApi.config}
+              getAnnotation={() =>
+                actionLinksToAnnotation(
+                  webApi.actions[annIndex].potentialActionLinks,
+                  webApi.actions[annIndex].id,
+                  'potential',
+                  vocabHandler,
+                )
+              }
             />
           );
         }
@@ -648,15 +662,15 @@ const WebApiCreate = () => {
           const setActionLink = (actionLinks: IActionLink[]) => {
             const newWebApi = clone(webApi);
             newWebApi.actions[annIndex].precedingActionLinks = actionLinks;
-            newWebApi.actions[annIndex].annotation = actionToAnnotation(
-              newWebApi.actions[annIndex],
-              vocabHandler,
-              webApi.templates,
-            );
+            // newWebApi.actions[annIndex].annotation = actionToAnnotation(
+            //   newWebApi.actions[annIndex],
+            //   vocabHandler,
+            //   webApi.templates,
+            // );
             setWebApi(newWebApi);
           };
           return (
-            <ActionLink
+            <ActionLinks
               type="Preceding"
               webApi={webApi}
               baseAction={webApi.actions[annIndex]}
@@ -664,6 +678,15 @@ const WebApiCreate = () => {
               actionLinks={webApi.actions[annIndex].precedingActionLinks}
               setActionLinks={setActionLink}
               getActions={getActions}
+              config={webApi.config}
+              getAnnotation={() =>
+                actionLinksToAnnotation(
+                  webApi.actions[annIndex].precedingActionLinks,
+                  webApi.actions[annIndex].id,
+                  'preceeding',
+                  vocabHandler,
+                )
+              }
             />
           );
         }
@@ -754,16 +777,18 @@ const WebApiCreate = () => {
           });
         }
       };
+      const template = webApi.templates[templateIndex];
 
       return (
         <Template
           key={templateIndex}
-          template={webApi.templates[templateIndex]}
+          template={template}
           setBaseType={setBaseType}
           setAnnotation={setAnnotation}
           vocabHandler={vocabHandler}
           config={webApi.config}
           potTemplates={webApi.templates}
+          getAnnotation={() => templateToAnnotation(template, vocabHandler, webApi.templates)}
         />
       );
     }

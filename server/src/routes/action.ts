@@ -1,7 +1,7 @@
 import express from 'express';
 
 import WebApis, { WebApiLeanDoc as WebApi } from '../models/WebApi';
-import { consumeFullAction } from '../util/action';
+import { consumeFullAction, getActionLinkById } from '../util/action';
 
 const router = express.Router();
 
@@ -9,26 +9,14 @@ router.post('/:id', async (req, res) => {
   try {
     const { body } = req;
 
-    const webAPI: WebApi = await WebApis.findOne({
-      'actions.id': req.params.id,
-    }).lean();
-    if (!webAPI) {
-      res.status(404).json({ err: `Action ${req.params.webApiPath} not found` });
-      return;
-    }
-
-    const action = webAPI.actions.find(({ id }) => id === req.params.id);
-    if (!action) {
-      res.status(404).json({ err: `Action ${req.params.actionPath} not found` });
-      return;
-    }
+    const { action, webApi } = await getActionLinkById(req.params.id);
 
     const actionInput = typeof body === 'object' ? JSON.stringify(body) : body;
     const resp = await consumeFullAction(
       actionInput,
       action.requestMapping,
       action.responseMapping,
-      webAPI.prefixes,
+      webApi.prefixes,
       (e) => {
         res.status(400).json({ err: e });
       },

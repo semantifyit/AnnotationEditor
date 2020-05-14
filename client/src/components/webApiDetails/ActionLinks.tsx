@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { ActionLink as IActionLink, WebApi, Action, ActionRefs } from '../../../../server/src/models/WebApi';
+import {
+  ActionLink as IActionLink,
+  WebApi,
+  Action,
+  ActionRefs,
+  WebApiConfig,
+} from '../../../../server/src/models/WebApi';
 import { FaPlus } from 'react-icons/fa';
 import Select from 'react-select';
 import uuid from 'uuid';
-import { Optional } from '../../util/utils';
+import { Optional, prettyJsonStr } from '../../util/utils';
 import { EnrichedAction } from '../../util/ActionStore';
 import { Loading } from '../Loading';
 import ActionLink from './ActionLink';
+import WithCodeSplit from '../WithCodeSplit';
 
 interface Props {
   type: 'Preceding' | 'Potential';
@@ -16,10 +23,22 @@ interface Props {
   setActionLinks: (link: IActionLink[]) => void;
   getActions: (webApi: WebApi, ids: string[]) => Optional<EnrichedAction[]>;
   actionLinks: IActionLink[];
+  config: WebApiConfig;
+  getAnnotation: () => string;
 }
 
 const ActionLinks = (props: Props) => {
-  const { type, webApi, actionLinks, actionRefs, getActions, setActionLinks, baseAction } = props;
+  const {
+    type,
+    webApi,
+    actionLinks,
+    actionRefs,
+    getActions,
+    setActionLinks,
+    baseAction,
+    config,
+    getAnnotation,
+  } = props;
   const [newActionLink, setNewActionLink] = useState(false);
   const newActionLinkClick = () => setNewActionLink(true);
   const setNewActionId = (id: string) => {
@@ -68,7 +87,7 @@ const ActionLinks = (props: Props) => {
   };
 
   return (
-    <>
+    <WithCodeSplit isOpen={config.showCodeEditor} value={prettyJsonStr(getAnnotation())}>
       <div className="d-flex flexSpaceBetween mb-3">
         <h3>{type} Action Links</h3>
         <button className="btn btn-outline-primary" onClick={newActionLinkClick}>
@@ -102,7 +121,7 @@ const ActionLinks = (props: Props) => {
           />
         );
       })}
-    </>
+    </WithCodeSplit>
   );
 };
 

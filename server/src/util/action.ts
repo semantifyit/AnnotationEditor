@@ -1,6 +1,6 @@
 import { isOneLevelStringJSON } from './utils';
 import isURL from 'validator/lib/isURL';
-import { Action, WebApi } from '../models/WebApi';
+import WebApis, { Action, WebApi } from '../models/WebApi';
 import { lifting, lowering } from '../mapping';
 import got from 'got';
 
@@ -94,4 +94,26 @@ export const consumeFullAction = async (
   } catch (e) {
     fail(e.toString());
   }
+};
+
+export const getActionById = async (id: string): Promise<Action> => {
+  const webAPI: WebApi = await WebApis.findOne({ 'action.id': id }).lean();
+
+  const action = webAPI.actions.find(({ id }) => id === id);
+  if (!action) {
+    throw new Error(`Action ${id} not found`);
+  }
+
+  return action;
+};
+
+export const getActionLinkById = async (id: string): Promise<{ action: Action; webApi: WebApi }> => {
+  const webApi: WebApi = await WebApis.findOne({ 'action.': id }).lean();
+
+  const action = webApi.actions.find(({ id }) => id === id);
+  if (!action) {
+    throw new Error(`Action ${id} not found`);
+  }
+
+  return { action, webApi };
 };

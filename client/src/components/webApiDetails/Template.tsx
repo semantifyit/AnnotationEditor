@@ -21,9 +21,18 @@ interface Props {
   vocabHandler: VocabHandler;
   config: WebApiConfig;
   potTemplates: ITemplate[];
+  getAnnotation: () => string;
 }
 
-const Template = ({ template, setAnnotation, setBaseType, vocabHandler, config, potTemplates }: Props) => {
+const Template = ({
+  template,
+  setAnnotation,
+  setBaseType,
+  vocabHandler,
+  config,
+  potTemplates,
+  getAnnotation,
+}: Props) => {
   const [dsHash, setDsHash] = useState('');
   const [dsImportResult, setDsImportResult] = useState<[undefined | 'success' | 'danger', string]>([
     undefined,
@@ -124,6 +133,7 @@ const Template = ({ template, setAnnotation, setBaseType, vocabHandler, config, 
           vocabHandler={vocabHandler}
           config={config}
           potTemplates={potTemplates}
+          getAnnotation={getAnnotation}
         />
       )}
     </>

@@ -83,7 +83,8 @@ export const isOneLevelStringJSON = (obj: string): boolean =>
 
 export const isArrayOfStrings = (obj: string): boolean =>
   stringIsValidJSON(obj) &&
-  Array.isArray(JSON.parse(obj)) && JSON.parse(obj).every((e: any) => typeof e === 'string');
+  Array.isArray(JSON.parse(obj)) &&
+  JSON.parse(obj).every((e: any) => typeof e === 'string');
 
 export const addCharToCamelCase = (str: string, char = ''): string =>
   str.replace(/[A-Z]/g, (v, i) => char + v);
@@ -98,3 +99,5 @@ export const maxOfArray = (arr: number[]): number => (arr.length === 0 ? -1 : Ma
 
 export const switchCase = <T>(obj: Record<string, T>, defaultVal?: any) => (s: string) =>
   obj[s] || defaultVal;
+
+export const prettyJsonStr = (s: string): string => JSON.stringify(JSON.parse(s), null, 2);

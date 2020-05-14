@@ -33,7 +33,14 @@ import {
   ActionRessourceDesc,
 } from '../../../../server/src/models/WebApi';
 import VocabHandler, { sortNodeDetails, NodeDetails, Restriction } from '../../util/VocabHandler';
-import { clone, toArray, escapeLineBreaks, cutString, toReadableString } from '../../util/utils';
+import {
+  clone,
+  toArray,
+  escapeLineBreaks,
+  cutString,
+  toReadableString,
+  prettyJsonStr,
+} from '../../util/utils';
 import * as p from '../../util/rdfProperties';
 
 import '../../styles/annotation.css';
@@ -44,6 +51,8 @@ import { joinReduction } from '../../util/jsxHelpers';
 import CreatableSelect from '../CreatableSelect';
 import Editor from '../Editor';
 import ModalBtn from '../ModalBtn';
+import { actionToAnnotation } from '../../util/toAnnotation';
+import WithCodeSplit from '../WithCodeSplit';
 
 const SortableListItem = SortableElement(({ children }: any) => <div>{children}</div>);
 const DragHandle = SortableHandle(({ children }: any) => <span className="row-resize">{children}</span>);
@@ -61,7 +70,7 @@ interface Props {
   config: WebApiConfig;
   potTemplates: Template[];
   isAction?: boolean;
-  annotationStr: string;
+  getAnnotation: () => string;
 }
 
 type Path = (string | number)[];
@@ -87,14 +96,8 @@ const Annotation = ({
   config,
   potTemplates,
   isAction,
-  annotationStr,
+  getAnnotation,
 }: Props) => {
-  useEffect(() => {
-    if (config.showCodeEditor) {
-      split([`#split1`, `#split2`], { sizes: [60, 40], minSize: [100, 100] });
-    }
-  }, [config.showCodeEditor]);
-
   try {
     const setPathVal: SetPathVal = (pvs) => {
       const newAnn = clone(ann);
@@ -132,32 +135,9 @@ const Annotation = ({
     );
 
     return (
-      <>
-        {config.showCodeEditor ? (
-          <div className="d-flex">
-            <div className="split" id="split1">
-              {getNode()}
-            </div>
-            <div className="split" id="split2">
-              <Editor
-                mode="json"
-                readOnly={true}
-                height="100%"
-                maxLines={Infinity}
-                value={JSON.stringify(JSON.parse(annotationStr), null, 2)}
-              />
-            </div>
-          </div>
-        ) : (
-          getNode()
-        )}
-        {/* <br />
-        <pre>{JSON.stringify(ann, null, 2)}</pre>
-        <pre>{JSON.stringify(annSrcToAnnJsonLd(ann, vocabHandler), null, 2)}</pre>
-        <pre>
-          {JSON.stringify(annJsonLDToAnnSrc(annSrcToAnnJsonLd(ann, vocabHandler), vocabHandler), null, 2)}
-        </pre> */}
-      </>
+      <WithCodeSplit isOpen={config.showCodeEditor} value={prettyJsonStr(getAnnotation())}>
+        {getNode()}
+      </WithCodeSplit>
     );
   } catch (e) {
     console.error(e);

@@ -24,7 +24,7 @@ const withAtVocab = (pref: VocabHandler['prefixes']): VocabHandler['prefixes'] =
   return newPrefixes;
 };
 const idNode = (s: string) => ({ '@id': s });
-const baseUrl = 'http://actions.semantify.it/rdf';
+const baseUrl = 'http://actions.semantify.it/api/rdf';
 const toDataType = (s: string): string =>
   ({
     [schema.Text]: xsd.string,

@@ -1,7 +1,4 @@
-import { WebApiLeanDoc as WebApi, Annotation } from '../models/WebApi';
-import config from '../config';
-import GraphDB from './graphdb';
-import { clone } from './utils';
+import { WebApiLeanDoc as WebApi } from '../models/WebApi';
 
 export interface EnrichedWebApi extends Omit<WebApi, 'actions'> {
   actionStats: {

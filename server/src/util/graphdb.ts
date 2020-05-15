@@ -1,8 +1,9 @@
 import got from 'got';
 
-import { Annotation } from '../models/WebApi';
 import config from '../config';
 import { withTries, clone, toArray } from './utils';
+
+type Annotation = any;
 
 const graphDbBaseUrl = `${config.graphdb.url}/repositories/${config.graphdb.repo}/statements`;
 

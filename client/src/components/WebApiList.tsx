@@ -10,9 +10,10 @@ import { EnrichedWebApi as WebApi } from '../../../server/src/util/webApi';
 import { toReadableString, toDateString } from '../util/utils';
 import { autoLink } from '../util/jsxHelpers';
 import { toast } from 'react-toastify';
+import { getDescriptionOfWebApi, getNameOfWebApi } from '../util/webApi';
 
 const webApiDescription = (webApi: WebApi) => {
-  const desc = toReadableString(webApi.annotation.description);
+  const desc = toReadableString(getDescriptionOfWebApi(webApi));
   return desc === '' ? <i>No description available</i> : autoLink(desc);
 };
 
@@ -30,7 +31,7 @@ const webApiActionTooltip = (webApi: WebApi) => (
 const confirmDelete = async (webApi: WebApi, deleteWebApi: (id: string) => void) => {
   if (
     // eslint-disable-next-line no-alert
-    window.confirm(`Are you sure you wish to delete the WebAPI entry for ${webApi.annotation.name}`)
+    window.confirm(`Are you sure you wish to delete the WebAPI entry for ${getNameOfWebApi(webApi)}`)
   ) {
     // TODO delete
     try {
@@ -64,19 +65,19 @@ const webApiOptions = ({ webApi, deleteWebApi }: WebApiProps) => (
         Delete
       </button>
       <hr />
+      {/*<a*/}
+      {/*  className={optionsBlockBtn}*/}
+      {/*  href={`https://graphdb.sti2.at/resource?uri=${encodeURIComponent(*/}
+      {/*    `https://actions.semantify.it/graphs/${webApi.id}`,*/}
+      {/*  )}`}*/}
+      {/*  target="_blank"*/}
+      {/*  rel="noopener noreferrer"*/}
+      {/*>*/}
+      {/*  <FaExternalLinkAlt /> GraphDB Graph*/}
+      {/*</a>*/}
       <a
         className={optionsBlockBtn}
-        href={`https://graphdb.sti2.at/resource?uri=${encodeURIComponent(
-          `https://actions.semantify.it/graphs/${webApi.id}`,
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <FaExternalLinkAlt /> GraphDB Graph
-      </a>
-      <a
-        className={optionsBlockBtn}
-        href={`/api/webAPI/${webApi._id}`}
+        href={`/api/rdf/webapi/${webApi.id}`}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -90,7 +91,7 @@ const WebApiCard = ({ webApi, deleteWebApi }: WebApiProps) => (
   <div className="card">
     <div className="card-body">
       <h5 className="card-title d-flex flexSpaceBetween flexStartAlign">
-        <span>{toReadableString(webApi.annotation.name, '')}</span>
+        <span>{toReadableString(getNameOfWebApi(webApi), '')}</span>
         <OverlayTrigger
           rootClose
           trigger="click"

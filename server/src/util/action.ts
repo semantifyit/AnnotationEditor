@@ -153,7 +153,7 @@ const getNodeIdOfCompletedAction = (graph: any) => {
   return actionId;
 };
 
-const baseUrl = 'http://actions.semantify.it/rdf';
+const baseUrl = 'http://actions.semantify.it/api/rdf';
 
 const pathToSPP = (path: string[]): string => path.map((p) => `<${p}>`).join('/');
 

@@ -17,6 +17,7 @@ import {
 import { stringOrNil, toArray } from './utils';
 import { unUsePrefix } from './VocabHandler';
 import * as p from './rdfProperties';
+import { EnrichedWebApi } from '../../../server/src/util/webApi';
 
 const { commonNamespaces } = p;
 
@@ -216,13 +217,18 @@ export const createEmptyWebApi = (): WebApi => {
   };
 };
 
-export const getNameOfAnnotation = (ann: DefaultRessourceDesc): string =>
-  stringOrNil(ann.props.filter(isAnnotationSrcProp).find((p) => p.path === 'http://schema.org/name')?.val) ??
-  '';
+export const getPropOfAnnotation = (prop: string) => (ann: DefaultRessourceDesc): string =>
+  stringOrNil(ann.props.filter(isAnnotationSrcProp).find((p) => p.path === prop)?.val) ?? '';
+
+export const getNameOfAnnotation = getPropOfAnnotation('http://schema.org/name');
+export const getDescriptionOfAnnotation = getPropOfAnnotation('http://schema.org/description');
 
 export const getNameOfAction = (action: Action): string => getNameOfAnnotation(action.annotationSrc);
 
-export const getNameOfWebApi = (webApi: WebApi): string => getNameOfAnnotation(webApi.annotationSrc);
+export const getNameOfWebApi = (webApi: WebApi | EnrichedWebApi): string =>
+  getNameOfAnnotation(webApi.annotationSrc);
+export const getDescriptionOfWebApi = (webApi: WebApi | EnrichedWebApi): string =>
+  getDescriptionOfAnnotation(webApi.annotationSrc);
 
 export const setNameOfAction = (action: Action, str: string) => {
   const prop = action.annotationSrc.props

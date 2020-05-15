@@ -5,13 +5,15 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /usr/src/app/server
 COPY server/package*.json ./
-RUN npm ci
+#RUN npm ci
+RUN npm i
 COPY server/ .
 RUN npm run build
 
 WORKDIR /usr/src/app/client
 COPY client/package*.json ./
-RUN npm ci
+#RUN npm ci
+RUN npm i
 COPY client/ .
 RUN npm run build
 

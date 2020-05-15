@@ -48,3 +48,5 @@ export const stringIsValidJSON = (str: string): boolean => {
 
 export const isOneLevelStringJSON = (obj: string): boolean =>
   stringIsValidJSON(obj) && Object.values(JSON.parse(obj)).every((e) => typeof e === 'string');
+
+export const allButFist = <T>(arr: T[]): T[] => arr.slice(1);

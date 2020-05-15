@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import classNames from 'classnames';
 import set from 'lodash/set';
 import get from 'lodash/get';
@@ -12,7 +12,6 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import split from 'split.js';
 import isURL from 'validator/lib/isURL';
 import { SortableContainer, SortableElement, SortableHandle, SortEndHandler } from 'react-sortable-hoc';
 import arrayMove from 'array-move';
@@ -49,9 +48,7 @@ import { isTemplateProp } from '../../util/webApi';
 import CheckBox from '../Checkbox';
 import { joinReduction } from '../../util/jsxHelpers';
 import CreatableSelect from '../CreatableSelect';
-import Editor from '../Editor';
 import ModalBtn from '../ModalBtn';
-import { actionToAnnotation } from '../../util/toAnnotation';
 import WithCodeSplit from '../WithCodeSplit';
 
 const SortableListItem = SortableElement(({ children }: any) => <div>{children}</div>);
@@ -113,7 +110,7 @@ const Annotation = ({
       const indexToRemove = path.slice(-1)[0];
       // console.log(path);
       // console.log(indexToRemove);
-      console.log(fatherPath);
+      // console.log(fatherPath);
       const props = get(newAnn, fatherPath);
       props.splice(indexToRemove, 1);
       set(newAnn, fatherPath, props);
@@ -521,11 +518,10 @@ interface PropProps {
   prop: RessourceDescProp | TemplateProperty;
   restrictions: Restriction[];
   numPropsWithSameId: number;
-  noDelBtn?: boolean;
 }
 
 const Property = (props: PropProps) => {
-  const { prop, path, restrictions, numPropsWithSameId, noDelBtn } = props;
+  const { prop, path, restrictions, numPropsWithSameId } = props;
   const { setPathVal, removePath, vocabHandler } = useContext(AnnotationContext);
 
   const [isSelectingRange, setIsSelectingRange] = useState(false);
@@ -566,8 +562,9 @@ const Property = (props: PropProps) => {
       }
     };
 
-    const withDelBtn =
-      !noDelBtn && !isTemplateProp(prop) && prop.state !== 'unremovable' && prop.state !== 'disabled';
+    const withDelBtn = !isTemplateProp(prop)
+      ? prop.state !== 'unremovable' && prop.state !== 'disabled'
+      : true;
 
     return (
       <div className="d-block mb-4 p-1">

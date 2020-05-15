@@ -13,7 +13,7 @@ import * as p from './rdfProperties';
 import { joinNS } from './rdfProperties';
 import { expandTemplateProp, expandUsedActionTemplates } from './webApi';
 
-const { commonNamespaces, wasa, sh, schema, xsd } = p;
+const { wasa, sh, schema, xsd } = p;
 
 const withAtVocab = (pref: VocabHandler['prefixes']): VocabHandler['prefixes'] => {
   const newPrefixes = clone(pref);
@@ -133,6 +133,8 @@ const propertyMappingToAnn = (pmaps: ActionLink['propertyMaps'], vocabHandler: V
     [vocabHandler.usePrefix(wasa.to)]: pmap.to.path.map((p) => `<${p}>`).join('/'),
   }));
 
+const actionIdToNodeId = (id: string): string => `${baseUrl}/action/${id}`;
+
 export const actionToAnnotation = (
   action: Action,
   vocabHandler: VocabHandler,
@@ -142,7 +144,7 @@ export const actionToAnnotation = (
 
   const expandedActionAnnSrc = expandUsedActionTemplates(action.annotationSrc, templates);
   const annotation = annSrcToAnnJsonLd(expandedActionAnnSrc, vocabHandler);
-  annotation['@id'] = `${baseUrl}/action/${action.id}`;
+  annotation['@id'] = actionIdToNodeId(action.id);
 
   annotation[vocabHandler.usePrefix(wasa.actionShape)] = {
     '@type': p.shNodeShape,
@@ -166,9 +168,21 @@ export const actionToAnnotation = (
 
   return JSON.stringify(annotation);
 };
-export const webApiToAnnotation = (webApi: WebApi, vocabHandler: VocabHandler): string => {
+export const webApiToAnnotation = (
+  webApi: WebApi,
+  vocabHandler: VocabHandler,
+  actionIds: string[],
+): string => {
   const annotation = annSrcToAnnJsonLd(webApi.annotationSrc, vocabHandler);
   annotation['@id'] = `${baseUrl}/webapi/${webApi.id}`;
+
+  // add actions as ids
+  if (annotation[vocabHandler.usePrefix('http://schema.org/documentation')]) {
+    annotation[vocabHandler.usePrefix('http://schema.org/documentation')][
+      vocabHandler.usePrefix('http://schema.org/about')
+    ] = actionIds.map((id) => idNode(actionIdToNodeId(id)));
+  }
+
   // TODO add action links in schema:about
   return JSON.stringify(annotation);
 };

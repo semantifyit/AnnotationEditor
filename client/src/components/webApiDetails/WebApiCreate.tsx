@@ -559,7 +559,13 @@ const WebApiCreate = () => {
               setAnnotation={setAnnotation}
               config={webApi.config}
               potTemplates={[]}
-              getAnnotation={() => webApiToAnnotation(webApi, vocabHandler)}
+              getAnnotation={() =>
+                webApiToAnnotation(
+                  webApi,
+                  vocabHandler,
+                  webApi.actions.map(({ id }) => id),
+                )
+              }
             />
           );
         }
@@ -803,7 +809,11 @@ const WebApiCreate = () => {
     setIsSaving(true);
     // console.log(webApi);
     webApi.name = getNameOfWebApi(webApi);
-    webApi.annotation = webApiToAnnotation(webApi, vocabHandler);
+    webApi.annotation = webApiToAnnotation(
+      webApi,
+      vocabHandler,
+      webApi.actions.map(({ id }) => id),
+    );
     // console.log(webApi.name);
     webApi.actions = webApi.actions.map((action) => ({
       ...action,

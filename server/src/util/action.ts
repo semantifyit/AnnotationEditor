@@ -1,4 +1,4 @@
-import { isOneLevelStringJSON } from './utils';
+import { allButFist, clone, isOneLevelStringJSON } from './utils';
 import isURL from 'validator/lib/isURL';
 import WebApis, { Action, PotentialActionLink, WebApi } from '../models/WebApi';
 import { lifting, lowering } from '../mapping';
@@ -12,6 +12,7 @@ import {
   takeAll,
   toTerm,
 } from 'sparql-property-paths';
+import { isEmptyIterable } from 'sparql-property-paths/dist/utils';
 
 export const doFn = (fn: any, input: string, prefixes: any) => async (mapping: {
   value: string;
@@ -105,7 +106,7 @@ export const getActionById = async (id: string): Promise<Action> => {
     throw new Error(`Action ${id} not found`);
   }
 
-  const action = webAPI.actions.find(({ id }) => id === id);
+  const action = webAPI.actions.find((a) => a.id === id);
   if (!action) {
     throw new Error(`Action ${id} not found`);
   }
@@ -170,8 +171,9 @@ export const addPotentialActions = async (
 
   for (const link of potentialActionLinks) {
     const linkingAction = await getActionById(link.actionId);
-    const likingActionNodeId = `${baseUrl}/action/${linkingAction.id}`;
-    await fromJsonLD(linkingAction.annotation, graph);
+    // console.log(linkingAction.id);
+    // console.log(link.actionId);
+    // console.log(linkingAction.annotation);
 
     const pathToIterator = pathToSPP(link.iterator.path);
 
@@ -182,6 +184,11 @@ export const addPotentialActions = async (
     }
 
     for (const baseId of baseIds) {
+      const linkingAnnotation: any = JSON.parse(linkingAction.annotation);
+      linkingAnnotation['@id'] += `/${baseId}`;
+      const likingActionNodeId = linkingAnnotation['@id'];
+      await fromJsonLD(JSON.stringify(linkingAnnotation), graph);
+
       // add potentialAction link
       graph.add([
         toTerm(baseId),
@@ -191,13 +198,41 @@ export const addPotentialActions = async (
 
       for (const pMap of link.propertyMaps) {
         const fromSPP = pathToSPP(pMap.from.path);
-        const inputs = spp(baseId, fromSPP.replace(new RegExp(`^${pathToIterator}/`), '')); // replace iterator path
+        let inputs: string[];
+        if (fromSPP.startsWith(pathToIterator)) {
+          inputs = spp(baseId, fromSPP.replace(new RegExp(`^${pathToIterator}/`), ''));
+        } else {
+          inputs = spp(actionNodeId, fromSPP);
+        }
+
         const toPath = pMap.to.path;
-        // TODO add to topath
+        let toNodeId = likingActionNodeId;
+        let remainingPath = clone(toPath);
+        while (remainingPath.length > 1) {
+          const matchingTriplesIterator = graph.triples([
+            toTerm(toNodeId),
+            toTerm(remainingPath[0]),
+            undefined,
+          ]);
+          const matchingTriples = takeAll(matchingTriplesIterator);
+          if (matchingTriples.length === 0) {
+            const newBNodeId = graph.bNodeIssuer();
+            graph.add([toTerm(toNodeId), toTerm(remainingPath[0]), toTerm(newBNodeId)]);
+            toNodeId = newBNodeId;
+          } else {
+            toNodeId = matchingTriples[0][2].value;
+          }
+          remainingPath = allButFist(remainingPath);
+        }
+
+        for (const inputVal of inputs) {
+          graph.add([toTerm(toNodeId), toTerm(remainingPath[0]), new Literal(inputVal)]); // TODO not literal
+        }
+
+        // console.log(inputs);
+        // console.log(toPath);
       }
     }
-
-    // TODO add property maps
   }
 
   return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: false });

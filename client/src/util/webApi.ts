@@ -155,7 +155,9 @@ mappings:
       null,
       2,
     ),
-    sampleResponse: '{\n' + '  "example": "hello world"\n' + '}',
+    sampleResponse: `{
+  "example": "hello world"
+}`,
   };
 };
 

@@ -1046,6 +1046,8 @@ const Range = (props: PropProps) => {
 
     const isTerminal = vocabHandler.isTerminalNode(prop.range);
 
+    const isDisabled = prop.state === 'disabled';
+
     const valueInRestr = restrictions.filter((restr) => restr.valueIn)[0];
     if (
       isTerminal &&
@@ -1058,17 +1060,19 @@ const Range = (props: PropProps) => {
         prop.val,
         valueInRestr.valueIn.map((v) => ({ id: v, name: v, description: v })),
         onChange,
+        isDisabled,
       );
     }
-    const isDisabled = prop.state === 'disabled';
-    if (isTerminal && typeof prop.val === 'string') {
-      return getInputField(prop.range, prop.val, onChange, vocabHandler, isDisabled);
-    }
+
     const enumNodes = vocabHandler.getEnumNode(prop.range);
     if (enumNodes && typeof prop.val === 'string') {
       if (enumNodes.length > 0) {
-        return getEnumField(prop.val, enumNodes, onChange);
+        return getEnumField(prop.val, enumNodes, onChange, isDisabled);
       }
+      return getInputField(prop.range, prop.val, onChange, vocabHandler, isDisabled);
+    }
+
+    if (isTerminal && typeof prop.val === 'string') {
       return getInputField(prop.range, prop.val, onChange, vocabHandler, isDisabled);
     }
 
@@ -1095,8 +1099,18 @@ const Range = (props: PropProps) => {
   }
 };
 
-const getEnumField = (value: string, options: NodeDetails[], onChange: (val: string) => void) => (
-  <select className="custom-select" value={value} onChange={(e) => onChange(e.target.value)}>
+const getEnumField = (
+  value: string,
+  options: NodeDetails[],
+  onChange: (val: string) => void,
+  isDisabled: boolean,
+) => (
+  <select
+    className="custom-select"
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    disabled={isDisabled}
+  >
     <option value="">select a value ...</option>
     {options.map((enumVal, i) => (
       <option key={enumVal.id} value={enumVal.id} title={enumVal.description}>

@@ -18,6 +18,7 @@ import { stringOrNil, toArray } from './utils';
 import { unUsePrefix } from './VocabHandler';
 import * as p from './rdfProperties';
 import { EnrichedWebApi } from '../../../server/src/util/webApi';
+import { baseUrl } from './toAnnotation';
 
 const { commonNamespaces } = p;
 
@@ -55,7 +56,7 @@ export const newTemplateProp = (prop: string, io: TemplatePropertyGroupType): Te
   maxCount: 1,
 });
 
-const newSchemaTextNode = (
+const newTerminalNode = (range: string) => (
   prop: string,
   val: string,
   state?: Action['annotationSrc']['props'][number]['state'],
@@ -63,10 +64,12 @@ const newSchemaTextNode = (
   type: 'annotation',
   id: uuid(),
   path: `http://schema.org/${prop}`,
-  range: 'http://schema.org/Text',
+  range,
   val,
   state,
 });
+
+const newSchemaTextNode = newTerminalNode('http://schema.org/Text');
 
 export const createEmptyAction = (numSameName: number, webApiId: string): Action => {
   const name = `${defaultNewActionName}${sameNameBracket(numSameName)}`;
@@ -81,6 +84,11 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
       props: [
         newSchemaTextNode('name', name, 'unremovable'),
         newSchemaTextNode('description', ''),
+        newTerminalNode('http://schema.org/ActionStatusType')(
+          'actionStatus',
+          'http://schema.org/PotentialActionStatus',
+          'disabled',
+        ),
         {
           type: 'annotation',
           id: uuid(),
@@ -193,9 +201,9 @@ export const createEmptyWebApi = (): WebApi => {
             types: ['http://schema.org/CreativeWork'],
             props: [
               newSchemaTextNode('name', 'Documentation', 'unremovable'),
-              newSchemaTextNode('url', '', 'unremovable'),
-              newSchemaTextNode('encodingFormat', '', 'unremovable'),
-              newSchemaTextNode('version', '', 'unremovable'),
+              newSchemaTextNode('url', `${baseUrl}/${webApiId}`, 'disabled'),
+              newSchemaTextNode('encodingFormat', 'application/ld+json', 'unremovable'),
+              newSchemaTextNode('version', '1.0.0', 'unremovable'),
             ],
           },
           state: 'unremovable',

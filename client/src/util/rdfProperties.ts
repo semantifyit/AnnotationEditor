@@ -156,6 +156,7 @@ export const wasa = toProperties(commonNamespaces.wasa, [
   'propertyMapping',
   'from',
   'to',
+  'iterator',
   'potentialActionLink',
   'precedingActionLink',
   'actionShape',

@@ -742,6 +742,10 @@ const WebApiCreate = () => {
               setSampleResponse={setSampleResponse}
               prefixes={webApi.prefixes}
               potentialActionLinks={action.potentialActionLinks}
+              actions={webApi.actions.map((action) => ({
+                ...action,
+                annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
+              }))}
             />
           );
         }
@@ -763,6 +767,10 @@ const WebApiCreate = () => {
               goToReqMapping={goToReqMapping}
               goToRespMapping={goToRespMapping}
               potentialActionLinks={action.potentialActionLinks}
+              actions={webApi.actions.map((action) => ({
+                ...action,
+                annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
+              }))}
             />
           );
         }

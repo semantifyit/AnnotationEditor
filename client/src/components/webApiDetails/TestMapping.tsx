@@ -20,6 +20,7 @@ interface Props {
   goToReqMapping: () => void;
   goToRespMapping: () => void;
   potentialActionLinks: Action['potentialActionLinks'];
+  actions: Action[];
 }
 
 const TestMapping = ({
@@ -31,6 +32,7 @@ const TestMapping = ({
   setSampleAction,
   prefixes,
   potentialActionLinks,
+  actions,
 }: Props) => {
   const [testResults, setTestResults] = useState<{ value: string; success: boolean } | undefined>();
   const [isRunningTest, setIsRunningTest] = useState(false);
@@ -53,6 +55,7 @@ const TestMapping = ({
             response: responseMapping.body,
             links: potentialActionLinks,
             prefixes,
+            actions,
           },
         })
         .json();

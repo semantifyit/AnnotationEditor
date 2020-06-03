@@ -24,7 +24,7 @@ const withAtVocab = (pref: VocabHandler['prefixes']): VocabHandler['prefixes'] =
   return newPrefixes;
 };
 const idNode = (s: string) => ({ '@id': s });
-const baseUrl = 'http://actions.semantify.it/api/rdf';
+export const baseUrl = 'http://actions.semantify.it/api/rdf';
 const toDataType = (s: string): string =>
   ({
     [schema.Text]: xsd.string,
@@ -110,15 +110,25 @@ const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'outp
     : { ...shProp, ...ranges[0] };
 };
 
-const potentialActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandler: VocabHandler) => ({
-  '@id': `${baseUrl}/actionlink/${link.id}`,
-  '@type': wasa.PotentialActionLink,
-  [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${actionId}`),
-  [vocabHandler.usePrefix(wasa.target)]: idNode(`${baseUrl}/action/${link.actionId}`),
-  [vocabHandler.usePrefix(wasa.propertyMapping)]: propertyMappingToAnn(link.propertyMaps, vocabHandler),
-});
+const pathToSPP = (path: string[]): string => path.map((p) => `<${p}>`).join('/');
 
-const preceedingActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandler: VocabHandler) => ({
+const potentialActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandler: VocabHandler) => {
+  const iterator = link.iterator && link.iterator.path.length > 0 ? pathToSPP(link.iterator.path) : undefined;
+  return {
+    '@id': `${baseUrl}/actionlink/${link.id}`,
+    '@type': wasa.PotentialActionLink,
+    [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${actionId}`),
+    [vocabHandler.usePrefix(wasa.target)]: idNode(`${baseUrl}/action/${link.actionId}`),
+    [vocabHandler.usePrefix(wasa.propertyMapping)]: propertyMappingToAnn(
+      link.propertyMaps,
+      vocabHandler,
+      iterator,
+    ),
+    [vocabHandler.usePrefix(wasa.iterator)]: iterator,
+  };
+};
+
+const precedingActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandler: VocabHandler) => ({
   '@id': `${baseUrl}/actionlink/${link.id}`,
   '@type': wasa.PrecedingActionLink,
   [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${link.actionId}`),
@@ -126,11 +136,18 @@ const preceedingActionLinkToAnn = (link: ActionLink, actionId: string, vocabHand
   [vocabHandler.usePrefix(wasa.propertyMapping)]: propertyMappingToAnn(link.propertyMaps, vocabHandler),
 });
 
-const propertyMappingToAnn = (pmaps: ActionLink['propertyMaps'], vocabHandler: VocabHandler) =>
+const propertyMappingToAnn = (
+  pmaps: ActionLink['propertyMaps'],
+  vocabHandler: VocabHandler,
+  iteratorPath?: string,
+) =>
   pmaps.map((pmap) => ({
     '@type': wasa.PropertyMap,
-    [vocabHandler.usePrefix(wasa.from)]: pmap.from.path.map((p) => `<${p}>`).join('/'),
-    [vocabHandler.usePrefix(wasa.to)]: pmap.to.path.map((p) => `<${p}>`).join('/'),
+    [vocabHandler.usePrefix(wasa.from)]: pathToSPP(pmap.from.path).replace(
+      new RegExp(`^${iteratorPath}/`),
+      '',
+    ),
+    [vocabHandler.usePrefix(wasa.to)]: pathToSPP(pmap.to.path),
   }));
 
 const actionIdToNodeId = (id: string): string => `${baseUrl}/action/${id}`;
@@ -162,7 +179,7 @@ export const actionToAnnotation = (
 
   if (action.precedingActionLinks.length > 0) {
     annotation[vocabHandler.usePrefix(wasa.precedingActionLink)] = action.precedingActionLinks.map((link) =>
-      preceedingActionLinkToAnn(link, action.id, vocabHandler),
+      precedingActionLinkToAnn(link, action.id, vocabHandler),
     );
   }
 
@@ -194,6 +211,9 @@ export const annSrcToAnnJsonLd = (
   const ann: any = {};
   if (withContext) {
     ann['@context'] = withAtVocab(vocabHandler.prefixes); // set @vocab empty prefix
+  }
+  if (annSrc.nodeId) {
+    ann['@id'] = annSrc.nodeId;
   }
   ann['@type'] = fromArray(annSrc.types.map(vocabHandler.usePrefix));
   annSrc.props.forEach((prop) => {
@@ -262,7 +282,7 @@ export const actionLinksToAnnotation = (
 ): string =>
   JSON.stringify(
     actionLinks.map((link) =>
-      (type === 'preceeding' ? preceedingActionLinkToAnn : potentialActionLinkToAnn)(
+      (type === 'preceeding' ? precedingActionLinkToAnn : potentialActionLinkToAnn)(
         link,
         actionId,
         vocabHandler,

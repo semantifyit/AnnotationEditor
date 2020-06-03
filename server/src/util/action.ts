@@ -13,6 +13,7 @@ import {
   toTerm,
 } from 'sparql-property-paths';
 import { isEmptyIterable } from 'sparql-property-paths/dist/utils';
+import { potentialActionLinkToAnn, wasa } from './toAnnotation';
 
 export const doFn = (fn: any, input: string, prefixes: any) => async (mapping: {
   value: string;
@@ -44,6 +45,7 @@ export const consumeFullAction = async (
   responseMapping: Pick<Action['responseMapping'], 'body'>,
   prefixes: WebApi['prefixes'],
   potentialActionLinks: PotentialActionLink[],
+  unsavedActions?: Action[],
 ): Promise<void | string> => {
   const doLowering = doFn(lowering, action, prefixes);
 
@@ -94,12 +96,18 @@ export const consumeFullAction = async (
   }
 
   // add potential action links
-  const out = await addPotentialActions(liftOut.value, potentialActionLinks, prefixes);
+  const out = await addPotentialActions(liftOut.value, potentialActionLinks, prefixes, unsavedActions);
 
   return liftOut.value;
 };
 
-export const getActionById = async (id: string): Promise<Action> => {
+export const getActionById = async (id: string, unsavedActions?: Action[]): Promise<Action> => {
+  if (unsavedActions) {
+    const unsavedAction = unsavedActions.find((a) => a.id === id);
+    if (unsavedAction) {
+      return unsavedAction;
+    }
+  }
   const webAPI: WebApi = await WebApis.findOne({ 'actions.id': id }).lean();
 
   if (!webAPI) {
@@ -157,83 +165,102 @@ const baseUrl = 'http://actions.semantify.it/api/rdf';
 
 const pathToSPP = (path: string[]): string => path.map((p) => `<${p}>`).join('/');
 
+const WITH_CONSUME_SPP = false;
+const WITH_ADD_ACTION_LINKS = true;
+
 export const addPotentialActions = async (
   rdf: string,
   potentialActionLinks: PotentialActionLink[],
   prefixes: Record<string, string>,
+  unsavedActions?: Action[],
 ): Promise<string> => {
-  const [spp, graph] = await SPPEvaluator(rdf, 'jsonld');
+  const [spp, graph] = await SPPEvaluator(rdf, 'jsonld'); // TODO inputType dependent on rml output
 
   const actionNodeId = getNodeIdOfCompletedAction(graph);
-  console.log(actionNodeId);
 
   // console.log(await graph.serialize({ format: 'jsonld', prefixes, replaceNodes: true }));
+  if (WITH_CONSUME_SPP) {
+    for (const link of potentialActionLinks) {
+      const linkingAction = await getActionById(link.actionId, unsavedActions);
+      // console.log(linkingAction.id);
+      // console.log(link.actionId);
+      // console.log(linkingAction.annotation);
 
-  for (const link of potentialActionLinks) {
-    const linkingAction = await getActionById(link.actionId);
-    // console.log(linkingAction.id);
-    // console.log(link.actionId);
-    // console.log(linkingAction.annotation);
+      const pathToIterator = pathToSPP(link.iterator.path);
 
-    const pathToIterator = pathToSPP(link.iterator.path);
+      let baseIds = [actionNodeId];
+      if (pathToIterator !== '') {
+        const idOfIterator = spp(actionNodeId, pathToIterator);
+        baseIds = idOfIterator;
+      }
 
-    let baseIds = [actionNodeId];
-    if (pathToIterator !== '') {
-      const idOfIterator = spp(actionNodeId, pathToIterator);
-      baseIds = idOfIterator;
-    }
+      for (const baseId of baseIds) {
+        const linkingAnnotation: any = JSON.parse(linkingAction.annotation);
+        linkingAnnotation['@id'] += `/${baseId}`;
+        const likingActionNodeId = linkingAnnotation['@id'];
+        await fromJsonLD(JSON.stringify(linkingAnnotation), graph);
 
-    for (const baseId of baseIds) {
-      const linkingAnnotation: any = JSON.parse(linkingAction.annotation);
-      linkingAnnotation['@id'] += `/${baseId}`;
-      const likingActionNodeId = linkingAnnotation['@id'];
-      await fromJsonLD(JSON.stringify(linkingAnnotation), graph);
-
-      // add potentialAction link
-      graph.add([
-        toTerm(baseId),
-        new NamedNode('http://schema.org/potentialAction'),
-        new NamedNode(likingActionNodeId),
-      ]);
-
-      for (const pMap of link.propertyMaps) {
-        const fromSPP = pathToSPP(pMap.from.path);
-        let inputs: string[];
-        if (fromSPP.startsWith(pathToIterator)) {
-          inputs = spp(baseId, fromSPP.replace(new RegExp(`^${pathToIterator}/`), ''));
-        } else {
-          inputs = spp(actionNodeId, fromSPP);
-        }
-
-        const toPath = pMap.to.path;
-        let toNodeId = likingActionNodeId;
-        let remainingPath = clone(toPath);
-        while (remainingPath.length > 1) {
-          const matchingTriplesIterator = graph.triples([
-            toTerm(toNodeId),
-            toTerm(remainingPath[0]),
-            undefined,
-          ]);
-          const matchingTriples = takeAll(matchingTriplesIterator);
-          if (matchingTriples.length === 0) {
-            const newBNodeId = graph.bNodeIssuer();
-            graph.add([toTerm(toNodeId), toTerm(remainingPath[0]), toTerm(newBNodeId)]);
-            toNodeId = newBNodeId;
+        // add potentialAction link
+        graph.add([
+          toTerm(baseId),
+          new NamedNode('http://schema.org/potentialAction'),
+          new NamedNode(likingActionNodeId),
+        ]);
+        for (const pMap of link.propertyMaps) {
+          const fromSPP = pathToSPP(pMap.from.path);
+          let inputs: string[];
+          if (fromSPP.startsWith(pathToIterator)) {
+            inputs = spp(baseId, fromSPP.replace(new RegExp(`^${pathToIterator}/`), ''));
           } else {
-            toNodeId = matchingTriples[0][2].value;
+            inputs = spp(actionNodeId, fromSPP);
           }
-          remainingPath = allButFist(remainingPath);
-        }
 
-        for (const inputVal of inputs) {
-          graph.add([toTerm(toNodeId), toTerm(remainingPath[0]), new Literal(inputVal)]); // TODO not literal
-        }
+          const toPath = pMap.to.path;
+          let toNodeId = likingActionNodeId;
+          let remainingPath = clone(toPath);
+          while (remainingPath.length > 1) {
+            const matchingTriplesIterator = graph.triples([
+              toTerm(toNodeId),
+              toTerm(remainingPath[0]),
+              undefined,
+            ]);
+            const matchingTriples = takeAll(matchingTriplesIterator);
+            if (matchingTriples.length === 0) {
+              const newBNodeId = graph.bNodeIssuer();
+              graph.add([toTerm(toNodeId), toTerm(remainingPath[0]), toTerm(newBNodeId)]);
+              toNodeId = newBNodeId;
+            } else {
+              toNodeId = matchingTriples[0][2].value;
+            }
+            remainingPath = allButFist(remainingPath);
+          }
 
-        // console.log(inputs);
-        // console.log(toPath);
+          for (const inputVal of inputs) {
+            graph.add([toTerm(toNodeId), toTerm(remainingPath[0]), new Literal(inputVal)]); // TODO not literal
+          }
+
+          // console.log(inputs);
+          // console.log(toPath);
+        }
       }
     }
+  } else if (WITH_ADD_ACTION_LINKS) {
+    const potActionAnnotations = potentialActionLinks.map((link) =>
+      potentialActionLinkToAnn(link, actionNodeId, { rawSource: true }),
+    );
+    for (const potActionAnn of potActionAnnotations) {
+      await fromJsonLD(JSON.stringify(potActionAnn), graph);
+      graph.add([
+        toTerm(actionNodeId),
+        new NamedNode(wasa.potentialActionLink),
+        new NamedNode(potActionAnn['@id'] as string),
+      ]);
+    }
   }
-
-  return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: false });
+  try {
+    return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: true });
+  } catch (e) {
+    // could not replace blank node ids, try without replace
+    return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: false });
+  }
 };

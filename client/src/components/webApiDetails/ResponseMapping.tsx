@@ -18,6 +18,7 @@ interface Props {
   goToReqMapping: () => void;
   setSampleResponse: (a: Action['sampleResponse']) => void;
   potentialActionLinks: Action['potentialActionLinks'];
+  actions: Action[];
 }
 
 const responseTypes = ['yarrrml', 'rml'];
@@ -33,6 +34,7 @@ const ResponseMapping = ({
   setSampleResponse,
   prefixes,
   potentialActionLinks,
+  actions,
 }: Props) => {
   const [testResults, setTestResults] = useState<{ value: string; success: boolean } | undefined>();
   const [isRunningTest, setIsRunningTest] = useState(false);
@@ -51,6 +53,7 @@ const ResponseMapping = ({
             body: responseMapping.body,
             prefixes,
             links: potentialActionLinks,
+            actions,
           },
         })
         .json();

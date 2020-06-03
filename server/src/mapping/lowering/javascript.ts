@@ -25,7 +25,10 @@ export const javascript = (mapping: string, spp: SPP, config: any): string => {
 
   vm.createContext(sandbox);
 
-  const res = vm.runInNewContext(mapping, sandbox);
+  const res: unknown = vm.runInNewContext(mapping, sandbox);
 
-  return res;
+  if (typeof res === 'object') {
+    return JSON.stringify(res);
+  }
+  return String(res);
 };

@@ -45,14 +45,14 @@ router.post('/request', async (req, res) => {
 
 router.post('/lifting', async (req, res) => {
   try {
-    const { prefixes, input, links } = req.body;
+    const { prefixes, input, links, actions } = req.body;
 
     const doLifting = doFn(lifting, input, prefixes);
 
     const liftOut = await doLifting(req.body.body);
 
     if (liftOut.success) {
-      const rdf = await addPotentialActions(liftOut.value, links, prefixes);
+      const rdf = await addPotentialActions(liftOut.value, links, prefixes, actions);
 
       res.json({
         body: { value: rdf, success: true },
@@ -71,7 +71,7 @@ router.post('/lifting', async (req, res) => {
 });
 
 router.post('/full', async (req, res) => {
-  const { prefixes, action, method, links, url, headers, body, response } = req.body;
+  const { prefixes, action, method, links, url, headers, body, response, actions } = req.body;
 
   try {
     const responseAction = await consumeFullAction(
@@ -80,6 +80,7 @@ router.post('/full', async (req, res) => {
       { body: response },
       prefixes,
       links,
+      actions,
     );
     res.json({ success: true, value: responseAction });
   } catch (e) {

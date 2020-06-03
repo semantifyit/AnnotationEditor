@@ -11,13 +11,15 @@ router.get('/webapi/:id', async (req, res) => {
     res.status(404).json({ err: `WebAPI ${req.params.id} not found` });
     return;
   }
-  res.json(webAPI.annotationSrc);
+  res.setHeader('content-type', 'application/ld+json');
+  res.send(webAPI.annotation);
 });
 
 router.get('/action/:id', async (req, res) => {
   try {
     const action = await getActionById(req.params.id);
-    res.json(action.annotationSrc);
+    res.setHeader('content-type', 'application/ld+json');
+    res.send(action.annotation);
   } catch {
     res.status(404).json({ err: `Action ${req.params.id} not found` });
     return;

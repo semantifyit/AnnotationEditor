@@ -205,7 +205,7 @@ interface NodeProps {
   topNode?: boolean;
 }
 
-const Node = (props: NodeProps) => {
+const NodeComponent = (props: NodeProps) => {
   const { path, ann, fromRanges, restrictionIds, topNode, isAction } = props;
   const { setPathVal, vocabHandler } = useContext(AnnotationContext);
   const [moreIsOpen, setMoreIsOpen] = useState(false);
@@ -485,6 +485,11 @@ const Node = (props: NodeProps) => {
     return <h1>Error: {e.toString()}</h1>;
   }
 };
+
+const Node = React.memo(
+  NodeComponent,
+  (prevProps, nextProps) => JSON.stringify(prevProps) === JSON.stringify(nextProps),
+);
 
 const selectRange = (
   options: string[],

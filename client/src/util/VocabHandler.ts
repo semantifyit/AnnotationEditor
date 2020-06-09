@@ -298,7 +298,9 @@ export default class VocabHandler {
 
   getPropertiesDescr = (): NodeDetails[] => this.getNodesDetailsWithType(p.properties);
 
-  getAllOfType = (types: string[]) => this.nodes.filter((node) => haveCommon(node['@type'] || [], types));
+  getAllOfType = this.memoize((types: string[]) =>
+    this.nodes.filter((node) => haveCommon(node['@type'] || [], types)),
+  );
 
   getClasses = () => this.getAllOfType(p.classes);
 

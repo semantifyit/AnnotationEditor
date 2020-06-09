@@ -958,6 +958,10 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
           >
             <div className="mx-0">
               <div className="px-0">
+                <h6 className="font-weight-bold mt-2">Non-validating properties</h6>
+                <AdvRestrInput name="name" type="text" {...props} />
+                <AdvRestrInput name="description" type="text" {...props} />
+                <AdvRestrInput name="defaultValue" type="text" {...props} />
                 <h6 className="font-weight-bold mt-2">General</h6>
                 <AdvRestrInput
                   name="nodeKind"

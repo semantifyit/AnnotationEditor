@@ -57,6 +57,9 @@ const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'outp
 
   // prop values same as sh prop value
   let oneToOneProps = [
+    'name',
+    'description',
+    'defaultValue',
     'minCount',
     'maxCount',
     'minExclusive',

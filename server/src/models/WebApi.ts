@@ -48,6 +48,10 @@ export interface DefaultTemplateProperty {
   multAllowed: boolean;
 
   // shacl
+  name?: string;
+  description?: string;
+  defaultValue?: string;
+
   nodeKind?: string;
 
   minCount?: number;
@@ -81,8 +85,10 @@ export interface ExpandedTemplateProperty extends DefaultTemplateProperty {
 
 export type SchaclRestrPairProps = 'equals' | 'disjoint' | 'lessThan' | 'lessThanOrEquals';
 export type SchaclRestrOtherProps = 'in' | 'hasValue';
+export type SchaclNonRestrProps = 'name' | 'description' | 'defaultValue';
 
 export type ShaclRestrProps =
+  | SchaclNonRestrProps
   | SchaclRestrOtherProps
   | SchaclRestrPairProps
   | 'minCount'

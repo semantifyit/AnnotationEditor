@@ -192,7 +192,10 @@ export interface ActionLink {
   actionId: string;
   propertyMaps: PropertyMap[];
   iterator?: TemplatePath;
-  condition?: any;
+  condition?: {
+    type: 'sparql' | 'javascript';
+    value: string;
+  };
 }
 export interface PotentialActionLink extends ActionLink {
   iterator: TemplatePath;

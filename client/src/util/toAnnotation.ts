@@ -122,12 +122,19 @@ const potentialActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandl
     '@type': wasa.PotentialActionLink,
     [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${actionId}`),
     [vocabHandler.usePrefix(wasa.target)]: idNode(`${baseUrl}/action/${link.actionId}`),
-    [vocabHandler.usePrefix(wasa.propertyMapping)]: propertyMappingToAnn(
-      link.propertyMaps,
-      vocabHandler,
-      iterator,
-    ),
+    [vocabHandler.usePrefix(wasa.propertyMapping)]:
+      link.propertyMaps.length > 0
+        ? propertyMappingToAnn(link.propertyMaps, vocabHandler, iterator)
+        : undefined,
     [vocabHandler.usePrefix(wasa.iterator)]: iterator,
+    [vocabHandler.usePrefix(wasa.condition)]: link.condition
+      ? {
+          '@type': vocabHandler.usePrefix(
+            link.condition.type === 'javascript' ? wasa.JavaScriptImplementation : wasa.SPARQLImplementation,
+          ),
+          [vocabHandler.usePrefix(wasa.script)]: link.condition.value,
+        }
+      : undefined,
   };
 };
 

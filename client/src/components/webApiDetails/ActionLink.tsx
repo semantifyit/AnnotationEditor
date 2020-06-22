@@ -332,7 +332,10 @@ const ActionLink = ({
               Condition:
             </b>
             {actionLink.condition ? (
-              <span className="text-capitalize">{actionLink.condition.type} condition set</span>
+              <>
+                <span className="text-capitalize">{actionLink.condition.type}</span>{' '}
+                <span>condition set</span>
+              </>
             ) : (
               <span className="italicGrey">No condition defined</span>
             )}
@@ -396,7 +399,8 @@ const ActionLink = ({
                     value={actionLink.condition.value}
                     mode={actionLink.condition.type}
                     setValue={(value) =>
-                      setActionLink({ ...actionLink, condition: { ...actionLink.condition, value } })
+                      actionLink.condition &&
+                      setActionLink({ ...actionLink, condition: { type: actionLink.condition.type, value } })
                     }
                     height="300"
                     resizable={true}

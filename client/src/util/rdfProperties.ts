@@ -165,6 +165,10 @@ export const wasa = toProperties(commonNamespaces.wasa, [
   'PotentialActionLink',
   'PrecedingActionLink',
   'PropertyMap',
+  'script',
+  'condition',
+  'SPARQLImplementation',
+  'JavaScriptImplementation',
 ]);
 
 // Property groups

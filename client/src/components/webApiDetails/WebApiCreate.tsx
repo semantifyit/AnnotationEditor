@@ -67,6 +67,7 @@ import {
   templateToAnnotation,
   webApiToAnnotation,
 } from '../../util/toAnnotation';
+import WebApiDetails from './WebApiDetails';
 
 export interface SessionConfig {
   showCodeEditor: boolean;
@@ -281,6 +282,9 @@ const WebAPIDetailsPage = ({
                 <span>Templates</span>
                 <FaPlusCircle className="pointer" title="Create new Action" onClick={newTemplate} />
               </h6>
+              {webApi.templates.length === 0 && (
+                <span className="pt-3 pl-3 italicGrey">No templates created</span>
+              )}
               <ul className="nav flex-column mb-2">
                 {webApi.templates.map((template, i) => {
                   const isEditingName = isSamePage(editingPage, newPage('templates', i, 0));
@@ -558,23 +562,29 @@ const WebApiCreate = () => {
             //newWebApi.annotation = webApiToAnnotation(webApi, vocabHandler);
             setWebApi(newWebApi);
           };
+          const setActionAs = (id: string, val: boolean) => {
+            const newWebApi = clone(webApi);
+            const actionIndex = newWebApi.actions.findIndex((a) => a.id === id);
+            newWebApi.actions[actionIndex].isActive = val;
+            setWebApi(newWebApi);
+          };
           return (
-            <Annotation
-              baseType="http://schema.org/WebAPI"
-              key={-1}
-              vocabHandler={vocabHandler}
-              annotation={webApi.annotationSrc}
-              setAnnotation={setAnnotation}
-              config={webApi.config}
-              potTemplates={[]}
-              getAnnotation={() =>
-                webApiToAnnotation(
-                  webApi,
-                  vocabHandler,
-                  webApi.actions.map(({ id }) => id),
-                )
-              }
-              sessionConfig={sessionConfig}
+            <WebApiDetails
+              actions={webApi.actions}
+              setActionAs={setActionAs}
+              annotationCompFn={() => (
+                <Annotation
+                  baseType="http://schema.org/WebAPI"
+                  key={-1}
+                  vocabHandler={vocabHandler}
+                  annotation={webApi.annotationSrc}
+                  setAnnotation={setAnnotation}
+                  config={webApi.config}
+                  potTemplates={[]}
+                  getAnnotation={() => webApiToAnnotation(webApi, vocabHandler)}
+                  sessionConfig={sessionConfig}
+                />
+              )}
             />
           );
         }
@@ -592,6 +602,9 @@ const WebApiCreate = () => {
               prefixes={webApi.prefixes}
               setPrefixes={setPrefixes}
               addVocab={(vocab) => setAvailableVocabs([...availableVocabs, vocab])}
+              removeVocab={(id: string) =>
+                setAvailableVocabs(availableVocabs.filter(({ _id }) => _id !== id))
+              }
             />
           );
         }
@@ -840,11 +853,7 @@ const WebApiCreate = () => {
     setIsSaving(true);
     // console.log(webApi);
     webApi.name = getNameOfWebApi(webApi);
-    webApi.annotation = webApiToAnnotation(
-      webApi,
-      vocabHandler,
-      webApi.actions.map(({ id }) => id),
-    );
+    webApi.annotation = webApiToAnnotation(webApi, vocabHandler);
     // console.log(webApi.name);
     webApi.actions = webApi.actions.map((action) => ({
       ...action,

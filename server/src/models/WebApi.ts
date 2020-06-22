@@ -204,6 +204,7 @@ export interface PotentialActionLink extends ActionLink {
 
 export interface Action {
   id: string;
+  isActive: boolean;
   name: string;
   annotation: string;
   annotationSrc: ActionRessourceDesc;

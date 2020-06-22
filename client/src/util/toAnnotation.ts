@@ -188,11 +188,8 @@ export const actionToAnnotation = (
 
   return JSON.stringify(annotation);
 };
-export const webApiToAnnotation = (
-  webApi: WebApi,
-  vocabHandler: VocabHandler,
-  actionIds: string[],
-): string => {
+
+export const webApiToAnnotation = (webApi: WebApi, vocabHandler: VocabHandler): string => {
   const annotation = annSrcToAnnJsonLd(webApi.annotationSrc, vocabHandler);
   annotation['@id'] = `${baseUrl}/webapi/${webApi.id}`;
 
@@ -200,12 +197,13 @@ export const webApiToAnnotation = (
   if (annotation[vocabHandler.usePrefix('http://schema.org/documentation')]) {
     annotation[vocabHandler.usePrefix('http://schema.org/documentation')][
       vocabHandler.usePrefix('http://schema.org/about')
-    ] = actionIds.map((id) => idNode(actionIdToNodeId(id)));
+    ] = webApi.actions.filter((a) => a.isActive).map((a) => idNode(actionIdToNodeId(a.id)));
   }
 
   // TODO add action links in schema:about
   return JSON.stringify(annotation);
 };
+
 export const annSrcToAnnJsonLd = (
   annSrc: DefaultRessourceDesc,
   vocabHandler: VocabHandler,
@@ -230,6 +228,7 @@ export const annSrcToAnnJsonLd = (
   // console.log(ann);
   return ann;
 };
+
 // DEPRECATED
 export const annJsonLDToAnnSrc = (annSrc: any, vocabHandler: VocabHandler): DefaultRessourceDesc => {
   const ann = {} as any;

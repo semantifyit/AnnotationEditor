@@ -20,8 +20,6 @@ export const lifting = async (input: string, mapping: string, config: LiftingCon
   vm.runInContext(config.functions, sandbox);
   const defaultFnNamespace = 'http://actions.semantify.it/wasa/func/';
 
-  console.log(config.xpathLib);
-
   const rmlOptions = {
     xpathLib: config.xpathLib,
     functions: Object.fromEntries(

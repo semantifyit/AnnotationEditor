@@ -64,7 +64,7 @@
     "rocketrml": "^1.4.2",
     "slimdom": "^2.3.2",
     "slimdom-sax-parser": "^1.3.0",
-    "sparql-property-paths": "git+https://github.com/semantifyit/sparql-property-paths#ec568be7b1af8f5230929ee49371a5e24933b56c",
+    "sparql-property-paths": "git+https://github.com/semantifyit/sparql-property-paths#09ef9a975f46b6636788c744fd8e5285e983f295",
     "typescript": "^3.8.2",
     "validator": "^13.0.0"
   }

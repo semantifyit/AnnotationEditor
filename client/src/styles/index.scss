@@ -220,3 +220,10 @@ body {
     transform: rotate(359deg);
   }
 }
+
+.display-only-on-hover-src  .display-only-on-hover-dest {
+  display: none;
+}
+.display-only-on-hover-src:hover  .display-only-on-hover-dest {
+  display: block;
+}

@@ -42,17 +42,28 @@ const idNode = (s: string) => ({ '@id': s });
 
 const pathToSPP = (path: string[]): string => path.map((p) => `<${p}>`).join('/');
 
-export const potentialActionLinkToAnn = (link: ActionLink, actionId: string, opt: { rawSource: boolean }) => {
+export const potentialActionLinkId = (link: ActionLink) => `${baseUrl}/actionlink/${link.id}`;
+
+export const potentialActionLinkToAnn = (
+  link: ActionLink,
+  actionId: string,
+  opt: { withSource: boolean },
+) => {
   const iterator = link.iterator && link.iterator.path.length > 0 ? pathToSPP(link.iterator.path) : undefined;
 
-  return {
-    '@id': `${baseUrl}/actionlink/${link.id}`,
+  const ann = {
+    '@id': potentialActionLinkId(link),
     '@type': wasa.PotentialActionLink,
-    [wasa.source]: idNode(opt.rawSource ? actionId : `${baseUrl}/action/${actionId}`),
     [wasa.target]: idNode(`${baseUrl}/action/${link.actionId}`),
     [wasa.propertyMapping]: propertyMappingToAnn(link.propertyMaps, iterator),
     [wasa.iterator]: iterator,
   };
+
+  if (!opt.withSource === false) {
+    ann[wasa.source] = idNode(`${baseUrl}/action/${actionId}`);
+  }
+
+  return ann;
 };
 
 export const precedingActionLinkToAnn = (link: ActionLink, actionId: string) => ({
@@ -65,6 +76,7 @@ export const precedingActionLinkToAnn = (link: ActionLink, actionId: string) => 
 
 const propertyMappingToAnn = (pmaps: ActionLink['propertyMaps'], iteratorPath?: string) =>
   pmaps.map((pmap) => ({
+    '@id': `${baseUrl}/pmap/${pmap.id}`,
     '@type': wasa.PropertyMap,
     [wasa.from]: pathToSPP(pmap.from.path).replace(new RegExp(`^${iteratorPath}/`), ''),
     [wasa.to]: pathToSPP(pmap.to.path),

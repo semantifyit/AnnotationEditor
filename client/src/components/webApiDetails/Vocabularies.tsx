@@ -9,6 +9,8 @@ import VocabHandler from '../../util/VocabHandler';
 import CheckBox from '../Checkbox';
 import ModalBtn from '../ModalBtn';
 import AddVocab from './AddVocab';
+import ky from 'ky';
+import { toast } from 'react-toastify';
 
 type Prefixes = WebApi['prefixes'];
 
@@ -19,6 +21,7 @@ interface Props {
   prefixes: Prefixes;
   setPrefixes: (arg: Prefixes) => void;
   addVocab: (vocab: Vocab) => void;
+  removeVocab: (id: string) => void;
 }
 
 const Vocabularies = ({
@@ -28,6 +31,7 @@ const Vocabularies = ({
   prefixes,
   setPrefixes,
   addVocab,
+  removeVocab,
 }: Props) => {
   const [editPrefix, setEditPrefix] = useState('');
   const [editUri, setEditUri] = useState('');
@@ -142,6 +146,20 @@ const Vocabularies = ({
     );
   };
 
+  const deleteVocab = (id: string) => async () => {
+    if (
+      window.confirm('Are you sure you want to delete this vocabulary? It will be deleted for all WebAPIs')
+    ) {
+      try {
+        await ky.delete(`/api/vocab/${id}`);
+        toast.success('Deleted Vocabulary!');
+        removeVocab(id);
+      } catch (e) {
+        toast.error(`Error deleting Vocabulary: ${e}`);
+      }
+    }
+  };
+
   return (
     <>
       <h4 className="pt-4">
@@ -158,6 +176,7 @@ const Vocabularies = ({
           <AddVocab addVocab={addVocab} />
         </ModalBtn>
       </h4>
+      <p>Vocabularies are available for each WebAPI</p>
       <table className="table table-striped table-hover">
         <thead>
           <tr>
@@ -166,13 +185,14 @@ const Vocabularies = ({
             <th scope="col">Classes</th>
             <th scope="col">Properties</th>
             <th scope="col">Is used</th>
+            <th scope="col" style={{ width: '3rem' }} />
           </tr>
         </thead>
         <tbody>
           {availableVocabs
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((vocab, i) => (
-              <tr key={vocab._id}>
+              <tr key={vocab._id} className="display-only-on-hover-src">
                 <td>{vocab.name}</td>
                 <td title={vocab.description}>
                   {vocab.description ? cutString(vocab.description, 50) : <i>No description available</i>}
@@ -191,6 +211,13 @@ const Vocabularies = ({
                     }
                   />
                 </td>
+                <td>
+                  <FaTrashAlt
+                    title="delete"
+                    className="pointer side-hidden-btns display-only-on-hover-dest"
+                    onClick={deleteVocab(vocab._id)}
+                  />
+                </td>
               </tr>
             ))}
         </tbody>
@@ -207,7 +234,7 @@ const Vocabularies = ({
           <tr>
             <th scope="col">Prefix</th>
             <th scope="col">URI</th>
-            <th scope="col" style={{ width: '5rem' }}></th>
+            <th scope="col" style={{ width: '5rem' }} />
           </tr>
         </thead>
         <tbody>

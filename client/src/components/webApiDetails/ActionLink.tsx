@@ -7,7 +7,7 @@ import {
   PotentialActionLink,
   WebApi,
 } from '../../../../server/src/models/WebApi';
-import { FaPlus, FaArrowRight, FaEdit, FaCog } from 'react-icons/fa';
+import { FaPlus, FaArrowRight, FaCog } from 'react-icons/fa';
 import { EnrichedAction } from '../../util/ActionStore';
 import uuid from 'uuid';
 import { joinReduction, useHover } from '../../util/jsxHelpers';

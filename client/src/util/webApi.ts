@@ -76,6 +76,7 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
   const actionId = uuid();
   return {
     id: actionId,
+    isActive: false,
     name,
     annotation: '{}',
     annotationSrc: {

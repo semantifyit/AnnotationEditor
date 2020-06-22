@@ -13,7 +13,8 @@ import {
   toTerm,
 } from 'sparql-property-paths';
 import { isEmptyIterable } from 'sparql-property-paths/dist/utils';
-import { potentialActionLinkToAnn, wasa } from './toAnnotation';
+import { potentialActionLinkId, potentialActionLinkToAnn, wasa } from './toAnnotation';
+import { BlankNode } from 'sparql-property-paths/dist/term';
 
 export const doFn = (fn: any, input: string, prefixes: any, config: any) => async (mapping: {
   value: string;
@@ -183,7 +184,7 @@ export const addPotentialActions = async (
   prefixes: Record<string, string>,
   unsavedActions?: Action[],
 ): Promise<string> => {
-  const [spp, graph] = await SPPEvaluator(rdf, 'jsonld'); // TODO inputType dependent on rml output
+  const [spp, graph] = await SPPEvaluator(rdf, 'jsonld');
 
   const actionNodeId = getNodeIdOfCompletedAction(graph);
 
@@ -254,22 +255,20 @@ export const addPotentialActions = async (
       }
     }
   } else if (WITH_ADD_ACTION_LINKS) {
-    const potActionAnnotations = potentialActionLinks.map((link) =>
-      potentialActionLinkToAnn(link, actionNodeId, { rawSource: true }),
-    );
-    for (const potActionAnn of potActionAnnotations) {
-      await fromJsonLD(JSON.stringify(potActionAnn), graph);
+    for (const link of potentialActionLinks) {
+      const annotation = potentialActionLinkToAnn(link, actionNodeId, { withSource: false });
+      await fromJsonLD(JSON.stringify(annotation), graph);
+      graph.add([
+        new NamedNode(potentialActionLinkId(link)),
+        new NamedNode(wasa.source),
+        new (actionNodeId.startsWith('_:') ? BlankNode : NamedNode)(actionNodeId),
+      ]);
       graph.add([
         toTerm(actionNodeId),
         new NamedNode(wasa.potentialActionLink),
-        new NamedNode(potActionAnn['@id'] as string),
+        new NamedNode(potentialActionLinkId(link)),
       ]);
     }
   }
-  try {
-    return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: true });
-  } catch (e) {
-    // could not replace blank node ids, try without replace
-    return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: false });
-  }
+  return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: true });
 };

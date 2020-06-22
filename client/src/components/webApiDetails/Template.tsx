@@ -13,6 +13,7 @@ import Annotation from './Annotation';
 import { dsToTemplate } from '../../util/webApi';
 import { toArray } from '../../util/utils';
 import ModalBtn from '../ModalBtn';
+import { SessionConfig } from './WebApiCreate';
 
 interface Props {
   template: ITemplate;
@@ -22,6 +23,7 @@ interface Props {
   config: WebApiConfig;
   potTemplates: ITemplate[];
   getAnnotation: () => string;
+  sessionConfig: SessionConfig;
 }
 
 const Template = ({
@@ -32,6 +34,7 @@ const Template = ({
   config,
   potTemplates,
   getAnnotation,
+  sessionConfig,
 }: Props) => {
   const [dsHash, setDsHash] = useState('');
   const [dsImportResult, setDsImportResult] = useState<[undefined | 'success' | 'danger', string]>([
@@ -134,6 +137,7 @@ const Template = ({
           config={config}
           potTemplates={potTemplates}
           getAnnotation={getAnnotation}
+          sessionConfig={sessionConfig}
         />
       )}
     </>

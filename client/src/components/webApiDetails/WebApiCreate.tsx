@@ -10,7 +10,6 @@ import {
   FaPlusCircle,
   FaFileAlt,
   FaCog,
-  FaCode,
   FaLanguage,
   FaSave,
   FaRegFile,
@@ -53,7 +52,6 @@ import {
 import { clone, memoize, maxOfArray, Optional } from '../../util/utils';
 import Annotation from './Annotation';
 import Configuration from './Configuration';
-import Functions from './Functions';
 import RequestMapping from './RequestMapping';
 import ResponseMapping from './ResponseMapping';
 import TestMapping from './TestMapping';
@@ -70,6 +68,10 @@ import {
   webApiToAnnotation,
 } from '../../util/toAnnotation';
 
+export interface SessionConfig {
+  showCodeEditor: boolean;
+}
+
 export interface WebApiDetailPageProps {
   webApi: WebApi;
 }
@@ -77,7 +79,6 @@ export interface WebApiDetailPageProps {
 const pages: [string, IconType][] = [
   ['WebAPI Annotation', FaFileAlt],
   ['Vocabularies', FaLanguage],
-  ['Functions', FaCode],
   ['Configuration', FaCog],
 ];
 
@@ -414,12 +415,19 @@ const useOtherActionsRefs = (): [ActionRefs, boolean] => {
   return [otherActions, isLoading];
 };
 
+const useSessionConfig = (): [SessionConfig, (c: SessionConfig) => void] => {
+  const [config, setConfig] = useState<SessionConfig>({ showCodeEditor: false });
+  return [config, setConfig];
+};
+
 const WebApiCreate = () => {
   const params: { id?: string } = useParams();
   const [id, setId] = useState(params.id);
   const [webApi, setWebApi, isLoadingWebApi] = useWebApi(id);
   const [otherActionRefs, isLoadingOtherActionRefs] = useOtherActionsRefs();
   const [availableVocabs, setAvailableVocabs, isLoadingVocabs] = useAvailableVocabs();
+  const [sessionConfig, setSessionConfig] = useSessionConfig();
+
   const [page, setPage] = useState<SelectedPage>({ type: 'main', main: 0, sub: 0 }); //({ type: 'main', main: 0, sub: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [getActions] = useActionStore();
@@ -566,6 +574,7 @@ const WebApiCreate = () => {
                   webApi.actions.map(({ id }) => id),
                 )
               }
+              sessionConfig={sessionConfig}
             />
           );
         }
@@ -586,15 +595,20 @@ const WebApiCreate = () => {
             />
           );
         }
-        case 'Functions':
-          return <Functions />;
         case 'Configuration': {
           const setConfig = (newConfig: any) => {
             const newWebApi = clone(webApi);
             newWebApi.config = newConfig;
             setWebApi(newWebApi);
           };
-          return <Configuration config={webApi.config} setConfig={setConfig} />;
+          return (
+            <Configuration
+              config={webApi.config}
+              setConfig={setConfig}
+              sessionConfig={sessionConfig}
+              setSessionConfig={setSessionConfig}
+            />
+          );
         }
 
         default:
@@ -629,6 +643,7 @@ const WebApiCreate = () => {
               config={webApi.config}
               potTemplates={webApi.templates}
               getAnnotation={() => actionToAnnotation(action, vocabHandler, webApi.templates)}
+              sessionConfig={sessionConfig}
             />
           );
         }
@@ -661,6 +676,8 @@ const WebApiCreate = () => {
                   vocabHandler,
                 )
               }
+              sessionConfig={sessionConfig}
+              prefixes={webApi.prefixes}
             />
           );
         }
@@ -693,6 +710,8 @@ const WebApiCreate = () => {
                   vocabHandler,
                 )
               }
+              sessionConfig={sessionConfig}
+              prefixes={webApi.prefixes}
             />
           );
         }
@@ -716,6 +735,7 @@ const WebApiCreate = () => {
               sampleAction={webApi.actions[annIndex].sampleAction}
               setSampleAction={setSampleAction}
               prefixes={webApi.prefixes}
+              config={webApi.config}
             />
           );
         }
@@ -746,6 +766,7 @@ const WebApiCreate = () => {
                 ...action,
                 annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
               }))}
+              config={webApi.config}
             />
           );
         }
@@ -771,6 +792,7 @@ const WebApiCreate = () => {
                 ...action,
                 annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
               }))}
+              config={webApi.config}
             />
           );
         }
@@ -807,6 +829,7 @@ const WebApiCreate = () => {
           config={webApi.config}
           potTemplates={webApi.templates}
           getAnnotation={() => templateToAnnotation(template, vocabHandler, webApi.templates)}
+          sessionConfig={sessionConfig}
         />
       );
     }

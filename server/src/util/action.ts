@@ -15,14 +15,22 @@ import {
 import { isEmptyIterable } from 'sparql-property-paths/dist/utils';
 import { potentialActionLinkToAnn, wasa } from './toAnnotation';
 
-export const doFn = (fn: any, input: string, prefixes: any) => async (mapping: {
+export const doFn = (fn: any, input: string, prefixes: any, config: any) => async (mapping: {
   value: string;
   type: string;
 }): Promise<{ value: string; success: boolean }> => {
+  let typeForFn = mapping.type;
+  if (typeForFn === 'yarrrml') {
+    typeForFn = 'rml';
+  }
+  const functions = config[typeForFn].functions;
+
   try {
     const out = await fn(input, mapping.value, {
       type: mapping.type,
+      functions,
       prefixes,
+      xpathLib: config.rml.xpathLib,
     });
     return { value: out, success: true };
   } catch (e) {
@@ -44,10 +52,11 @@ export const consumeFullAction = async (
   requestMapping: Pick<Action['requestMapping'], 'method' | 'url' | 'headers' | 'body'>,
   responseMapping: Pick<Action['responseMapping'], 'body'>,
   prefixes: WebApi['prefixes'],
+  config: WebApi['config'],
   potentialActionLinks: PotentialActionLink[],
   unsavedActions?: Action[],
 ): Promise<void | string> => {
-  const doLowering = doFn(lowering, action, prefixes);
+  const doLowering = doFn(lowering, action, prefixes, config);
 
   const urlOut = await doLowering(requestMapping.url);
   if (!urlOut.success) {
@@ -88,7 +97,7 @@ export const consumeFullAction = async (
     body: bdy,
   });
 
-  const doLifting = doFn(lifting, resp.body, prefixes);
+  const doLifting = doFn(lifting, resp.body, prefixes, config);
 
   const liftOut = await doLifting(responseMapping.body);
   if (!liftOut.success) {

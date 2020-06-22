@@ -6,6 +6,7 @@ import { handlebars } from './handlebars';
 export interface LoweringConfig {
   type: 'handlebars' | 'xquery' | 'javascript';
   prefixes?: Record<string, string>;
+  functions: string;
 }
 
 export type SPP = (...args: [string] | [string, string]) => string[];

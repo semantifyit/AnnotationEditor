@@ -4,14 +4,17 @@ import {
   PropertyMap as IPropertyMap,
   TemplatePath,
   ExpandedTemplateProperty,
+  PotentialActionLink,
+  WebApi,
 } from '../../../../server/src/models/WebApi';
-import { FaPlus, FaArrowRight } from 'react-icons/fa';
+import { FaPlus, FaArrowRight, FaEdit, FaCog } from 'react-icons/fa';
 import { EnrichedAction } from '../../util/ActionStore';
 import uuid from 'uuid';
 import { joinReduction, useHover } from '../../util/jsxHelpers';
 import { expandUsedActionTemplates } from '../../util/webApi';
 import classNames from 'classnames';
 import ModalBtn from '../ModalBtn';
+import Editor from '../Editor';
 
 type ActionLinkType = 'Preceding' | 'Potential';
 
@@ -22,6 +25,7 @@ interface Props {
   actionLink: IActionLink;
   setActionLink: (link: IActionLink) => void;
   removeActionLink: () => void;
+  prefixes: WebApi['prefixes'];
 }
 
 interface PropertyMapProps {
@@ -47,6 +51,13 @@ interface ExpandedTemplatePropertySelectionProps {
   path: string[];
   iterator?: IActionLink['iterator'];
 }
+
+const baseSparqlAskQuery = (prefixes: WebApi['prefixes']) => `${Object.entries(prefixes)
+  .map(([k, v]) => `PREFIX ${k}: <${v}>`)
+  .join('\n')}
+ASK {
+  ?s ?p ?o .
+}`;
 
 const ExpandedTemplatePropertySelection = ({
   prop,
@@ -223,6 +234,25 @@ const PropertyMap = ({
   );
 };
 
+const Radio = ({ name, checked, onChange }: { name: string; checked: boolean; onChange: () => void }) => {
+  const id = uuid();
+  return (
+    <div className="custom-control custom-radio custom-control-inline">
+      <input
+        type="radio"
+        id={id}
+        name={id}
+        className="custom-control-input"
+        checked={checked}
+        onChange={onChange}
+      />
+      <label className="custom-control-label" htmlFor={id}>
+        {name}
+      </label>
+    </div>
+  );
+};
+
 const ActionLink = ({
   type,
   linkedAction,
@@ -230,6 +260,7 @@ const ActionLink = ({
   setActionLink,
   baseAction,
   removeActionLink,
+  prefixes,
 }: Props) => {
   const newPropertyMapClick = () =>
     setActionLink({
@@ -258,6 +289,8 @@ const ActionLink = ({
   const [fromAction, toAction] =
     type === 'Potential' ? [baseAction, linkedAction] : [linkedAction, baseAction];
 
+  const isPotentialActionLink = (arg: IActionLink): arg is PotentialActionLink => 'iterator' in arg;
+
   return (
     <div className="m-3 p-3 light-rounded-border" key={actionLink.id}>
       <div className="d-flex flexSpaceBetween">
@@ -274,7 +307,7 @@ const ActionLink = ({
         </button>
       </div>
       <div className="p-2 pl-4">
-        {type === 'Potential' && (
+        {isPotentialActionLink(actionLink) && (
           <div className="mb-2">
             <b className="mr-3" title="Where to attach the action to">
               Iterator:
@@ -283,7 +316,7 @@ const ActionLink = ({
               action={fromAction}
               fromTo="from"
               isIterator={true}
-              usedTemplatePath={actionLink.iterator!}
+              usedTemplatePath={actionLink.iterator}
               setPropertyPath={(iterator) => {
                 setActionLink({
                   ...actionLink,
@@ -291,6 +324,86 @@ const ActionLink = ({
                 });
               }}
             />
+          </div>
+        )}
+        {isPotentialActionLink(actionLink) && (
+          <div className="mb-2">
+            <b className="mr-3" title="A condition for the action link">
+              Condition:
+            </b>
+            {actionLink.condition ? (
+              <span className="text-capitalize">{actionLink.condition.type} condition set</span>
+            ) : (
+              <span className="italicGrey">No condition defined</span>
+            )}
+            <ModalBtn
+              modalTitle="Edit condition"
+              btnClassName="btn btn-light ml-2 btn-sm"
+              btnContent={() => (
+                <span>
+                  <FaCog />
+                </span>
+              )}
+            >
+              <Radio
+                name="No condition"
+                checked={!actionLink.condition}
+                onChange={() => {
+                  console.log('click');
+                  setActionLink({ ...actionLink, condition: undefined });
+                }}
+              />
+              <Radio
+                name="JavaScript"
+                checked={!!(actionLink.condition && actionLink.condition.type === 'javascript')}
+                onChange={() => {
+                  console.log('click');
+                  setActionLink({ ...actionLink, condition: { type: 'javascript', value: 'true;' } });
+                }}
+              />
+              <Radio
+                name="SPARQL"
+                checked={!!(actionLink.condition && actionLink.condition.type === 'sparql')}
+                onChange={() => {
+                  console.log('click');
+                  setActionLink({
+                    ...actionLink,
+                    condition: { type: 'sparql', value: baseSparqlAskQuery(prefixes) },
+                  });
+                }}
+              />
+              {actionLink.condition && (
+                <div className="mt-3">
+                  <p className="italicGrey mb-3">
+                    Warning! Changing condition type (above) will remove/clear your script.
+                  </p>
+                  {actionLink.condition.type === 'javascript' ? (
+                    <p>
+                      Write a Javascript script that should evaluate to true if the Action should be linked,
+                      exposed variables: <i>spp</i>, <i>sppList</i>
+                    </p>
+                  ) : (
+                    <p>
+                      <b>
+                        Currently not fully supported, will not be executed but added to the resulting
+                        actionlink annotation
+                      </b>
+                      <br />
+                      Write a SPARQL ASK query that should return true if the action should be linked
+                    </p>
+                  )}
+                  <Editor
+                    value={actionLink.condition.value}
+                    mode={actionLink.condition.type}
+                    setValue={(value) =>
+                      setActionLink({ ...actionLink, condition: { ...actionLink.condition, value } })
+                    }
+                    height="300"
+                    resizable={true}
+                  />
+                </div>
+              )}
+            </ModalBtn>
           </div>
         )}
         <div className="d-flex flexSpaceBetween mb-1">

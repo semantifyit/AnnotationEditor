@@ -7,9 +7,9 @@ import { addPotentialActions, consumeFullAction, doFn, validateHeaders, validate
 const router = express.Router();
 
 router.post('/lowering', async (req, res) => {
-  const { prefixes, action } = req.body;
+  const { prefixes, action, config } = req.body;
 
-  const doLowering = doFn(lowering, action, prefixes);
+  const doLowering = doFn(lowering, action, prefixes, config);
 
   const resp: any = {
     url: await doLowering(req.body.url),
@@ -45,9 +45,9 @@ router.post('/request', async (req, res) => {
 
 router.post('/lifting', async (req, res) => {
   try {
-    const { prefixes, input, links, actions } = req.body;
+    const { prefixes, input, links, actions, config } = req.body;
 
-    const doLifting = doFn(lifting, input, prefixes);
+    const doLifting = doFn(lifting, input, prefixes, config);
 
     const liftOut = await doLifting(req.body.body);
 
@@ -71,7 +71,7 @@ router.post('/lifting', async (req, res) => {
 });
 
 router.post('/full', async (req, res) => {
-  const { prefixes, action, method, links, url, headers, body, response, actions } = req.body;
+  const { prefixes, action, method, links, url, headers, body, response, actions, config } = req.body;
 
   try {
     const responseAction = await consumeFullAction(
@@ -79,6 +79,7 @@ router.post('/full', async (req, res) => {
       { method, url: url, headers: headers, body: body },
       { body: response },
       prefixes,
+      config,
       links,
       actions,
     );

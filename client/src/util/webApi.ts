@@ -133,7 +133,7 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
         type: 'yarrrml',
         value: `prefixes:
   schema: "http://schema.org/"
-  myfunc: "http://myfunc.com/"
+  wasaFunc: "http://actions.semantify.it/wasa/func/"
 mappings:
   action:
     sources:
@@ -149,6 +149,7 @@ mappings:
     po:
       - [a, schema:Thing]
       - [schema:name, "$(example)"]
+      - [schema:alternateName, {fn: wasaFunc:toUpper, pms: ["$(example)"]}]
 `,
       },
     },
@@ -219,11 +220,45 @@ export const createEmptyWebApi = (): WebApi => {
     },
     config: {
       useMapping: true,
-      showCodeEditor: false,
+      handlebars: {
+        functions: `Handlebars.registerHelper('toUpper', function (val) {
+  return val.toUpperCase();
+});
+`,
+      },
+      xquery: {
+        functions: `registerCustomXPathFunction('fn:toUpper', ['xs:string'], 'xs:string', (_, val) => {
+  return val.toUpperCase();
+});
+`,
+        /*
+registerXQueryModule(
+`module namespace s = "https://module.com/";
+declare %public function s:toUpper($val as xs:string)
+as xs:string
+{
+    fn:upper-case($val)
+};`);
+*/
+      },
+      javascript: {
+        functions: `function toUpper(val) {
+  return val.toUpperCase();
+}
+`,
+      },
+      rml: {
+        functions: `function toUpper([val]) {
+  return val.toUpperCase();
+}
+`,
+        xpathLib: 'default',
+      },
     },
     templates: [],
   };
 };
+//foo
 
 export const getPropOfAnnotation = (prop: string) => (ann: DefaultRessourceDesc): string =>
   stringOrNil(ann.props.filter(isAnnotationSrcProp).find((p) => p.path === prop)?.val) ?? '';

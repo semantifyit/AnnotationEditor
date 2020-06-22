@@ -14,6 +14,7 @@ import { EnrichedAction } from '../../util/ActionStore';
 import { Loading } from '../Loading';
 import ActionLink from './ActionLink';
 import WithCodeSplit from '../WithCodeSplit';
+import { SessionConfig } from './WebApiCreate';
 
 interface Props {
   type: 'Preceding' | 'Potential';
@@ -24,7 +25,9 @@ interface Props {
   getActions: (webApi: WebApi, ids: string[]) => Optional<EnrichedAction[]>;
   actionLinks: IActionLink[];
   config: WebApiConfig;
+  sessionConfig: SessionConfig;
   getAnnotation: () => string;
+  prefixes: WebApi['prefixes'];
 }
 
 const ActionLinks = (props: Props) => {
@@ -36,8 +39,9 @@ const ActionLinks = (props: Props) => {
     getActions,
     setActionLinks,
     baseAction,
-    config,
     getAnnotation,
+    sessionConfig,
+    prefixes,
   } = props;
   const [newActionLink, setNewActionLink] = useState(false);
   const newActionLinkClick = () => setNewActionLink(true);
@@ -87,7 +91,7 @@ const ActionLinks = (props: Props) => {
   };
 
   return (
-    <WithCodeSplit isOpen={config.showCodeEditor} value={prettyJsonStr(getAnnotation())}>
+    <WithCodeSplit isOpen={sessionConfig.showCodeEditor} value={prettyJsonStr(getAnnotation())}>
       <div className="d-flex flexSpaceBetween mb-3">
         <h3>{type} Action Links</h3>
         <button className="btn btn-outline-primary" onClick={newActionLinkClick}>
@@ -118,6 +122,7 @@ const ActionLinks = (props: Props) => {
             actionLink={actionLink}
             setActionLink={setActionLink(actionLink.id)}
             removeActionLink={removeActionLink(actionLink.id)}
+            prefixes={prefixes}
           />
         );
       })}

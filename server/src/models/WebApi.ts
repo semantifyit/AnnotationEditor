@@ -192,9 +192,14 @@ export interface ActionLink {
   actionId: string;
   propertyMaps: PropertyMap[];
   iterator?: TemplatePath;
+  condition?: any;
 }
 export interface PotentialActionLink extends ActionLink {
   iterator: TemplatePath;
+  condition?: {
+    type: 'sparql' | 'javascript';
+    value: string;
+  };
 }
 
 export interface Action {
@@ -231,7 +236,19 @@ export interface WebApi {
 
 export interface WebApiConfig {
   useMapping: boolean;
-  showCodeEditor: boolean;
+  rml: {
+    functions: string;
+    xpathLib: string;
+  };
+  handlebars: {
+    functions: string;
+  };
+  xquery: {
+    functions: string;
+  };
+  javascript: {
+    functions: string;
+  };
 }
 
 const WebApiSchema: Schema = new Schema(
@@ -264,7 +281,6 @@ const WebApiSchema: Schema = new Schema(
         src: { type: Object, required: false },
       },
     ],
-    functions: { type: String, required: false },
     vocabs: [{ type: Schema.Types.ObjectId, ref: 'Vocab' }],
     prefixes: { type: Object, required: true },
     config: { type: Object, required: true },

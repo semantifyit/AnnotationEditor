@@ -50,6 +50,7 @@ import { joinReduction } from '../../util/jsxHelpers';
 import CreatableSelect from '../CreatableSelect';
 import ModalBtn from '../ModalBtn';
 import WithCodeSplit from '../WithCodeSplit';
+import { SessionConfig } from './WebApiCreate';
 
 const SortableListItem = SortableElement(({ children }: any) => <div>{children}</div>);
 const DragHandle = SortableHandle(({ children }: any) => <span className="row-resize">{children}</span>);
@@ -68,6 +69,7 @@ interface Props {
   potTemplates: Template[];
   isAction?: boolean;
   getAnnotation: () => string;
+  sessionConfig: SessionConfig;
 }
 
 type Path = (string | number)[];
@@ -94,6 +96,7 @@ const Annotation = ({
   potTemplates,
   isAction,
   getAnnotation,
+  sessionConfig,
 }: Props) => {
   try {
     const setPathVal: SetPathVal = (pvs) => {
@@ -132,7 +135,7 @@ const Annotation = ({
     );
 
     return (
-      <WithCodeSplit isOpen={config.showCodeEditor} value={prettyJsonStr(getAnnotation())}>
+      <WithCodeSplit isOpen={sessionConfig.showCodeEditor} value={prettyJsonStr(getAnnotation())}>
         {getNode()}
       </WithCodeSplit>
     );

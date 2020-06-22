@@ -12,6 +12,7 @@ interface Props {
   requestMapping: RequestMappingSave;
   sampleAction: Action['sampleAction'];
   prefixes: WebApi['prefixes'];
+  config: WebApi['config'];
   setSampleAction: (a: Action['sampleAction']) => void;
   setRequestMapping: (arg: any) => void;
   goToRespMapping: () => void;
@@ -37,6 +38,7 @@ const RequestMapping = ({
   sampleAction,
   setSampleAction,
   prefixes,
+  config,
 }: Props) => {
   const [testResults, setTestResults] = useState<
     Record<MappingPart, { value: string; success: boolean; valid?: string }> | undefined
@@ -104,6 +106,7 @@ const RequestMapping = ({
             url: requestMapping.url,
             headers: requestMapping.headers,
             body: requestMapping.body,
+            config,
             prefixes,
           },
         })

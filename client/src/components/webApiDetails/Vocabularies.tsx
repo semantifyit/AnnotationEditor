@@ -100,7 +100,7 @@ const Vocabularies = ({
               onChange={(e) => setEditPrefix(e.target.value)}
             />
           ) : prefix === '' ? (
-            <span className="italicGrey">Empty string</span>
+            <span className="italicGrey">Empty string (@vocab)</span>
           ) : (
             prefix
           )}

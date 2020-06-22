@@ -1,27 +1,39 @@
+import * as vm from 'vm';
 import Handlebars from 'handlebars';
-import { SPP } from './lowering';
 
-let globalSpp: SPP = null;
+import { LoweringConfig, SPP } from './lowering';
 
-Handlebars.registerHelper('spp', (...args) => {
-  if (args.length !== 2 && args.length !== 3) {
-    throw new Error('Invalid number of arguments');
-  }
-  return args.length === 2 ? globalSpp(args[0])[0] : globalSpp(args[0], args[1])[0];
-});
+export const handlebars = (mapping: string, spp: SPP, config: LoweringConfig): string => {
+  const sppSingle = (...args: any): any => spp(...args)[0];
 
-Handlebars.registerHelper('sppList', (...args) => {
-  if (args.length !== 2 && args.length !== 3) {
-    throw new Error('Invalid number of arguments');
-  }
-  return args.length === 2 ? globalSpp(args[0]) : globalSpp(args[0], args[1]);
-});
+  // create new Handlebar instance
+  const HandlebarsInstance = Handlebars.create();
 
-export const handlebars = (mapping: string, spp: SPP, config: any): string => {
-  globalSpp = spp;
+  HandlebarsInstance.registerHelper('spp', (...args) => {
+    if (args.length !== 2 && args.length !== 3) {
+      throw new Error('Invalid number of arguments');
+    }
+    return args.length === 2 ? spp(args[0])[0] : spp(args[0], args[1])[0];
+  });
+
+  HandlebarsInstance.registerHelper('sppList', (...args) => {
+    if (args.length !== 2 && args.length !== 3) {
+      throw new Error('Invalid number of arguments');
+    }
+    return args.length === 2 ? spp(args[0]) : spp(args[0], args[1]);
+  });
+
+  const sandbox = {
+    spp: sppSingle,
+    sppList: spp,
+    Handlebars: HandlebarsInstance,
+  };
+  // add functions
+  vm.createContext(sandbox);
+  vm.runInContext(config.functions, sandbox);
+
+  const template = HandlebarsInstance.compile(mapping);
+
   const view = {};
-
-  const template = Handlebars.compile(mapping);
-
   return template(view);
 };

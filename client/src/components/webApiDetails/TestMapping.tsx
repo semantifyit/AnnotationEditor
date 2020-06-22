@@ -21,6 +21,7 @@ interface Props {
   goToRespMapping: () => void;
   potentialActionLinks: Action['potentialActionLinks'];
   actions: Action[];
+  config: WebApi['config'];
 }
 
 const TestMapping = ({
@@ -33,6 +34,7 @@ const TestMapping = ({
   prefixes,
   potentialActionLinks,
   actions,
+  config,
 }: Props) => {
   const [testResults, setTestResults] = useState<{ value: string; success: boolean } | undefined>();
   const [isRunningTest, setIsRunningTest] = useState(false);
@@ -56,6 +58,7 @@ const TestMapping = ({
             links: potentialActionLinks,
             prefixes,
             actions,
+            config,
           },
         })
         .json();

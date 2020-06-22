@@ -55,6 +55,7 @@ import { lowering, lifting } from './index';
   const r = await lowering(JSON.stringify(action), hand, {
     type: 'handlebars',
     prefixes: { '': 'http://schema.org/' },
+    functions: '',
   });
   console.log(r);
 })();

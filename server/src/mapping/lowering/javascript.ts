@@ -1,10 +1,10 @@
 import * as vm from 'vm';
-import { SPP } from './lowering';
+import { LoweringConfig, SPP } from './lowering';
 
 // export const allButLast = <T>(arr: T[]): T[] => arr.slice(0, -1);
 // export const last = <T>(arr: T[]): T => arr.slice(-1)[0];
 
-export const javascript = (mapping: string, spp: SPP, config: any): string => {
+export const javascript = (mapping: string, spp: SPP, config: LoweringConfig): string => {
   // const getSppEach = (base: string) => (...args: any[]): any =>
   //   (args.length === 2 ? spp(base, args[0]) : spp(args[1], args[2])).map((id) =>
   //     last(args)({
@@ -25,7 +25,10 @@ export const javascript = (mapping: string, spp: SPP, config: any): string => {
 
   vm.createContext(sandbox);
 
-  const res: unknown = vm.runInNewContext(mapping, sandbox);
+  // add functions to sandbox
+  vm.runInContext(config.functions, sandbox);
+
+  const res: unknown = vm.runInContext(mapping, sandbox);
 
   if (typeof res === 'object') {
     return JSON.stringify(res);

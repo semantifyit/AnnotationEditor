@@ -47,6 +47,7 @@
     "ts-node-dev": "^1.0.0-pre.44"
   },
   "dependencies": {
+    "@comunica/actor-init-sparql-rdfjs": "^1.13.1",
     "@rmlio/yarrrml-parser": "^1.1.0",
     "@types/mongoose": "^5.7.1",
     "@types/morgan": "^1.9.0",

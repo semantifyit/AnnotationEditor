@@ -18,6 +18,7 @@ import { potentialActionLinkId, potentialActionLinkToAnn, wasa } from './toAnnot
 import { BlankNode } from 'sparql-property-paths/dist/term';
 import { javascript } from '../mapping/lowering/javascript';
 import { SPP } from '../mapping/lowering/lowering';
+import { runSparqlAsk } from './sparql';
 
 export const doFn = (fn: any, input: string, prefixes: any, config: any) => async (mapping: {
   value: string;
@@ -259,8 +260,11 @@ export const addPotentialActions = async (
     }
   } else if (WITH_ADD_ACTION_LINKS) {
     for (const link of potentialActionLinks) {
-      if (link.condition && !actionMatchesCondition(rdf, link, actionNodeId, spp, prefixes)) {
-        continue;
+      if (link.condition) {
+        const matchesCond = await actionMatchesCondition(rdf, link.condition, actionNodeId, spp, prefixes);
+        if (!matchesCond) {
+          continue;
+        }
       }
       const annotation = potentialActionLinkToAnn(link, actionNodeId, { withSource: false });
       await fromJsonLD(JSON.stringify(annotation), graph);
@@ -279,26 +283,23 @@ export const addPotentialActions = async (
   return graph.serialize({ format: 'jsonld', prefixes, replaceNodes: true });
 };
 
-function actionMatchesCondition(
+async function actionMatchesCondition(
   rdf: string,
-  link: PotentialActionLink,
+  condition: PotentialActionLink['condition'],
   actionBaseId: string,
   sppWithId: SPPEval,
   prefixes: Record<string, string>,
-): boolean {
-  if (!link.condition) {
-    return true;
+): Promise<boolean> {
+  if (condition.type === 'sparql') {
+    const result = await runSparqlAsk(rdf, condition.value);
+    return result;
   }
 
-  if (link.condition.type === 'sparql') {
-    throw new Error('Sparql conditions not yet supported');
-  }
-
-  if (link.condition.type === 'javascript') {
+  if (condition.type === 'javascript') {
     const spp: SPP = (...args) =>
       args.length === 2 ? sppWithId(args[0], args[1], prefixes) : sppWithId(actionBaseId, args[0], prefixes);
 
-    const result = javascript(link.condition.value, spp, { type: 'javascript', functions: '' });
+    const result = javascript(condition.value, spp, { type: 'javascript', functions: '' });
     return result === 'true';
   }
 }

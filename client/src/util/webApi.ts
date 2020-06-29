@@ -252,6 +252,8 @@ as xs:string
         functions: `function toUpper([val]) {
   return val.toUpperCase();
 }
+
+registerFunction('toUpper', toUpper);
 `,
         xpathLib: 'default',
       },

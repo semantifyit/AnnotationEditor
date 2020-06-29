@@ -1,4 +1,5 @@
 import * as vm from 'vm';
+import { VM } from 'vm2';
 import { LoweringConfig, SPP } from './lowering';
 
 // export const allButLast = <T>(arr: T[]): T[] => arr.slice(0, -1);
@@ -23,12 +24,16 @@ export const javascript = (mapping: string, spp: SPP, config: LoweringConfig): s
     // sppEach: getSppEach(baseId),
   };
 
-  vm.createContext(sandbox);
+  const vmInst = new VM({
+    timeout: 1000,
+    sandbox,
+  });
+  vmInst.run(config.functions);
+  const res: unknown = vmInst.run(mapping);
 
-  // add functions to sandbox
-  vm.runInContext(config.functions, sandbox);
-
-  const res: unknown = vm.runInContext(mapping, sandbox);
+  // vm.createContext(sandbox);
+  // vm.runInContext(config.functions, sandbox);
+  // const res: unknown = vm.runInContext(mapping, sandbox);
 
   if (typeof res === 'object') {
     return JSON.stringify(res);

@@ -2,6 +2,7 @@ import * as vm from 'vm';
 import Handlebars from 'handlebars';
 
 import { LoweringConfig, SPP } from './lowering';
+import { VM } from 'vm2';
 
 export const handlebars = (mapping: string, spp: SPP, config: LoweringConfig): string => {
   const sppSingle = (...args: any): any => spp(...args)[0];
@@ -28,9 +29,14 @@ export const handlebars = (mapping: string, spp: SPP, config: LoweringConfig): s
     sppList: spp,
     Handlebars: HandlebarsInstance,
   };
-  // add functions
-  vm.createContext(sandbox);
-  vm.runInContext(config.functions, sandbox);
+
+  const vmInst = new VM({
+    timeout: 1000,
+    sandbox,
+  });
+  vmInst.run(config.functions);
+  // vm.createContext(sandbox);
+  // vm.runInContext(config.functions, sandbox);
 
   const template = HandlebarsInstance.compile(mapping);
 

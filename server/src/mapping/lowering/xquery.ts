@@ -5,6 +5,7 @@ import * as fontoXpathGlobal from 'fontoxpath';
 import importFresh from 'import-fresh';
 
 import { SPP } from './lowering';
+import { VM } from 'vm2';
 
 // let globalSpp: SPP = null;
 
@@ -36,8 +37,14 @@ export const xquery = (mapping: string, spp: SPP, config: any): string => {
     registerCustomXPathFunction,
   };
 
-  vm.createContext(sandbox);
-  vm.runInContext(config.functions, sandbox);
+  const vmInst = new VM({
+    timeout: 1000,
+    sandbox,
+  });
+  vmInst.run(config.functions);
+
+  // vm.createContext(sandbox);
+  // vm.runInContext(config.functions, sandbox);
 
   sandbox.evaluateXPath = evaluateXPath;
   sandbox.slimdom = slimdom;

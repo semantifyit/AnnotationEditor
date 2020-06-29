@@ -90,7 +90,7 @@ const Configuration = ({ config, setConfig, sessionConfig, setSessionConfig }: P
       <div className="mb-3">
         <h5>RML</h5>
         <p>
-          Write function to current context. Will be available with namespace{' '}
+          Add functions with <i>registerFunction(functionName, function)</i>. Will be available with namespace{' '}
           <i>http://actions.semantify.it/wasa/func/</i>
         </p>
         <Editor

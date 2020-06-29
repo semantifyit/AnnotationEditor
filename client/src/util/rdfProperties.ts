@@ -142,6 +142,11 @@ export const sh = toProperties(commonNamespaces.sh, [
   'targetNode',
   'shapesGraph',
   'group',
+  'inversePath',
+  'zeroOrMorePath',
+  'oneOrMorePath',
+  'zeroOrOnePath',
+  'alternativePath',
 ]);
 
 // OWL

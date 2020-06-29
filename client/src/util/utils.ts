@@ -101,3 +101,15 @@ export const switchCase = <T>(obj: Record<string, T>, defaultVal?: any) => (s: s
   obj[s] || defaultVal;
 
 export const prettyJsonStr = (s: string): string => JSON.stringify(JSON.parse(s), null, 2);
+
+export const pluck = <T, K extends keyof T>(objs: T[], key: K): T[K][] => objs.map((obj) => obj[key]);
+
+export interface Option {
+  value: string;
+  label: string;
+}
+
+export const createSelectOption = (label: string): Option => ({
+  label,
+  value: label,
+});

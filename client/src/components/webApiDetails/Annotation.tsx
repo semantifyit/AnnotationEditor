@@ -15,6 +15,7 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import isURL from 'validator/lib/isURL';
 import { SortableContainer, SortableElement, SortableHandle, SortEndHandler } from 'react-sortable-hoc';
 import arrayMove from 'array-move';
+import CreatableSelect from 'react-select/creatable';
 
 import {
   DefaultRessourceDesc,
@@ -39,18 +40,19 @@ import {
   cutString,
   toReadableString,
   prettyJsonStr,
+  pluck,
+  createSelectOption,
 } from '../../util/utils';
 import * as p from '../../util/rdfProperties';
-
 import '../../styles/annotation.css';
 import 'react-datetime/css/react-datetime.css';
 import { isTemplateProp } from '../../util/webApi';
 import CheckBox from '../Checkbox';
 import { joinReduction } from '../../util/jsxHelpers';
-import CreatableSelect from '../CreatableSelect';
 import ModalBtn from '../ModalBtn';
 import WithCodeSplit from '../WithCodeSplit';
 import { SessionConfig } from './WebApiCreate';
+import { isValidSPP } from '../../util/sparqlPP.js';
 
 const SortableListItem = SortableElement(({ children }: any) => <div>{children}</div>);
 const DragHandle = SortableHandle(({ children }: any) => <span className="row-resize">{children}</span>);
@@ -802,12 +804,12 @@ type Changes = [string, string | boolean | number | undefined | string[]][];
 const AdvRestrInput = (
   props: TemplateProps & {
     name: ShaclRestrProps;
-    type: 'text' | 'number' | 'select' | 'enum';
-    options?: string[];
+    type: 'text' | 'number' | 'select' | 'creatable' | 'creatableSelect';
+    options?: Option[];
     isMultiSelect?: boolean;
   },
 ) => {
-  const { prop, path, name, type, ann, options, isMultiSelect } = props;
+  const { prop, path, name, type, options, isMultiSelect } = props;
   const { setPathVal, vocabHandler } = useContext(AnnotationContext);
 
   const pathStr = path.join('.');
@@ -850,18 +852,11 @@ const AdvRestrInput = (
           />
         );
       case 'select': {
-        let selectOptions = options
-          ? options.map((o) => ({ value: o, label: o }))
-          : (ann[prop.io || 'props'] ?? [])
-              .filter(({ id }) => id !== prop.id)
-              .map(({ path: propPath }) => ({ value: propPath, label: vocabHandler.usePrefix(propPath) }));
         return (
           <Select
             className="mb-1"
-            options={selectOptions}
-            defaultValue={selectOptions.filter(({ value }) =>
-              prop[name as SchaclRestrPairProps]?.includes(value),
-            )}
+            options={options}
+            defaultValue={options?.filter(({ value }) => prop[name as SchaclRestrPairProps]?.includes(value))}
             onChange={(e: any) => {
               const newValues = e ? toArray(e as any)?.map(({ value }) => value) : [];
               const changes: Changes = [[name, newValues.length > 0 ? newValues : undefined]];
@@ -873,18 +868,52 @@ const AdvRestrInput = (
           />
         );
       }
-      case 'enum':
+      case 'creatable':
         return (
           <CreatableSelect
             className="mb-1"
-            values={prop[name as SchaclRestrOtherProps] ?? []}
+            isClearable={true}
+            isMulti={true}
+            placeholder={'use enter/tab to create ...'}
+            value={prop[name as SchaclRestrOtherProps]?.map(createSelectOption) ?? []}
             onChange={(values) => {
-              const changes: Changes = [[name, values.length > 0 ? values : undefined]];
+              if (!values || !Array.isArray(values)) {
+                setVal([[name, undefined]]);
+                return;
+              }
+              const changes: Changes = [[name, values.length > 0 ? pluck(values, 'value') : undefined]];
               setVal(changes);
             }}
           />
         );
-
+      case 'creatableSelect':
+        return (
+          <CreatableSelect
+            options={options}
+            className="mb-1"
+            isClearable={true}
+            isMulti={true}
+            placeholder={'Select properties or create SPARQL Paths ...'}
+            value={
+              prop[name as SchaclRestrOtherProps]?.map((v) => ({
+                value: v,
+                label: v.startsWith('SPARQL') ? v.replace(/^SPARQL/, '') : vocabHandler.usePrefix(v),
+              })) ?? []
+            }
+            onChange={(values) => {
+              if (!values || !Array.isArray(values)) {
+                setVal([[name, undefined]]);
+                return;
+              }
+              const changes: Changes = [[name, values.length > 0 ? pluck(values, 'value') : undefined]];
+              setVal(changes);
+            }}
+            isValidNewOption={(val) => isValidSPP(val, vocabHandler.prefixes)}
+            onCreateOption={(val) => {
+              setVal([[name, [...(prop[name as SchaclRestrOtherProps] || []), 'SPARQL' + val]]]);
+            }}
+          />
+        );
       default:
         return <h1>Not found</h1>;
     }
@@ -917,6 +946,10 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
     'BlankNodeOrLiteral',
     'IRIOrLiteral',
   ];
+
+  const pairOptions = (props.ann[prop.io || 'props'] ?? [])
+    .filter(({ id }) => id !== prop.id)
+    .map(({ path: propPath }) => ({ value: propPath, label: vocabHandler.usePrefix(propPath) }));
 
   return (
     <>
@@ -974,7 +1007,7 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
                 <AdvRestrInput
                   name="nodeKind"
                   type="select"
-                  options={shaclNodeKinds}
+                  options={shaclNodeKinds.map(createSelectOption)}
                   isMultiSelect={false}
                   {...props}
                 />
@@ -987,8 +1020,8 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
                 <AdvRestrInput name="maxExclusive" type="number" {...props} />
                 <AdvRestrInput name="maxInclusive" type="number" {...props} />
                 <h6 className="font-weight-bold mt-2">Other</h6>
-                <AdvRestrInput name="in" type="enum" {...props} />
-                <AdvRestrInput name="hasValue" type="enum" {...props} />
+                <AdvRestrInput name="in" type="creatable" {...props} />
+                <AdvRestrInput name="hasValue" type="creatable" {...props} />
               </div>
               <div className="px-0">
                 <h6 className="font-weight-bold mt-2">String Based</h6>
@@ -996,10 +1029,15 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
                 <AdvRestrInput name="maxLength" type="number" {...props} />
                 <AdvRestrInput name="pattern" type="text" {...props} />
                 <h6 className="font-weight-bold mt-2">Property Pair</h6>
-                <AdvRestrInput name="equals" type="select" {...props} />
-                <AdvRestrInput name="disjoint" type="select" {...props} />
-                <AdvRestrInput name="lessThan" type="select" {...props} />
-                <AdvRestrInput name="lessThanOrEquals" type="select" {...props} />
+                <AdvRestrInput name="equals" type="creatableSelect" options={pairOptions} {...props} />
+                <AdvRestrInput name="disjoint" type="creatableSelect" options={pairOptions} {...props} />
+                <AdvRestrInput name="lessThan" type="creatableSelect" options={pairOptions} {...props} />
+                <AdvRestrInput
+                  name="lessThanOrEquals"
+                  type="creatableSelect"
+                  options={pairOptions}
+                  {...props}
+                />
               </div>
             </div>
           </ModalBtn>

@@ -12,6 +12,7 @@ import uuid from 'uuid/v1';
 import * as p from './rdfProperties';
 import { joinNS } from './rdfProperties';
 import { expandTemplateProp, expandUsedActionTemplates } from './webApi';
+import { sppToShaclPath } from './sparqlPP.js';
 
 const { wasa, sh, schema, xsd } = p;
 
@@ -23,7 +24,7 @@ const withAtVocab = (pref: VocabHandler['prefixes']): VocabHandler['prefixes'] =
   }
   return newPrefixes;
 };
-const idNode = (s: string) => ({ '@id': s });
+export const idNode = (s: string) => ({ '@id': s });
 export const baseUrl = 'http://actions.semantify.it/api/rdf';
 const toDataType = (s: string): string =>
   ({
@@ -84,7 +85,9 @@ const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'outp
   let pairProps = ['equals', 'disjoint', 'lessThan', 'lessThanOrEquals'] as const;
   pairProps.forEach((p) => {
     if (prop[p]) {
-      shProp[usePref(joinNS('sh', p))] = prop[p]?.map(idNode);
+      shProp[usePref(joinNS('sh', p))] = prop[p]?.map((v) =>
+        v.startsWith('SPARQL') ? sppToShaclPath(v.replace(/^SPARQL/, ''), vocabHandler) : idNode(v),
+      );
     }
   });
 

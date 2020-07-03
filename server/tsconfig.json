@@ -11,7 +11,8 @@
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
-    }
+    },
+    "skipLibCheck": true
   },
-  "include": ["src/**/*", "declarations.d.ts"]
+  "include": ["declarations.d.ts", "src/**/*" ]
 }

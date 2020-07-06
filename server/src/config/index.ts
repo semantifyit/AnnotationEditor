@@ -1,6 +1,7 @@
 export default {
+  version: '1.0.0',
   port: 8012,
-  url: 'https://actions.semantify.it',
+  baseUrl: 'http://localhost:8012',
   graphdb: {
     url: 'https://graphdb.sti2.at',
     repo: 'sdo-webapi',

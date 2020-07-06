@@ -18,7 +18,6 @@ import { stringOrNil, toArray } from './utils';
 import { unUsePrefix } from './VocabHandler';
 import * as p from './rdfProperties';
 import { EnrichedWebApi } from '../../../server/src/util/webApi';
-import { baseUrl } from './toAnnotation';
 
 const { commonNamespaces } = p;
 
@@ -71,7 +70,7 @@ const newTerminalNode = (range: string) => (
 
 const newSchemaTextNode = newTerminalNode('http://schema.org/Text');
 
-export const createEmptyAction = (numSameName: number, webApiId: string): Action => {
+export const createEmptyAction = (numSameName: number, webApiId: string, baseUrl: string): Action => {
   const name = `${defaultNewActionName}${sameNameBracket(numSameName)}`;
   const actionId = uuid();
   return {
@@ -101,11 +100,7 @@ export const createEmptyAction = (numSameName: number, webApiId: string): Action
               newSchemaTextNode('httpMethod', 'POST', 'disabled'),
               newSchemaTextNode('contentType', 'application/ld+json', 'disabled'),
               newSchemaTextNode('encodingType', 'application/ld+json', 'disabled'),
-              newSchemaTextNode(
-                'urlTemplate',
-                `https://actions.semantify.it/api/action/${webApiId}/${actionId}`,
-                'disabled',
-              ),
+              newSchemaTextNode('urlTemplate', `${baseUrl}/api/action/${webApiId}/${actionId}`, 'disabled'),
             ],
           },
           range: 'http://schema.org/EntryPoint',
@@ -180,7 +175,7 @@ export const createEmptyTemplate = (numSameName: number): Template => ({
   src: { type: 'template', types: [], props: [] },
 });
 
-export const createEmptyWebApi = (): WebApi => {
+export const createEmptyWebApi = (baseUrl: string): WebApi => {
   const webApiId = uuid();
   return {
     id: webApiId,
@@ -212,7 +207,7 @@ export const createEmptyWebApi = (): WebApi => {
         },
       ],
     },
-    actions: [createEmptyAction(0, webApiId)],
+    actions: [createEmptyAction(0, webApiId, baseUrl)],
     vocabs: defaultVocabsIds,
     prefixes: {
       '': commonNamespaces.schema,

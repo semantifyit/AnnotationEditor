@@ -1,8 +1,9 @@
 import { ActionLink } from '../models/WebApi';
+import config from '../config';
 
 // copied from client TODO better way to handle shared code
 
-const baseUrl = 'http://actions.semantify.it/api/rdf';
+const baseUrl = config.baseUrl + '/api/rdf';
 
 export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh' | 'wasa';
 

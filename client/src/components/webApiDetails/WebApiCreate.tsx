@@ -68,6 +68,7 @@ import {
   webApiToAnnotation,
 } from '../../util/toAnnotation';
 import WebApiDetails from './WebApiDetails';
+import { Config as GlobalConfig } from '../../../../server/src/routes/config';
 
 export interface SessionConfig {
   showCodeEditor: boolean;
@@ -369,8 +370,11 @@ const getVocabHandler = memoize<any, any>(
   [3],
 );
 
-const useWebApi = (id?: string): [WebApi, React.Dispatch<React.SetStateAction<WebApi>>, boolean] => {
-  const emptyWebApi: WebApi = createEmptyWebApi();
+const useWebApi = (
+  baseUrl: string,
+  id?: string,
+): [WebApi, React.Dispatch<React.SetStateAction<WebApi>>, boolean] => {
+  const emptyWebApi: WebApi = createEmptyWebApi(baseUrl);
 
   const [webApi, setWebApi] = useState<WebApi>(emptyWebApi);
   const [isLoading, setIsLoading] = useState(true);
@@ -419,15 +423,36 @@ const useOtherActionsRefs = (): [ActionRefs, boolean] => {
   return [otherActions, isLoading];
 };
 
+const useGlobalConfig = (): [GlobalConfig, boolean] => {
+  const [config, setConfig] = useState<GlobalConfig>({ version: '', baseUrl: '' });
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    ky.get('/api/config/')
+      .json()
+      .then((resp) => {
+        setConfig(resp as GlobalConfig);
+        setIsLoading(false);
+      });
+  }, []);
+  return [config, isLoading];
+};
+
 const useSessionConfig = (): [SessionConfig, (c: SessionConfig) => void] => {
   const [config, setConfig] = useState<SessionConfig>({ showCodeEditor: false });
   return [config, setConfig];
 };
 
 const WebApiCreate = () => {
+  const [globalConfig, isLoadingGlobalConfig] = useGlobalConfig();
+  return isLoadingGlobalConfig ? <Loading /> : <WebApiDetailPage globalConfig={globalConfig} />;
+};
+
+const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
+  const { baseUrl } = globalConfig;
+  const rdfBaseUrl = baseUrl + '/api/rdf';
   const params: { id?: string } = useParams();
   const [id, setId] = useState(params.id);
-  const [webApi, setWebApi, isLoadingWebApi] = useWebApi(id);
+  const [webApi, setWebApi, isLoadingWebApi] = useWebApi(baseUrl, id);
   const [otherActionRefs, isLoadingOtherActionRefs] = useOtherActionsRefs();
   const [availableVocabs, setAvailableVocabs, isLoadingVocabs] = useAvailableVocabs();
   const [sessionConfig, setSessionConfig] = useSessionConfig();
@@ -491,7 +516,7 @@ const WebApiCreate = () => {
       defaultNewActionName,
     );
 
-    newWebApi.actions.push(createEmptyAction(actionsWithDefaultName, webApi.id));
+    newWebApi.actions.push(createEmptyAction(actionsWithDefaultName, webApi.id, baseUrl));
     setWebApi(newWebApi);
     setPage(newPage('actions', newWebApi.actions.length - 1, 0));
   };
@@ -581,7 +606,7 @@ const WebApiCreate = () => {
                   setAnnotation={setAnnotation}
                   config={webApi.config}
                   potTemplates={[]}
-                  getAnnotation={() => webApiToAnnotation(webApi, vocabHandler)}
+                  getAnnotation={() => webApiToAnnotation(rdfBaseUrl, webApi, vocabHandler)}
                   sessionConfig={sessionConfig}
                 />
               )}
@@ -655,7 +680,7 @@ const WebApiCreate = () => {
               vocabHandler={vocabHandler}
               config={webApi.config}
               potTemplates={webApi.templates}
-              getAnnotation={() => actionToAnnotation(action, vocabHandler, webApi.templates)}
+              getAnnotation={() => actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates)}
               sessionConfig={sessionConfig}
             />
           );
@@ -683,6 +708,7 @@ const WebApiCreate = () => {
               config={webApi.config}
               getAnnotation={() =>
                 actionLinksToAnnotation(
+                  rdfBaseUrl,
                   webApi.actions[annIndex].potentialActionLinks,
                   webApi.actions[annIndex].id,
                   'potential',
@@ -717,6 +743,7 @@ const WebApiCreate = () => {
               config={webApi.config}
               getAnnotation={() =>
                 actionLinksToAnnotation(
+                  rdfBaseUrl,
                   webApi.actions[annIndex].precedingActionLinks,
                   webApi.actions[annIndex].id,
                   'preceeding',
@@ -777,7 +804,7 @@ const WebApiCreate = () => {
               potentialActionLinks={action.potentialActionLinks}
               actions={webApi.actions.map((action) => ({
                 ...action,
-                annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
+                annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),
               }))}
               config={webApi.config}
             />
@@ -803,7 +830,7 @@ const WebApiCreate = () => {
               potentialActionLinks={action.potentialActionLinks}
               actions={webApi.actions.map((action) => ({
                 ...action,
-                annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
+                annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),
               }))}
               config={webApi.config}
             />
@@ -841,7 +868,7 @@ const WebApiCreate = () => {
           vocabHandler={vocabHandler}
           config={webApi.config}
           potTemplates={webApi.templates}
-          getAnnotation={() => templateToAnnotation(template, vocabHandler, webApi.templates)}
+          getAnnotation={() => templateToAnnotation(rdfBaseUrl, template, vocabHandler, webApi.templates)}
           sessionConfig={sessionConfig}
         />
       );
@@ -853,12 +880,12 @@ const WebApiCreate = () => {
     setIsSaving(true);
     // console.log(webApi);
     webApi.name = getNameOfWebApi(webApi);
-    webApi.annotation = webApiToAnnotation(webApi, vocabHandler);
+    webApi.annotation = webApiToAnnotation(rdfBaseUrl, webApi, vocabHandler);
     // console.log(webApi.name);
     webApi.actions = webApi.actions.map((action) => ({
       ...action,
       name: getNameOfAction(action),
-      annotation: actionToAnnotation(action, vocabHandler, webApi.templates),
+      annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),
     }));
 
     try {

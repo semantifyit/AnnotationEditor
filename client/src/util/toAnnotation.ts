@@ -25,7 +25,7 @@ const withAtVocab = (pref: VocabHandler['prefixes']): VocabHandler['prefixes'] =
   return newPrefixes;
 };
 export const idNode = (s: string) => ({ '@id': s });
-export const baseUrl = 'http://actions.semantify.it/api/rdf';
+
 const toDataType = (s: string): string =>
   ({
     [schema.Text]: xsd.string,
@@ -38,7 +38,7 @@ const toDataType = (s: string): string =>
     [schema.Integer]: xsd.integer,
     [schema.URL]: xsd.anyURI,
   }[s] || s);
-const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'output') => (
+const tempPropToShaclProp = (baseUrl: string, vocabHandler: VocabHandler, group?: 'input' | 'output') => (
   prop: ExpandedTemplateProperty,
 ) => {
   const usePref = vocabHandler.usePrefix;
@@ -101,7 +101,7 @@ const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'outp
 
     if (range.props.length > 0) {
       classNode[usePref(sh.node)] = {
-        [usePref(sh.property)]: range.props.map((p) => tempPropToShaclProp(vocabHandler)(p)),
+        [usePref(sh.property)]: range.props.map((p) => tempPropToShaclProp(baseUrl, vocabHandler)(p)),
       };
     }
 
@@ -118,7 +118,12 @@ const tempPropToShaclProp = (vocabHandler: VocabHandler, group?: 'input' | 'outp
 
 const pathToSPP = (path: string[]): string => path.map((p) => `<${p}>`).join('/');
 
-const potentialActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandler: VocabHandler) => {
+const potentialActionLinkToAnn = (
+  baseUrl: string,
+  link: ActionLink,
+  actionId: string,
+  vocabHandler: VocabHandler,
+) => {
   const iterator = link.iterator && link.iterator.path.length > 0 ? pathToSPP(link.iterator.path) : undefined;
   return {
     '@id': `${baseUrl}/actionlink/${link.id}`,
@@ -141,7 +146,12 @@ const potentialActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandl
   };
 };
 
-const precedingActionLinkToAnn = (link: ActionLink, actionId: string, vocabHandler: VocabHandler) => ({
+const precedingActionLinkToAnn = (
+  baseUrl: string,
+  link: ActionLink,
+  actionId: string,
+  vocabHandler: VocabHandler,
+) => ({
   '@id': `${baseUrl}/actionlink/${link.id}`,
   '@type': wasa.PrecedingActionLink,
   [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${link.actionId}`),
@@ -163,9 +173,10 @@ const propertyMappingToAnn = (
     [vocabHandler.usePrefix(wasa.to)]: pathToSPP(pmap.to.path),
   }));
 
-const actionIdToNodeId = (id: string): string => `${baseUrl}/action/${id}`;
+const actionIdToNodeId = (baseUrl: string, id: string): string => `${baseUrl}/action/${id}`;
 
 export const actionToAnnotation = (
+  baseUrl: string,
   action: Action,
   vocabHandler: VocabHandler,
   templates: Template[],
@@ -174,32 +185,32 @@ export const actionToAnnotation = (
 
   const expandedActionAnnSrc = expandUsedActionTemplates(action.annotationSrc, templates);
   const annotation = annSrcToAnnJsonLd(expandedActionAnnSrc, vocabHandler);
-  annotation['@id'] = actionIdToNodeId(action.id);
+  annotation['@id'] = actionIdToNodeId(baseUrl, action.id);
 
   annotation[vocabHandler.usePrefix(wasa.actionShape)] = {
     '@type': p.shNodeShape,
     [withPref(p.shProperty)]: [
-      ...expandedActionAnnSrc.input.map(tempPropToShaclProp(vocabHandler, 'input')),
-      ...expandedActionAnnSrc.output.map(tempPropToShaclProp(vocabHandler, 'output')),
+      ...expandedActionAnnSrc.input.map(tempPropToShaclProp(baseUrl, vocabHandler, 'input')),
+      ...expandedActionAnnSrc.output.map(tempPropToShaclProp(baseUrl, vocabHandler, 'output')),
     ],
   };
 
   if (action.potentialActionLinks.length > 0) {
     annotation[vocabHandler.usePrefix(wasa.potentialActionLink)] = action.potentialActionLinks.map((link) =>
-      potentialActionLinkToAnn(link, action.id, vocabHandler),
+      potentialActionLinkToAnn(baseUrl, link, action.id, vocabHandler),
     );
   }
 
   if (action.precedingActionLinks.length > 0) {
     annotation[vocabHandler.usePrefix(wasa.precedingActionLink)] = action.precedingActionLinks.map((link) =>
-      precedingActionLinkToAnn(link, action.id, vocabHandler),
+      precedingActionLinkToAnn(baseUrl, link, action.id, vocabHandler),
     );
   }
 
   return JSON.stringify(annotation);
 };
 
-export const webApiToAnnotation = (webApi: WebApi, vocabHandler: VocabHandler): string => {
+export const webApiToAnnotation = (baseUrl: string, webApi: WebApi, vocabHandler: VocabHandler): string => {
   const annotation = annSrcToAnnJsonLd(webApi.annotationSrc, vocabHandler);
   annotation['@id'] = `${baseUrl}/webapi/${webApi.id}`;
 
@@ -207,10 +218,9 @@ export const webApiToAnnotation = (webApi: WebApi, vocabHandler: VocabHandler): 
   if (annotation[vocabHandler.usePrefix('http://schema.org/documentation')]) {
     annotation[vocabHandler.usePrefix('http://schema.org/documentation')][
       vocabHandler.usePrefix('http://schema.org/about')
-    ] = webApi.actions.filter((a) => a.isActive).map((a) => idNode(actionIdToNodeId(a.id)));
+    ] = webApi.actions.filter((a) => a.isActive).map((a) => idNode(actionIdToNodeId(baseUrl, a.id)));
   }
 
-  // TODO add action links in schema:about
   return JSON.stringify(annotation);
 };
 
@@ -271,6 +281,7 @@ export const annJsonLDToAnnSrc = (annSrc: any, vocabHandler: VocabHandler): Defa
 };
 
 export const templateToAnnotation = (
+  baseUrl: string,
   template: Template,
   vocabHandler: VocabHandler,
   templates: Template[],
@@ -282,11 +293,12 @@ export const templateToAnnotation = (
     '@type': p.shNodeShape,
     [vocabHandler.usePrefix(p.shProperty)]: template.src.props
       .map((p) => expandTemplateProp(p, templates))
-      .map(tempPropToShaclProp(vocabHandler)),
+      .map(tempPropToShaclProp(baseUrl, vocabHandler)),
   });
 };
 
 export const actionLinksToAnnotation = (
+  baseUrl: string,
   actionLinks: ActionLink[],
   actionId: string,
   type: 'preceeding' | 'potential',
@@ -295,6 +307,7 @@ export const actionLinksToAnnotation = (
   JSON.stringify(
     actionLinks.map((link) =>
       (type === 'preceeding' ? precedingActionLinkToAnn : potentialActionLinkToAnn)(
+        baseUrl,
         link,
         actionId,
         vocabHandler,

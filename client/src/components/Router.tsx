@@ -12,16 +12,15 @@ const AppRouter = () => (
   <>
     <Router>
       <Switch>
-        <Route
-          path={['/webAPI/new', '/webAPI/:id/view', '/webAPI/:id/edit']}
-          exact
-        >
+        <Route path={['/webAPI/new', '/webAPI/:id/view', '/webAPI/:id/edit']} exact>
           <WebApiCreate />
         </Route>
 
         <Route exact path="/">
           <Page headerClass="mb-auto">
-            <Route path="/" exact component={Home} />
+            <Route path="/" exact>
+              <Home />
+            </Route>
           </Page>
         </Route>
 

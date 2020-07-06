@@ -8,6 +8,7 @@ import webAPIRouter from '../routes/webApi';
 import actionRouter from '../routes/action';
 import mappingRouter from '../routes/mapping';
 import rdfRouter from '../routes/rdf';
+import configRouter from '../routes/config';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/api/webApi', webAPIRouter);
 app.use('/api/action', actionRouter);
 app.use('/api/mapping', mappingRouter);
 app.use('/api/rdf', rdfRouter);
+app.use('/api/config', configRouter);
 
 // serve react app in production mode
 if (process.env.NODE_ENV === 'production') {

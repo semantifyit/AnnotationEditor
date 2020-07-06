@@ -143,7 +143,7 @@ const AddVocab = ({ addVocab }: Props) => {
           placeholder="short description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-        ></textarea>
+        />
       </div>
       <div className="d-flex flexSpaceBetween mb-2">
         <span>Import from source</span>

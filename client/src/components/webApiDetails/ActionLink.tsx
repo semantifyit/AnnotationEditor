@@ -289,7 +289,7 @@ const ActionLink = ({
   const [fromAction, toAction] =
     type === 'Potential' ? [baseAction, linkedAction] : [linkedAction, baseAction];
 
-  const isPotentialActionLink = (arg: IActionLink): arg is PotentialActionLink => 'iterator' in arg;
+  const isPotentialActionLink = (arg: IActionLink): arg is PotentialActionLink => !!arg['iterator'];
 
   return (
     <div className="m-3 p-3 light-rounded-border" key={actionLink.id}>

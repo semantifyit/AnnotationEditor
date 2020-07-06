@@ -61,6 +61,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/:id/export', async (req, res) => {
+  try {
+    const result = await WebApi.findById(req.params.id).lean();
+    if (!result) {
+      res.status(404).json({ err: `WebApi with id ${req.params.id} not found` });
+      return;
+    }
+    res.setHeader('Content-disposition', `attachment; filename=webapiExport.json`);
+    delete result['_id'];
+    delete result['__v'];
+    result.vocabs = [];
+    for (let i in result.actions) {
+      result.actions[i].potentialActionLinks = [];
+      result.actions[i].precedingActionLinks = [];
+    }
+    res.json(result);
+  } catch (e) {
+    console.log(e);
+    res.status(400).json({ err: e.toString() });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const result = await WebApi.create(req.body);
@@ -74,7 +96,7 @@ router.post('/', async (req, res) => {
     await GraphDB.post(...webAPIToAnn(result));
     */
 
-    res.json(result);
+    res.json(enrichWebApi(result.toObject()));
   } catch (e) {
     console.log(e);
     res.status(400).json({ err: e.toString() });

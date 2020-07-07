@@ -68,7 +68,7 @@ const webApiOptions = ({ webApi, deleteWebApi }: WebApiProps) => (
       </button>
       <a
         className={optionsBlockBtn}
-        href={`http://localhost:8012/api/webApi/${webApi._id}/export`}
+        href={`/api/webApi/${webApi._id}/export`}
         download={`webApi${webApi._id}.json`}
       >
         Export

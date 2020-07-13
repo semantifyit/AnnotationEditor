@@ -1,4 +1,5 @@
 import express from 'express';
+import VocabHandler from '../../../client/src/util/VocabHandler';
 
 export const waitFor = (time: number): Promise<void> =>
   new Promise((res): void => {
@@ -50,3 +51,12 @@ export const isOneLevelStringJSON = (obj: string): boolean =>
   stringIsValidJSON(obj) && Object.values(JSON.parse(obj)).every((e) => typeof e === 'string');
 
 export const allButFist = <T>(arr: T[]): T[] => arr.slice(1);
+
+export const withAtVocab = (pref: Record<string, string>): Record<string, string> => {
+  const newPrefixes = clone(pref);
+  if (newPrefixes['']) {
+    newPrefixes['@vocab'] = newPrefixes[''];
+    delete newPrefixes[''];
+  }
+  return newPrefixes;
+};

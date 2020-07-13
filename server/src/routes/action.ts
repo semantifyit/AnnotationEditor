@@ -18,7 +18,6 @@ router.post('/:id', async (req, res) => {
       action.responseMapping,
       webApi.prefixes,
       webApi.config,
-      action.potentialActionLinks,
     );
 
     res.json(resp);

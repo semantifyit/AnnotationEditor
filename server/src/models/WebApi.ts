@@ -138,16 +138,6 @@ export interface ExpendedActionRessourceDesc extends ActionRessourceDesc {
   output: ExpandedTemplateProperty[];
 }
 
-export interface AnnotationNode {
-  '@type': string | string[];
-  [prop: string]: any;
-}
-
-interface NamedAnnotationNode extends AnnotationNode {
-  name: string | string[];
-  description?: string | string[];
-}
-
 export interface Mapping {
   value: string;
 }
@@ -176,35 +166,6 @@ export interface ResponseMappingSave {
   body: LiftingMapping;
 }
 
-export interface TemplatePath {
-  id: string; // node-id
-  path: string[]; // path
-}
-
-export interface PropertyMap {
-  id: string;
-  from: TemplatePath;
-  to: TemplatePath;
-}
-
-export interface ActionLink {
-  id: string;
-  actionId: string;
-  propertyMaps: PropertyMap[];
-  iterator?: TemplatePath;
-  condition?: {
-    type: 'sparql' | 'javascript';
-    value: string;
-  };
-}
-export interface PotentialActionLink extends ActionLink {
-  iterator: TemplatePath;
-  condition?: {
-    type: 'sparql' | 'javascript';
-    value: string;
-  };
-}
-
 export interface Action {
   id: string;
   isActive: boolean;
@@ -214,8 +175,6 @@ export interface Action {
   requestMapping: RequestMappingSave;
   responseMapping: ResponseMappingSave;
   functions?: string;
-  potentialActionLinks: PotentialActionLink[];
-  precedingActionLinks: ActionLink[];
   sampleAction: string;
   sampleResponse: string; // maybe string[]
 }
@@ -271,8 +230,6 @@ const WebApiSchema: Schema = new Schema(
         requestMapping: { type: Object, required: false },
         responseMapping: { type: Object, required: false },
         functions: { type: String, required: false },
-        potentialActionLinks: { type: Object, required: false },
-        precedingActionLinks: { type: Object, required: false },
         sampleAction: { type: String, required: false },
         sampleResponse: { type: String, required: false },
       },

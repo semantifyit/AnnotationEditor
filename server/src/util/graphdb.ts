@@ -48,7 +48,7 @@ const graphDB = {
   post: withTries(postData, 10, 10000),
   upsert: withTries(update, 10, 10000),
   delete: withTries(deleteGraph, 10, 10000),
-  getGraphName: (webApiPath: string): string => `${config.url}/graphs/${webApiPath}`,
+  getGraphName: (webApiPath: string): string => `${config.baseUrl}/graphs/${webApiPath}`,
 };
 
 export default graphDB;

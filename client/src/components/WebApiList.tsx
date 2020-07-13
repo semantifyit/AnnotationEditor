@@ -149,7 +149,7 @@ const WebApiDeck = ({ webApis, deleteWebApi }: WebApiListProps) => (
   </div>
 );
 
-const useWebApis = (): [WebApi[], (w: WebApi[]) => void, boolean] => {
+export const useWebApis = (): [WebApi[], (w: WebApi[]) => void, boolean] => {
   const [webApis, setWebApis] = useState<WebApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -175,7 +175,7 @@ const WebApiList = () => {
     <>
       <h2 className="mb-4">
         <div className="d-flex flexSpaceBetween">
-          <span>Available Web APIs</span>
+          <span>Web APIs</span>
           <div>
             <div className="input-group">
               <div className="input-group-prepend">

@@ -16,8 +16,6 @@ import {
   FaFeatherAlt,
   FaTimesCircle,
   FaCheckCircle,
-  FaLink,
-  FaProjectDiagram,
 } from 'react-icons/fa';
 import { IconType } from 'react-icons/lib/cjs';
 import ky from 'ky';
@@ -32,11 +30,8 @@ import {
   WebApi,
   // Annotation as IAnnotation,
   RessourceDesc,
-  ActionRefs,
-  ActionLink as IActionLink,
   ActionRessourceDesc,
   TemplateRessourceDesc,
-  PotentialActionLink,
 } from '../../../../server/src/models/WebApi';
 import { VocabLeanDoc as Vocab } from '../../../../server/src/models/Vocab';
 import {
@@ -58,24 +53,13 @@ import TestMapping from './TestMapping';
 import Vocabularies from './Vocabularies';
 import VocabHandler from '../../util/VocabHandler';
 import Template from './Template';
-import ActionLinks from './ActionLinks';
-import { useActionStore } from '../../util/ActionStore';
 import { Loading } from '../Loading';
-import {
-  actionLinksToAnnotation,
-  actionToAnnotation,
-  templateToAnnotation,
-  webApiToAnnotation,
-} from '../../util/toAnnotation';
+import { actionToAnnotation, templateToAnnotation, webApiToAnnotation } from '../../util/toAnnotation';
 import WebApiDetails from './WebApiDetails';
 import { Config as GlobalConfig } from '../../../../server/src/routes/config';
 
 export interface SessionConfig {
   showCodeEditor: boolean;
-}
-
-export interface WebApiDetailPageProps {
-  webApi: WebApi;
 }
 
 const pages: [string, IconType][] = [
@@ -86,8 +70,6 @@ const pages: [string, IconType][] = [
 
 const actionPages: [string, IconType][] = [
   ['Annotation', FaFileAlt],
-  ['Preceding Actions', FaLink],
-  ['Potential Actions', FaProjectDiagram],
   ['Request Mapping', FaArrowRight],
   ['Response Mapping', FaArrowLeft],
   ['Testing', FaVial],
@@ -409,25 +391,11 @@ const useAvailableVocabs = (): [Vocab[], (v: Vocab[]) => void, boolean] => {
   return [vocabs, setVocabs, isLoading];
 };
 
-const useOtherActionsRefs = (): [ActionRefs, boolean] => {
-  const [otherActions, setOtherActions] = useState<ActionRefs>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    ky.get('/api/webApi/actions')
-      .json()
-      .then((resp) => {
-        setOtherActions(resp as ActionRefs);
-        setIsLoading(false);
-      });
-  }, []);
-  return [otherActions, isLoading];
-};
-
-const useGlobalConfig = (): [GlobalConfig, boolean] => {
+export const useGlobalConfig = (): [GlobalConfig, boolean] => {
   const [config, setConfig] = useState<GlobalConfig>({ version: '', baseUrl: '' });
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    ky.get('/api/config/')
+    ky.get('/api/config')
       .json()
       .then((resp) => {
         setConfig(resp as GlobalConfig);
@@ -453,35 +421,20 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
   const params: { id?: string } = useParams();
   const [id, setId] = useState(params.id);
   const [webApi, setWebApi, isLoadingWebApi] = useWebApi(baseUrl, id);
-  const [otherActionRefs, isLoadingOtherActionRefs] = useOtherActionsRefs();
   const [availableVocabs, setAvailableVocabs, isLoadingVocabs] = useAvailableVocabs();
   const [sessionConfig, setSessionConfig] = useSessionConfig();
 
   const [page, setPage] = useState<SelectedPage>({ type: 'main', main: 0, sub: 0 }); //({ type: 'main', main: 0, sub: 0 });
   const [isSaving, setIsSaving] = useState(false);
-  const [getActions] = useActionStore();
 
   useHotkeys('ctrl+s', (e) => {
     e.preventDefault();
     save();
   });
 
-  const actionRefs = [
-    {
-      id: webApi.id,
-      name: getNameOfWebApi(webApi) + ' (This WebApi)',
-      actions: webApi.actions.map((action) => ({
-        id: action.id,
-        name: getNameOfAction(action),
-        action,
-      })),
-    },
-    ...otherActionRefs,
-  ];
-
   // console.log(page, subPage);
 
-  const isReady = !isLoadingVocabs && !isLoadingWebApi && !isLoadingOtherActionRefs;
+  const isReady = !isLoadingVocabs && !isLoadingWebApi;
 
   const setSelectedVocabs = (vocabs: string[]) => {
     const newWebApi = clone(webApi);
@@ -685,76 +638,6 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
             />
           );
         }
-        case 'Potential Actions': {
-          const setActionLink = (actionLinks: IActionLink[]) => {
-            const newWebApi = clone(webApi);
-            newWebApi.actions[annIndex].potentialActionLinks = actionLinks as PotentialActionLink[];
-            // newWebApi.actions[annIndex].annotation = actionToAnnotation(
-            //   newWebApi.actions[annIndex],
-            //   vocabHandler,
-            //   webApi.templates,
-            // );
-            setWebApi(newWebApi);
-          };
-          return (
-            <ActionLinks
-              type="Potential"
-              webApi={webApi}
-              baseAction={webApi.actions[annIndex]}
-              actionRefs={actionRefs}
-              actionLinks={webApi.actions[annIndex].potentialActionLinks}
-              setActionLinks={setActionLink}
-              getActions={getActions}
-              config={webApi.config}
-              getAnnotation={() =>
-                actionLinksToAnnotation(
-                  rdfBaseUrl,
-                  webApi.actions[annIndex].potentialActionLinks,
-                  webApi.actions[annIndex].id,
-                  'potential',
-                  vocabHandler,
-                )
-              }
-              sessionConfig={sessionConfig}
-              prefixes={webApi.prefixes}
-            />
-          );
-        }
-        case 'Preceding Actions': {
-          const setActionLink = (actionLinks: IActionLink[]) => {
-            const newWebApi = clone(webApi);
-            newWebApi.actions[annIndex].precedingActionLinks = actionLinks;
-            // newWebApi.actions[annIndex].annotation = actionToAnnotation(
-            //   newWebApi.actions[annIndex],
-            //   vocabHandler,
-            //   webApi.templates,
-            // );
-            setWebApi(newWebApi);
-          };
-          return (
-            <ActionLinks
-              type="Preceding"
-              webApi={webApi}
-              baseAction={webApi.actions[annIndex]}
-              actionRefs={actionRefs}
-              actionLinks={webApi.actions[annIndex].precedingActionLinks}
-              setActionLinks={setActionLink}
-              getActions={getActions}
-              config={webApi.config}
-              getAnnotation={() =>
-                actionLinksToAnnotation(
-                  rdfBaseUrl,
-                  webApi.actions[annIndex].precedingActionLinks,
-                  webApi.actions[annIndex].id,
-                  'preceeding',
-                  vocabHandler,
-                )
-              }
-              sessionConfig={sessionConfig}
-              prefixes={webApi.prefixes}
-            />
-          );
-        }
         case 'Request Mapping': {
           const setRequestMapping = (newReqMapping: any) => {
             const newWebApi = clone(webApi);
@@ -801,7 +684,6 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
               sampleResponse={action.sampleResponse}
               setSampleResponse={setSampleResponse}
               prefixes={webApi.prefixes}
-              potentialActionLinks={action.potentialActionLinks}
               actions={webApi.actions.map((action) => ({
                 ...action,
                 annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),
@@ -827,7 +709,6 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
               prefixes={webApi.prefixes}
               goToReqMapping={goToReqMapping}
               goToRespMapping={goToRespMapping}
-              potentialActionLinks={action.potentialActionLinks}
               actions={webApi.actions.map((action) => ({
                 ...action,
                 annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),

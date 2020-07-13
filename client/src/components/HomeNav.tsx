@@ -19,15 +19,15 @@ const HomeNav = ({ headerClass }: Props) => (
     >
       Semantify Actions
     </h3>
-    <nav
-      style={{ float: 'right' }}
-      className="nav nav-masthead justify-content-center"
-    >
+    <nav style={{ float: 'right' }} className="nav nav-masthead justify-content-center">
       <NavLink exact className="nav-link" activeClassName="active" to="/">
         Home
       </NavLink>
       <NavLink exact className="nav-link" activeClassName="active" to="/webAPI">
         Web Apis
+      </NavLink>
+      <NavLink exact className="nav-link" activeClassName="active" to="/actionLink">
+        Action Links
       </NavLink>
       <NavLink className="nav-link" activeClassName="active" to="/about">
         About
@@ -35,12 +35,7 @@ const HomeNav = ({ headerClass }: Props) => (
       <NavLink className="nav-link" activeClassName="active" to="/docs">
         Docs
       </NavLink>
-      <a
-        className="nav-link"
-        href="https://semantify.it/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a className="nav-link" href="https://semantify.it/" target="_blank" rel="noopener noreferrer">
         Semantify.it <FaExternalLinkAlt />
       </a>
     </nav>

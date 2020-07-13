@@ -1,3 +1,5 @@
+import VocabHandler from './VocabHandler';
+
 export type Namespace = 'xsd' | 'rdf' | 'rdfs' | 'owl' | 'schema' | 'sh' | 'wasa';
 
 export const commonNamespaces = {
@@ -162,13 +164,10 @@ export const wasa = toProperties(commonNamespaces.wasa, [
   'from',
   'to',
   'iterator',
-  'potentialActionLink',
-  'precedingActionLink',
   'actionShape',
   'Input',
   'Output',
-  'PotentialActionLink',
-  'PrecedingActionLink',
+  'ActionLink',
   'PropertyMap',
   'script',
   'condition',
@@ -213,3 +212,9 @@ export const terminalNodes = [
   schemaQuantity,
   // own terminals
 ];
+
+export const getDefaultVocabHandler = () =>
+  new VocabHandler([], {
+    schema: 'http://schema.org/',
+    wasa: 'https://vocab.sti2.at/wasa/',
+  });

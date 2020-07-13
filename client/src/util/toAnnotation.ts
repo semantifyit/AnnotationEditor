@@ -1,6 +1,5 @@
 import {
   Action,
-  ActionLink,
   DefaultRessourceDesc,
   ExpandedTemplateProperty,
   Template,
@@ -13,6 +12,7 @@ import * as p from './rdfProperties';
 import { joinNS } from './rdfProperties';
 import { expandTemplateProp, expandUsedActionTemplates } from './webApi';
 import { sppToShaclPath } from './sparqlPP.js';
+import { ActionLink } from '../../../server/src/models/ActionLink';
 
 const { wasa, sh, schema, xsd } = p;
 
@@ -118,18 +118,13 @@ const tempPropToShaclProp = (baseUrl: string, vocabHandler: VocabHandler, group?
 
 const pathToSPP = (path: string[]): string => path.map((p) => `<${p}>`).join('/');
 
-const potentialActionLinkToAnn = (
-  baseUrl: string,
-  link: ActionLink,
-  actionId: string,
-  vocabHandler: VocabHandler,
-) => {
+export const actionLinkToAnn = (baseUrl: string, link: ActionLink, vocabHandler: VocabHandler) => {
   const iterator = link.iterator && link.iterator.path.length > 0 ? pathToSPP(link.iterator.path) : undefined;
   return {
     '@id': `${baseUrl}/actionlink/${link.id}`,
-    '@type': wasa.PotentialActionLink,
-    [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${actionId}`),
-    [vocabHandler.usePrefix(wasa.target)]: idNode(`${baseUrl}/action/${link.actionId}`),
+    '@type': wasa.ActionLink,
+    [vocabHandler.usePrefix(wasa.source)]: idNode(actionIdToNodeId(baseUrl, link.source)),
+    [vocabHandler.usePrefix(wasa.target)]: idNode(actionIdToNodeId(baseUrl, link.target)),
     [vocabHandler.usePrefix(wasa.propertyMapping)]:
       link.propertyMaps.length > 0
         ? propertyMappingToAnn(link.propertyMaps, vocabHandler, iterator)
@@ -145,19 +140,6 @@ const potentialActionLinkToAnn = (
       : undefined,
   };
 };
-
-const precedingActionLinkToAnn = (
-  baseUrl: string,
-  link: ActionLink,
-  actionId: string,
-  vocabHandler: VocabHandler,
-) => ({
-  '@id': `${baseUrl}/actionlink/${link.id}`,
-  '@type': wasa.PrecedingActionLink,
-  [vocabHandler.usePrefix(wasa.source)]: idNode(`${baseUrl}/action/${link.actionId}`),
-  [vocabHandler.usePrefix(wasa.target)]: idNode(`${baseUrl}/action/${actionId}`),
-  [vocabHandler.usePrefix(wasa.propertyMapping)]: propertyMappingToAnn(link.propertyMaps, vocabHandler),
-});
 
 const propertyMappingToAnn = (
   pmaps: ActionLink['propertyMaps'],
@@ -194,18 +176,6 @@ export const actionToAnnotation = (
       ...expandedActionAnnSrc.output.map(tempPropToShaclProp(baseUrl, vocabHandler, 'output')),
     ],
   };
-
-  if (action.potentialActionLinks.length > 0) {
-    annotation[vocabHandler.usePrefix(wasa.potentialActionLink)] = action.potentialActionLinks.map((link) =>
-      potentialActionLinkToAnn(baseUrl, link, action.id, vocabHandler),
-    );
-  }
-
-  if (action.precedingActionLinks.length > 0) {
-    annotation[vocabHandler.usePrefix(wasa.precedingActionLink)] = action.precedingActionLinks.map((link) =>
-      precedingActionLinkToAnn(baseUrl, link, action.id, vocabHandler),
-    );
-  }
 
   return JSON.stringify(annotation);
 };
@@ -300,17 +270,18 @@ export const templateToAnnotation = (
 export const actionLinksToAnnotation = (
   baseUrl: string,
   actionLinks: ActionLink[],
-  actionId: string,
-  type: 'preceeding' | 'potential',
   vocabHandler: VocabHandler,
-): string =>
-  JSON.stringify(
-    actionLinks.map((link) =>
-      (type === 'preceeding' ? precedingActionLinkToAnn : potentialActionLinkToAnn)(
-        baseUrl,
-        link,
-        actionId,
-        vocabHandler,
-      ),
-    ),
-  );
+): string => JSON.stringify(actionLinks.map((link) => actionLinkToAnn(baseUrl, link, vocabHandler)));
+
+export const actionLinkToAnnotation = (
+  baseUrl: string,
+  actionLink: ActionLink,
+  vocabHandler: VocabHandler,
+  withContext: boolean,
+): string => {
+  const ann: any = actionLinkToAnn(baseUrl, actionLink, vocabHandler);
+  if (withContext) {
+    ann['@context'] = withAtVocab(vocabHandler.prefixes); // set @vocab empty prefix
+  }
+  return JSON.stringify(ann, null, 2);
+};

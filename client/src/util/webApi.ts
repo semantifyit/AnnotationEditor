@@ -149,8 +149,6 @@ mappings:
 `,
       },
     },
-    potentialActionLinks: [],
-    precedingActionLinks: [],
     sampleAction: JSON.stringify(
       {
         '@context': { '@vocab': 'http://schema.org/' },

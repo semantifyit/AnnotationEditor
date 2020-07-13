@@ -17,7 +17,6 @@ interface Props {
   goToTestMapping: () => void;
   goToReqMapping: () => void;
   setSampleResponse: (a: Action['sampleResponse']) => void;
-  potentialActionLinks: Action['potentialActionLinks'];
   actions: Action[];
   config: WebApi['config'];
 }
@@ -34,7 +33,6 @@ const ResponseMapping = ({
   sampleResponse,
   setSampleResponse,
   prefixes,
-  potentialActionLinks,
   actions,
   config,
 }: Props) => {
@@ -54,7 +52,6 @@ const ResponseMapping = ({
             input: sampleResponse,
             body: responseMapping.body,
             prefixes,
-            links: potentialActionLinks,
             actions,
             config,
           },

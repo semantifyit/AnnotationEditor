@@ -3,7 +3,6 @@ import { useState } from 'react';
 import ky from 'ky';
 import { usePrefixWith } from './VocabHandler';
 import { filterUndef, Optional } from './utils';
-import { getNameOfWebApi, getNameOfAction } from './webApi';
 
 export interface EnrichedAction {
   action: Action;
@@ -14,19 +13,8 @@ export interface EnrichedAction {
 export const useActionStore = () => {
   const [actions, setActions] = useState<EnrichedAction[]>([]);
 
-  const getActions = (webApi: WebApi, actionIds: string[]): Optional<EnrichedAction[]> => {
-    const webApiEnrActions = webApi.actions.map((action) => ({
-      action: {
-        ...action,
-        name: getNameOfAction(action), // name of action is only set at start and when saving action TODO maybe change
-      },
-      webApi: { id: webApi.id, name: getNameOfWebApi(webApi), templates: webApi.templates },
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      usePrefix: usePrefixWith(webApi.prefixes),
-    }));
-    const allActions = [...actions, ...webApiEnrActions];
-
-    const missingActions = actionIds.filter((id) => !allActions.map((act) => act.action.id).includes(id));
+  const getActions = (actionIds: string[]): Optional<EnrichedAction[]> => {
+    const missingActions = actionIds.filter((id) => !actions.map((act) => act.action.id).includes(id));
     if (missingActions.length > 0) {
       ky.get('/api/webApi/actions/' + missingActions.join(','))
         .json()
@@ -51,9 +39,9 @@ export const useActionStore = () => {
       return undefined;
     }
 
-    const foundActions = filterUndef(actionIds.map((id) => allActions.find((act) => act.action.id === id)));
+    const foundActions = filterUndef(actionIds.map((id) => actions.find((act) => act.action.id === id)));
     return foundActions;
   };
 
-  return [getActions];
+  return { getActions };
 };

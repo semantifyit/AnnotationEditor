@@ -72,10 +72,6 @@ router.get('/:id/export', async (req, res) => {
     delete result['_id'];
     delete result['__v'];
     result.vocabs = [];
-    for (let i in result.actions) {
-      result.actions[i].potentialActionLinks = [];
-      result.actions[i].precedingActionLinks = [];
-    }
     res.json(result);
   } catch (e) {
     console.log(e);

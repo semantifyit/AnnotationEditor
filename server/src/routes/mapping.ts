@@ -2,7 +2,7 @@ import express from 'express';
 import got from 'got';
 
 import { lowering, lifting } from '../mapping';
-import { addPotentialActions, consumeFullAction, doFn, validateHeaders, validateUrl } from '../util/action';
+import { consumeFullAction, doFn, validateHeaders, validateUrl } from '../util/action';
 
 const router = express.Router();
 
@@ -45,17 +45,17 @@ router.post('/request', async (req, res) => {
 
 router.post('/lifting', async (req, res) => {
   try {
-    const { prefixes, input, links, actions, config } = req.body;
+    const { prefixes, input, actions, config } = req.body;
 
     const doLifting = doFn(lifting, input, prefixes, config);
 
     const liftOut = await doLifting(req.body.body);
 
     if (liftOut.success) {
-      const rdf = await addPotentialActions(liftOut.value, links, prefixes, actions);
+      // const rdf = await addPotentialActions(liftOut.value, links, prefixes, actions);
 
       res.json({
-        body: { value: rdf, success: true },
+        body: { value: liftOut.value, success: true },
       });
     } else {
       res.json({
@@ -71,7 +71,7 @@ router.post('/lifting', async (req, res) => {
 });
 
 router.post('/full', async (req, res) => {
-  const { prefixes, action, method, links, url, headers, body, response, actions, config } = req.body;
+  const { prefixes, action, method, url, headers, body, response, actions, config } = req.body;
 
   try {
     const responseAction = await consumeFullAction(
@@ -80,7 +80,6 @@ router.post('/full', async (req, res) => {
       { body: response },
       prefixes,
       config,
-      links,
       actions,
     );
     res.json({ success: true, value: responseAction });

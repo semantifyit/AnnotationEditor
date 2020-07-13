@@ -7,6 +7,7 @@ import About from './About';
 import Docs from './Docs';
 import WebApiCreate from './webApiDetails/WebApiCreate';
 import Page from './Page';
+import ActionLinkPage from './ActionLinkPage';
 
 const AppRouter = () => (
   <>
@@ -34,6 +35,9 @@ const AppRouter = () => (
             </Route>
             <Route path="/webAPI/" exact>
               <WebApiList />
+            </Route>
+            <Route path="/actionLink/" exact>
+              <ActionLinkPage />
             </Route>
           </Page>
         </Route>

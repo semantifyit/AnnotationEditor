@@ -12,16 +12,19 @@ import ModalBtn from './ModalBtn';
 import Editor from './Editor';
 import { actionLinkToAnnotation } from '../util/toAnnotation';
 import { getDefaultVocabHandler } from '../util/rdfProperties';
+import Radio from './Radio';
 
 interface Props {
   source: EnrichedAction;
   target: EnrichedAction;
   link: ActionLink;
-  saveLink: (l: ActionLink) => void;
-  cancelLink: () => void;
-  deleteLink: () => void;
+  saveClick: (l: ActionLink) => void;
+  cancelClick: () => void;
+  deleteClick?: () => void;
   prefixes: WebApi['prefixes'];
   config: GlobalConfig;
+  isReadOnly: boolean;
+  onTitleClick?: () => void;
 }
 
 interface PropertyMapProps {
@@ -31,6 +34,7 @@ interface PropertyMapProps {
   setPropertyMap: (pm: PropertyMap) => void;
   removePropertyMap: () => void;
   iterator?: ActionLink['iterator'];
+  isReadOnly: boolean;
 }
 
 interface PathBtnProps {
@@ -38,8 +42,10 @@ interface PathBtnProps {
   fromTo: 'from' | 'to';
   usedTemplatePath: TemplatePath;
   action: EnrichedAction;
-  setPropertyPath: (p: TemplatePath) => void;
+  setPropertyPath: (p: TemplatePath | undefined) => void;
   iterator?: ActionLink['iterator'];
+  isReadOnly: boolean;
+  isEmpty?: boolean;
 }
 
 interface ExpandedTemplatePropertySelectionProps {
@@ -138,25 +144,30 @@ const PropNodeSelection = ({
 };
 
 const PathBtn = (props: PathBtnProps) => {
-  const { fromTo, usedTemplatePath, action, isIterator } = props;
+  const { fromTo, usedTemplatePath, action, isIterator, isReadOnly, isEmpty } = props;
 
   const pathSeparator = <b className="mx-1">/</b>;
   return (
     <>
       <ModalBtn
         btnClassName="borderGrey py-1 px-2 btn btn-light back-bor-white shadow-none"
-        btnStyle={{ minWidth: '5rem', textAlign: 'left' }}
+        btnStyle={isEmpty ? {} : { minWidth: '5rem', textAlign: 'left' }}
         btnTitle="Change path"
-        btnContent={() => (
-          <>
-            {pathSeparator}
-            {usedTemplatePath.path.length > 0 &&
-              usedTemplatePath.path.map(action.usePrefix).reduce(joinReduction(pathSeparator) as any)}
-          </>
-        )}
+        btnContent={() =>
+          isEmpty ? (
+            <FaCog />
+          ) : (
+            <>
+              {pathSeparator}
+              {usedTemplatePath.path.length > 0 &&
+                usedTemplatePath.path.map(action.usePrefix).reduce(joinReduction(pathSeparator) as any)}
+            </>
+          )
+        }
         modalTitle={() => (
           <>
-            Change <b>{isIterator ? 'iterator' : fromTo}</b>-path for Action: <b>{action.action.name}</b>
+            <b className="text-capitalize">{isIterator ? 'iterator' : fromTo}</b>-path for Action:{' '}
+            <b>{action.action.name}</b>
           </>
         )}
       >
@@ -170,12 +181,26 @@ const PathBtn = (props: PathBtnProps) => {
           )}
         </div>
         <PropNodeSelection {...props} />
-        <button
-          className="mt-2 btn btn-outline-primary btn-sm"
-          onClick={() => props.setPropertyPath({ id: '', path: [] })}
-        >
-          Set to base path
-        </button>
+        {!isReadOnly && (
+          <>
+            <button
+              className="mt-2 btn btn-outline-primary btn-sm"
+              onClick={() => props.setPropertyPath({ id: '', path: [] })}
+              disabled={isReadOnly}
+            >
+              Set to base path
+            </button>
+            {isIterator && !isEmpty && (
+              <button
+                className="ml-3 mt-2 btn btn-outline-danger btn-sm"
+                onClick={() => props.setPropertyPath(undefined)}
+                disabled={isReadOnly}
+              >
+                Remove Iterator
+              </button>
+            )}
+          </>
+        )}
       </ModalBtn>
     </>
   );
@@ -188,10 +213,11 @@ const PropertyMapRow = ({
   toAction,
   removePropertyMap,
   iterator,
+  isReadOnly,
 }: PropertyMapProps) => {
   // const [modalBothShow, setModalBothShow] = useState(false);
 
-  const setPropertyPath = (fromTo: 'from' | 'to') => (newPropPath: TemplatePath) =>
+  const setPropertyPath = (fromTo: 'from' | 'to') => (newPropPath: TemplatePath | undefined) =>
     setPropertyMap({ ...propertyMap, [fromTo]: newPropPath });
 
   return (
@@ -203,6 +229,7 @@ const PropertyMapRow = ({
           usedTemplatePath={propertyMap.from}
           setPropertyPath={setPropertyPath('from')}
           iterator={iterator}
+          isReadOnly={isReadOnly}
         />
       </td>
       <td>
@@ -214,6 +241,7 @@ const PropertyMapRow = ({
           action={toAction}
           usedTemplatePath={propertyMap.to}
           setPropertyPath={setPropertyPath('to')}
+          isReadOnly={isReadOnly}
         />
       </td>
       <td>
@@ -222,30 +250,12 @@ const PropertyMapRow = ({
           className="close ml-2"
           title="Remove this Actionlink"
           onClick={removePropertyMap}
+          disabled={isReadOnly}
         >
           <span aria-hidden="true">&times;</span>
         </button>
       </td>
     </tr>
-  );
-};
-
-const Radio = ({ name, checked, onChange }: { name: string; checked: boolean; onChange: () => void }) => {
-  const id = uuid();
-  return (
-    <div className="custom-control custom-radio custom-control-inline">
-      <input
-        type="radio"
-        id={id}
-        name={id}
-        className="custom-control-input"
-        checked={checked}
-        onChange={onChange}
-      />
-      <label className="custom-control-label" htmlFor={id}>
-        {name}
-      </label>
-    </div>
   );
 };
 
@@ -255,11 +265,16 @@ const ActionLinkEdit = ({
   source,
   target,
   prefixes,
-  cancelLink,
-  deleteLink,
-  saveLink,
+  cancelClick,
+  deleteClick,
+  saveClick,
+  isReadOnly,
+  onTitleClick,
 }: Props) => {
-  const [link, setLink] = useState<ActionLink>(originalLink);
+  let [link, setLink] = useState<ActionLink>(originalLink);
+  if (isReadOnly) {
+    setLink = () => {};
+  }
 
   const newPropertyMapClick = () =>
     setLink({
@@ -286,9 +301,9 @@ const ActionLinkEdit = ({
     setLink({ ...link, propertyMaps: link.propertyMaps.filter((pMap) => pMap.id !== id) });
 
   return (
-    <div className="m-3 p-3 light-rounded-border">
+    <div>
       <div className="d-flex flexSpaceBetween">
-        <h5 className="mb-2">
+        <h5 className={classNames('mb-2', { pointer: !!onTitleClick })} onClick={onTitleClick}>
           <b>From:</b> {source.action.name} <FaArrowRight /> <b>To:</b> {target.action.name}
         </h5>
         <ModalBtn
@@ -310,6 +325,7 @@ const ActionLinkEdit = ({
           <b className="mr-3" title="Where to attach the action to">
             Iterator:
           </b>
+          {!link.iterator && <span className="italicGrey mr-2">No iterator defined</span>}
           <PathBtn
             action={source}
             fromTo="from"
@@ -322,6 +338,8 @@ const ActionLinkEdit = ({
                 iterator,
               });
             }}
+            isReadOnly={isReadOnly}
+            isEmpty={!link.iterator}
           />
         </div>
 
@@ -346,6 +364,7 @@ const ActionLinkEdit = ({
             )}
           >
             <Radio
+              disabled={isReadOnly}
               name="No condition"
               checked={!link.condition}
               onChange={() => {
@@ -354,6 +373,7 @@ const ActionLinkEdit = ({
               }}
             />
             <Radio
+              disabled={isReadOnly}
               name="JavaScript"
               checked={!!(link.condition && link.condition.type === 'javascript')}
               onChange={() => {
@@ -362,6 +382,7 @@ const ActionLinkEdit = ({
               }}
             />
             <Radio
+              disabled={isReadOnly}
               name="SPARQL"
               checked={!!(link.condition && link.condition.type === 'sparql')}
               onChange={() => {
@@ -400,6 +421,7 @@ const ActionLinkEdit = ({
                   }
                   height="300"
                   resizable={true}
+                  readOnly={isReadOnly}
                 />
               </div>
             )}
@@ -423,6 +445,7 @@ const ActionLinkEdit = ({
                   className="btn btn-outline-primary btn-sm"
                   onClick={newPropertyMapClick}
                   title="Create new property mapping"
+                  disabled={isReadOnly}
                 >
                   <FaPlus />
                 </button>
@@ -446,25 +469,32 @@ const ActionLinkEdit = ({
                   setPropertyMap={setPropertyMap(propertyMap.id)}
                   removePropertyMap={removePropertyMap(propertyMap.id)}
                   iterator={link.iterator}
+                  isReadOnly={isReadOnly}
                 />
               ))
             )}
           </tbody>
         </table>
-        <hr className="mt-4 mb-3" />
-        <div className="d-flex flexSpaceBetween mt-2">
-          <div>
-            <button className="btn btn-primary  mr-2" onClick={() => saveLink(link)}>
-              Save
-            </button>
-            <button className="btn btn-secondary mr-2" onClick={() => cancelLink()}>
-              Cancel
-            </button>
-          </div>
-          <button className="btn btn-outline-danger" onClick={() => deleteLink()}>
-            Delete
-          </button>
-        </div>
+        {!isReadOnly && (
+          <>
+            <hr className="mt-4 mb-3" />
+            <div className="d-flex flexSpaceBetween mt-2">
+              <div>
+                <button className="btn btn-primary  mr-2" onClick={() => saveClick(link)}>
+                  Save
+                </button>
+                <button className="btn btn-secondary mr-2" onClick={() => cancelClick()}>
+                  Cancel
+                </button>
+              </div>
+              {deleteClick && (
+                <button className="btn btn-outline-danger" onClick={() => deleteClick()}>
+                  Delete
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

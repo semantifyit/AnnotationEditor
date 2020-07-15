@@ -10,6 +10,8 @@ export interface EnrichedAction {
   usePrefix: (s: string) => string;
 }
 
+export type ActionStore = ReturnType<typeof useActionStore>;
+
 export const useActionStore = () => {
   const [actions, setActions] = useState<EnrichedAction[]>([]);
 

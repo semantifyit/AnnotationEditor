@@ -2,6 +2,7 @@ import React from 'react';
 import { WebApiConfig } from '../../../../server/src/models/WebApi';
 import { SessionConfig } from './WebApiCreate';
 import Editor from '../Editor';
+import Switch from '../Switch';
 
 interface Props {
   config: WebApiConfig;
@@ -12,6 +13,7 @@ interface Props {
 
 const Configuration = ({ config, setConfig, sessionConfig, setSessionConfig }: Props) => {
   const setUseMapping = (val: boolean) => setConfig({ ...config, useMapping: val });
+  const setEnableVerification = (val: boolean) => setConfig({ ...config, enableVerification: val });
   const setCodeEditor = (val: boolean) => setSessionConfig({ ...sessionConfig, showCodeEditor: val });
 
   const setFunctionVal = (type: 'handlebars' | 'xquery' | 'javascript' | 'rml') => (val: string) =>
@@ -22,30 +24,21 @@ const Configuration = ({ config, setConfig, sessionConfig, setSessionConfig }: P
   return (
     <>
       <h4 className="mb-3">General</h4>
-      <div className="custom-control custom-switch mb-2">
-        <input
-          type="checkbox"
-          className="custom-control-input"
-          id="enableMapping"
-          checked={config.useMapping}
-          onChange={(e) => setUseMapping(e.target.checked)}
-        />
-        <label className="custom-control-label" htmlFor="enableMapping">
-          Enable mapping (coming soon...)
-        </label>
-      </div>
-      <div className="custom-control custom-switch mb-2">
-        <input
-          type="checkbox"
-          className="custom-control-input"
-          id="enableCode"
-          checked={sessionConfig.showCodeEditor}
-          onChange={(e) => setCodeEditor(e.target.checked)}
-        />
-        <label className="custom-control-label" htmlFor="enableCode">
-          Enable Code Editor View
-        </label>
-      </div>
+      <Switch
+        checked={config.useMapping}
+        setChecked={(val) => setUseMapping(val)}
+        name="Enable mapping (coming soon...)"
+      />
+      <Switch
+        checked={config.enableVerification}
+        setChecked={(val) => setEnableVerification(val)}
+        name="Enable action verification (experimental)"
+      />
+      <Switch
+        checked={sessionConfig.showCodeEditor}
+        setChecked={(val) => setCodeEditor(val)}
+        name="Enable Code Editor View"
+      />
       <div className="mb-3" />
       <hr className="mb-5" />
       <h4 className="mb-3">Mapping Languages</h4>

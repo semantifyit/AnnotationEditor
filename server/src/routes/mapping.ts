@@ -3,11 +3,30 @@ import got from 'got';
 
 import { lowering, lifting } from '../mapping';
 import { consumeFullAction, doFn, validateHeaders, validateUrl } from '../util/action';
+import { validateAction } from '../util/verification/verification';
 
 const router = express.Router();
 
 router.post('/lowering', async (req, res) => {
-  const { prefixes, action, config } = req.body;
+  const { prefixes, action, config, templates, potAction } = req.body;
+
+  let verificationReport;
+  if (config.enableVerification) {
+    try {
+      verificationReport = await validateAction(action, potAction, templates, 'input');
+
+      if (verificationReport.length > 0) {
+        res.json({
+          verification: verificationReport,
+        });
+        return;
+      }
+    } catch (e) {
+      console.log(e);
+      res.status(400).json({ err: e.toString() });
+      return;
+    }
+  }
 
   const doLowering = doFn(lowering, action, prefixes, config);
 
@@ -15,6 +34,7 @@ router.post('/lowering', async (req, res) => {
     url: await doLowering(req.body.url),
     headers: await doLowering(req.body.headers),
     body: await doLowering(req.body.body),
+    verification: verificationReport,
   };
 
   resp.url.valid = validateUrl(resp.url.value);
@@ -45,7 +65,7 @@ router.post('/request', async (req, res) => {
 
 router.post('/lifting', async (req, res) => {
   try {
-    const { prefixes, input, actions, config } = req.body;
+    const { prefixes, input, config, potAction, templates } = req.body;
 
     const doLifting = doFn(lifting, input, prefixes, config);
 
@@ -54,8 +74,21 @@ router.post('/lifting', async (req, res) => {
     if (liftOut.success) {
       // const rdf = await addPotentialActions(liftOut.value, links, prefixes, actions);
 
+      const action = liftOut.value;
+      let verificationReport;
+
+      if (config.enableVerification) {
+        try {
+          verificationReport = await validateAction(action, potAction, templates, 'output');
+        } catch (e) {
+          console.log(e);
+          res.status(400).json({ err: e.toString() });
+          return;
+        }
+      }
+
       res.json({
-        body: { value: liftOut.value, success: true },
+        body: { value: action, success: true, verification: verificationReport },
       });
     } else {
       res.json({
@@ -71,7 +104,7 @@ router.post('/lifting', async (req, res) => {
 });
 
 router.post('/full', async (req, res) => {
-  const { prefixes, action, method, url, headers, body, response, actions, config } = req.body;
+  const { prefixes, action, method, url, headers, body, response, config, templates, potAction } = req.body;
 
   try {
     const responseAction = await consumeFullAction(
@@ -80,10 +113,12 @@ router.post('/full', async (req, res) => {
       { body: response },
       prefixes,
       config,
-      actions,
+      templates,
+      potAction,
     );
     res.json({ success: true, value: responseAction });
   } catch (e) {
+    console.log(e);
     res.json({ success: false, value: e.toString() });
   }
 });

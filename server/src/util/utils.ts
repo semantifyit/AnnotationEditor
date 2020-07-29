@@ -1,5 +1,4 @@
 import express from 'express';
-import VocabHandler from '../../../client/src/util/VocabHandler';
 
 export const waitFor = (time: number): Promise<void> =>
   new Promise((res): void => {
@@ -29,6 +28,8 @@ export const withTries = <T, U>(
 export const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 
 export const toArray = <T>(o: T | T[]): T[] => (Array.isArray(o) ? o : [o]);
+
+export const fromArray = <T>(o: T[]): T | T[] => (o.length > 1 ? o : o[0] || []);
 
 export const withTryCatch = async (res: express.Response, fn: () => Promise<void>): Promise<void> => {
   try {

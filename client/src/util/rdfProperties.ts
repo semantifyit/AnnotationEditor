@@ -29,7 +29,7 @@ export const xsdTime = joinNS('xsd', 'time');
 export const xsdDateTime = joinNS('xsd', 'dateTime');
 export const xsdAnyURI = joinNS('xsd', 'anyURI');
 
-export const xsd = toProperties(commonNamespaces.schema, [
+export const xsd = toProperties(commonNamespaces.xsd, [
   'string',
   'decimal',
   'integer',

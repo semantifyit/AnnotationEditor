@@ -46,7 +46,24 @@ export const newTemplateProp = (prop: string, io: TemplatePropertyGroupType): Te
     {
       type: 'template',
       types: ['http://schema.org/Thing'],
-      props: [],
+      props: [
+        {
+          type: 'template',
+          id: uuid(),
+          path: 'http://schema.org/name',
+          range: [
+            {
+              type: 'template',
+              types: ['http://schema.org/Text'],
+              props: [],
+            },
+          ],
+          required: true,
+          multAllowed: false,
+          minCount: 1,
+          maxCount: 1,
+        },
+      ],
     },
   ],
   required: true,
@@ -154,7 +171,10 @@ mappings:
         '@context': { '@vocab': 'http://schema.org/' },
         '@type': 'Action',
         actionStatus: 'http://schema.org/ActiveActionStatus',
-        name: 'foo',
+        object: {
+          '@type': 'Thing',
+          name: 'example',
+        },
       },
       null,
       2,
@@ -214,6 +234,7 @@ export const createEmptyWebApi = (baseUrl: string): WebApi => {
     },
     config: {
       useMapping: true,
+      enableVerification: false,
       handlebars: {
         functions: `Handlebars.registerHelper('toUpper', function (val) {
   return val.toUpperCase();

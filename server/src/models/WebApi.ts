@@ -212,6 +212,7 @@ export interface WebApiConfig {
   javascript: {
     functions: string;
   };
+  enableVerification: boolean;
 }
 
 const WebApiSchema: Schema = new Schema(

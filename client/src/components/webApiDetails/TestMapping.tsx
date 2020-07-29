@@ -21,6 +21,8 @@ interface Props {
   goToRespMapping: () => void;
   actions: Action[];
   config: WebApi['config'];
+  templates: WebApi['templates'];
+  potAction: WebApi['actions'][0]['annotationSrc'];
 }
 
 const TestMapping = ({
@@ -33,6 +35,8 @@ const TestMapping = ({
   prefixes,
   actions,
   config,
+  templates,
+  potAction,
 }: Props) => {
   const [testResults, setTestResults] = useState<{ value: string; success: boolean } | undefined>();
   const [isRunningTest, setIsRunningTest] = useState(false);
@@ -56,6 +60,8 @@ const TestMapping = ({
             prefixes,
             actions,
             config,
+            templates,
+            potAction,
           },
         })
         .json();

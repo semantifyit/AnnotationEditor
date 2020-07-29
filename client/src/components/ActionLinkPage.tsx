@@ -313,7 +313,7 @@ const ActionLinkPage = () => {
               actionStore={actionStore}
               saveClick={saveEditLink}
               cancelClick={cancelEditLink}
-              //deleteClick={deleteEditLink}
+              deleteClick={deleteEditLink}
               isReadOnly={false}
             />
           </div>

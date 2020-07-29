@@ -7,12 +7,16 @@ import isURL from 'validator/lib/isURL';
 import { RequestMappingSave, Action, WebApi } from '../../../../server/src/models/WebApi';
 import Editor from '../Editor';
 import { isOneLevelStringJSON } from '../../util/utils';
+import { VerificationError } from '../../../../server/src/util/verification/verification';
+import VerificationReportBox from './VerificationReportBox';
 
 interface Props {
   requestMapping: RequestMappingSave;
   sampleAction: Action['sampleAction'];
   prefixes: WebApi['prefixes'];
   config: WebApi['config'];
+  templates: WebApi['templates'];
+  potAction: WebApi['actions'][0]['annotationSrc'];
   setSampleAction: (a: Action['sampleAction']) => void;
   setRequestMapping: (arg: any) => void;
   goToRespMapping: () => void;
@@ -39,10 +43,13 @@ const RequestMapping = ({
   setSampleAction,
   prefixes,
   config,
+  templates,
+  potAction,
 }: Props) => {
   const [testResults, setTestResults] = useState<
     Record<MappingPart, { value: string; success: boolean; valid?: string }> | undefined
   >();
+  const [verificationResults, setVerificationResults] = useState<VerificationError[] | undefined>();
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [requestResult, setRequestResult] = useState<any | undefined>();
 
@@ -108,14 +115,17 @@ const RequestMapping = ({
             body: requestMapping.body,
             config,
             prefixes,
+            templates,
+            potAction,
           },
         })
         .json();
+      setVerificationResults(res.verification);
       setTestResults(res);
-      setIsRunningTest(false);
     } catch (e) {
       console.log(e);
     }
+    setIsRunningTest(false);
   };
 
   const tryRequest = async () => {
@@ -219,7 +229,8 @@ const RequestMapping = ({
         </div>
         <div id="split2" className="split pl-2">
           <h4 className="mb-3">Request</h4>
-          {testResults ? (
+          {verificationResults && <VerificationReportBox report={verificationResults} />}
+          {testResults && (
             <>
               <TestResult type="url" warning={validateUrl(testResults.url.value)} />
               <TestResult type="headers" warning={validateHeaders(testResults.headers.value)} />
@@ -232,9 +243,8 @@ const RequestMapping = ({
                 Try Request {isRunningTest ? <FaCircleNotch className="icon-spin" /> : <FaPlay />}
               </button>
             </>
-          ) : (
-            <span className="italicGrey">No test has run</span>
           )}
+          {!verificationResults && !testResults && <span className="italicGrey">No test has run</span>}
         </div>
       </div>
       {requestResult &&

@@ -422,6 +422,7 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
   const [id, setId] = useState(params.id);
   const [webApi, setWebApi, isLoadingWebApi] = useWebApi(baseUrl, id);
   const [availableVocabs, setAvailableVocabs, isLoadingVocabs] = useAvailableVocabs();
+  const [triedSettingVocabs, setTriedSettingVocabs] = useState(false);
   const [sessionConfig, setSessionConfig] = useSessionConfig();
 
   const [page, setPage] = useState<SelectedPage>({ type: 'main', main: 0, sub: 0 }); //({ type: 'main', main: 0, sub: 0 });
@@ -443,12 +444,15 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
   };
 
   // only for now set default selected vocabs hardcoded, in future dynamic selection (e.g per user)
-  if (availableVocabs.length > 0 && webApi.vocabs.length === 0) {
-    setSelectedVocabs(
-      availableVocabs
-        .filter((v) => v.name === 'Schema.org' || v.name === 'Schema.org Pending')
-        .map(({ _id }) => _id),
-    );
+  if (!triedSettingVocabs) {
+    if (availableVocabs.length > 0 && webApi.vocabs.length === 0) {
+      setSelectedVocabs(
+        availableVocabs
+          .filter((v) => v.name === 'Schema.org' || v.name === 'Schema.org Pending')
+          .map(({ _id }) => _id),
+      );
+      setTriedSettingVocabs(true);
+    }
   }
 
   const namesCount = (names: string[], defaultName: string): number =>
@@ -659,6 +663,8 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
               setSampleAction={setSampleAction}
               prefixes={webApi.prefixes}
               config={webApi.config}
+              templates={webApi.templates}
+              potAction={webApi.actions[annIndex].annotationSrc}
             />
           );
         }
@@ -689,6 +695,8 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
                 annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),
               }))}
               config={webApi.config}
+              templates={webApi.templates}
+              potAction={webApi.actions[annIndex].annotationSrc}
             />
           );
         }
@@ -714,6 +722,8 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
                 annotation: actionToAnnotation(rdfBaseUrl, action, vocabHandler, webApi.templates),
               }))}
               config={webApi.config}
+              templates={webApi.templates}
+              potAction={webApi.actions[annIndex].annotationSrc}
             />
           );
         }

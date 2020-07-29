@@ -6,6 +6,8 @@ import { stringIsValidJSON, switchCase } from '../../util/utils';
 import { ResponseMappingSave, Action, WebApi } from '../../../../server/src/models/WebApi';
 import Editor from '../Editor';
 import ky from 'ky';
+import { VerificationReport } from '../../../../server/src/util/verification/verification';
+import VerificationReportBox from './VerificationReportBox';
 
 // import { WebApi } from '../../../../server/src/models/WebApi';
 
@@ -13,6 +15,8 @@ interface Props {
   responseMapping: ResponseMappingSave;
   prefixes: WebApi['prefixes'];
   sampleResponse: Action['sampleResponse'];
+  templates: WebApi['templates'];
+  potAction: WebApi['actions'][0]['annotationSrc'];
   setResponseMapping: (arg: any) => void;
   goToTestMapping: () => void;
   goToReqMapping: () => void;
@@ -35,8 +39,12 @@ const ResponseMapping = ({
   prefixes,
   actions,
   config,
+  templates,
+  potAction,
 }: Props) => {
-  const [testResults, setTestResults] = useState<{ value: string; success: boolean } | undefined>();
+  const [testResults, setTestResults] = useState<
+    { value: string; success: boolean; verification?: VerificationReport } | undefined
+  >();
   const [isRunningTest, setIsRunningTest] = useState(false);
 
   useEffect(() => {
@@ -54,6 +62,8 @@ const ResponseMapping = ({
             prefixes,
             actions,
             config,
+            templates,
+            potAction,
           },
         })
         .json();
@@ -123,6 +133,7 @@ const ResponseMapping = ({
         </div>
         <div id="split2" className="split pl-2">
           <h4 className="mb-3">Action Response</h4>
+          {testResults?.verification && <VerificationReportBox report={testResults.verification} />}
           {testResults ? (
             <>
               {testResults.success ? (

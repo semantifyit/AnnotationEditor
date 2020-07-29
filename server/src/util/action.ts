@@ -3,6 +3,7 @@ import isURL from 'validator/lib/isURL';
 import WebApis, { Action, WebApi } from '../models/WebApi';
 import { lifting, lowering } from '../mapping';
 import got from 'got';
+import { validateAction } from './verification/verification';
 
 export const doFn = (fn: any, input: string, prefixes: any, config: any) => async (mapping: {
   value: string;
@@ -42,8 +43,16 @@ export const consumeFullAction = async (
   responseMapping: Pick<Action['responseMapping'], 'body'>,
   prefixes: WebApi['prefixes'],
   config: WebApi['config'],
-  unsavedActions?: Action[],
+  templates: WebApi['templates'],
+  potAction: Action['annotationSrc'],
 ): Promise<void | string> => {
+  if (config.enableVerification) {
+    const verificationReport = await validateAction(action, potAction, templates, 'input');
+    if (verificationReport.length > 0) {
+      throw new Error(`Verification of active Action failed`);
+    }
+  }
+
   const doLowering = doFn(lowering, action, prefixes, config);
 
   const urlOut = await doLowering(requestMapping.url);
@@ -90,6 +99,13 @@ export const consumeFullAction = async (
   const liftOut = await doLifting(responseMapping.body);
   if (!liftOut.success) {
     throw new Error(liftOut.value);
+  }
+
+  if (config.enableVerification) {
+    const verificationReport = await validateAction(liftOut.value, potAction, templates, 'output');
+    if (verificationReport.length > 0) {
+      throw new Error(`Verification of completed/failed Action failed`);
+    }
   }
 
   return liftOut.value;

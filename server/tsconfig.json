@@ -12,7 +12,8 @@
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowJs": true
   },
   "include": ["declarations.d.ts", "src/**/*" ]
 }

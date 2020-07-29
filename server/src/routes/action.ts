@@ -18,6 +18,8 @@ router.post('/:id', async (req, res) => {
       action.responseMapping,
       webApi.prefixes,
       webApi.config,
+      webApi.templates,
+      action.annotationSrc,
     );
 
     res.json(resp);

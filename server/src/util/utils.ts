@@ -7,12 +7,14 @@ export const waitFor = (time: number): Promise<void> =>
     }, time);
   });
 
-export const withTries = <T, U>(
-  fn: (...args: U[]) => Promise<T>,
-  numTries = 10,
+export const withTries = <T extends (...args: any[]) => Promise<any>>(
+  fn: T,
+  numTries = 3,
   timeout = 1000,
-): ((...args: U[]) => Promise<T>) => (...args: U[]): Promise<T> => {
-  const retry = async (n = numTries): Promise<T> => {
+): ((...args: Parameters<T>) => Promise<ReturnType<T>>) => (
+  ...args: Parameters<T>
+): Promise<ReturnType<T>> => {
+  const retry = async (n: number): Promise<ReturnType<T>> => {
     try {
       const ret = await fn(...args);
       return ret;
@@ -22,7 +24,7 @@ export const withTries = <T, U>(
       return retry(n - 1);
     }
   };
-  return retry();
+  return retry(numTries);
 };
 
 export const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));

@@ -1,4 +1,5 @@
 import { WebApiLeanDoc as WebApi } from '../models/WebApi';
+import config from '../config';
 
 export interface EnrichedWebApi extends Omit<WebApi, 'actions'> {
   actionStats: {
@@ -24,3 +25,10 @@ export const enrichWebApi = (webApi: WebApi): EnrichedWebApi => {
   };
   return { ...webApi, ...enrichedWebAPI };
 };
+
+export const webApiToGN = (webApi: WebApi): string => `${config.baseUrl}/graphs/${webApi.id}`;
+
+export const webApiToRdf = (webApi: WebApi) => [
+  JSON.parse(webApi.annotation),
+  ...webApi.actions.map((a) => JSON.parse(a.annotation)),
+];

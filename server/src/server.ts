@@ -1,5 +1,8 @@
-import * as mongo from './loaders/mongo';
+import dotenv from 'dotenv';
+dotenv.config();
+
 import app from './loaders/app';
+import * as mongo from './loaders/mongo';
 import config from './config';
 
 mongo.connect().then(() => {

@@ -2,6 +2,7 @@ import { Document } from 'mongoose';
 
 interface MetaProps {
   _id: string;
+  __v: string;
   createdAt: string;
   updatedAt: string;
 }

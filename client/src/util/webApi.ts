@@ -87,7 +87,7 @@ const newTerminalNode = (range: string) => (
 
 const newSchemaTextNode = newTerminalNode('http://schema.org/Text');
 
-export const createEmptyAction = (numSameName: number, webApiId: string, baseUrl: string): Action => {
+export const createEmptyAction = (numSameName: number, baseUrl: string): Action => {
   const name = `${defaultNewActionName}${sameNameBracket(numSameName)}`;
   const actionId = uuid();
   return {
@@ -117,7 +117,7 @@ export const createEmptyAction = (numSameName: number, webApiId: string, baseUrl
               newSchemaTextNode('httpMethod', 'POST', 'disabled'),
               newSchemaTextNode('contentType', 'application/ld+json', 'disabled'),
               newSchemaTextNode('encodingType', 'application/ld+json', 'disabled'),
-              newSchemaTextNode('urlTemplate', `${baseUrl}/api/action/${webApiId}/${actionId}`, 'disabled'),
+              newSchemaTextNode('urlTemplate', `${baseUrl}/api/action/${actionId}`, 'disabled'),
             ],
           },
           range: 'http://schema.org/EntryPoint',
@@ -225,7 +225,7 @@ export const createEmptyWebApi = (baseUrl: string): WebApi => {
         },
       ],
     },
-    actions: [createEmptyAction(0, webApiId, baseUrl)],
+    actions: [createEmptyAction(0, baseUrl)],
     vocabs: defaultVocabsIds,
     prefixes: {
       '': commonNamespaces.schema,

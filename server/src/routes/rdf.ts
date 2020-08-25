@@ -18,7 +18,7 @@ router.get('/webapi/:id', async (req, res) => {
 
 router.get('/action/:id', async (req, res) => {
   try {
-    const action = await getActionById(req.params.id);
+    const { action } = await getActionById(req.params.id);
     res.setHeader('content-type', 'application/ld+json');
     res.send(action.annotation);
   } catch {

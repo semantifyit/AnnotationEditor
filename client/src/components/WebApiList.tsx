@@ -35,7 +35,6 @@ const confirmDelete = async (webApi: WebApi, deleteWebApi: (id: string) => void)
     // eslint-disable-next-line no-alert
     window.confirm(`Are you sure you wish to delete the WebAPI entry for ${getNameOfWebApi(webApi)}`)
   ) {
-    // TODO delete
     try {
       await ky.delete(`/api/webApi/${webApi._id}`);
       deleteWebApi(webApi._id);

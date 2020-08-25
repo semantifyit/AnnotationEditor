@@ -1,7 +1,7 @@
 import express from 'express';
 
 import WebApis, { WebApiLeanDoc as WebApi } from '../models/WebApi';
-import { consumeFullAction, getActionLinkById } from '../util/action';
+import { consumeFullAction, getActionById } from '../util/action';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.post('/:id', async (req, res) => {
   try {
     const { body } = req;
 
-    const { action, webApi } = await getActionLinkById(req.params.id);
+    const { action, webApi } = await getActionById(req.params.id);
 
     const actionInput = typeof body === 'object' ? JSON.stringify(body) : body;
     const resp = await consumeFullAction(

@@ -111,31 +111,14 @@ export const consumeFullAction = async (
   return liftOut.value;
 };
 
-export const getActionById = async (id: string, unsavedActions?: Action[]): Promise<Action> => {
-  if (unsavedActions) {
-    const unsavedAction = unsavedActions.find((a) => a.id === id);
-    if (unsavedAction) {
-      return unsavedAction;
-    }
-  }
-  const webAPI: WebApi = await WebApis.findOne({ 'actions.id': id }).lean();
+export const getActionById = async (id: string): Promise<{ action: Action; webApi: WebApi }> => {
+  const webApi: WebApi = await WebApis.findOne({ 'actions.id': id }).lean();
 
-  if (!webAPI) {
+  if (!webApi) {
     throw new Error(`Action ${id} not found`);
   }
 
-  const action = webAPI.actions.find((a) => a.id === id);
-  if (!action) {
-    throw new Error(`Action ${id} not found`);
-  }
-
-  return action;
-};
-
-export const getActionLinkById = async (id: string): Promise<{ action: Action; webApi: WebApi }> => {
-  const webApi: WebApi = await WebApis.findOne({ 'action.': id }).lean();
-
-  const action = webApi.actions.find(({ id }) => id === id);
+  const action = webApi.actions.find((a) => a.id === id);
   if (!action) {
     throw new Error(`Action ${id} not found`);
   }

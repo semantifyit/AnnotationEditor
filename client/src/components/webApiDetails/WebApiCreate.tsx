@@ -144,7 +144,7 @@ const WebAPIDetailsPage = ({
         <ul className="navbar-nav px-3">
           <li className="nav-item text-nowrap">
             <button onClick={save} className="btn btn-success py-1" disabled={disableSaveBtn}>
-              <FaSave /> Save
+              <FaSave /> Save {disableSaveBtn && <Loading />}
             </button>
           </li>
         </ul>
@@ -473,7 +473,7 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
       defaultNewActionName,
     );
 
-    newWebApi.actions.push(createEmptyAction(actionsWithDefaultName, webApi.id, baseUrl));
+    newWebApi.actions.push(createEmptyAction(actionsWithDefaultName, baseUrl));
     setWebApi(newWebApi);
     setPage(newPage('actions', newWebApi.actions.length - 1, 0));
   };

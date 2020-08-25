@@ -1,11 +1,14 @@
 import express from 'express';
 
-import WebApi, { WebApiLeanDoc as IWebApi } from '../models/WebApi';
+import WebApi, { WebApiLeanDoc, WebApiLeanDoc as IWebApi } from '../models/WebApi';
 import GraphDB from '../util/graphdb';
-import { enrichWebApi } from '../util/webApi';
+import { enrichWebApi, webApiToGN, webApiToRdf } from '../util/webApi';
 import { withTryCatch } from '../util/utils';
+import config from '../config';
 
 const router = express.Router();
+
+const withGraphdb = config.graphdb.enabled;
 
 router.get('/actions', (req, res) => {
   withTryCatch(res, async () => {
@@ -63,7 +66,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/:id/export', async (req, res) => {
   try {
-    const result = await WebApi.findById(req.params.id).lean();
+    const result: WebApiLeanDoc = await WebApi.findById(req.params.id).lean();
     if (!result) {
       res.status(404).json({ err: `WebApi with id ${req.params.id} not found` });
       return;
@@ -88,9 +91,10 @@ router.post('/', async (req, res) => {
       return;
     }
 
-    /*
-    await GraphDB.post(...webAPIToAnn(result));
-    */
+    if (withGraphdb) {
+      const rdf = webApiToRdf(result);
+      await GraphDB.post(webApiToGN(result), rdf);
+    }
 
     res.json(enrichWebApi(result.toObject()));
   } catch (e) {
@@ -108,19 +112,17 @@ router.patch('/:id', async (req, res) => {
       return;
     }
 
-    const newResult = await WebApi.findByIdAndUpdate(req.params.id, req.body, {
+    const newResult: WebApiLeanDoc = await WebApi.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     }).lean();
 
-    /*
-    const oldGN = webAPIToGN(oldResult);
-    const [newGN, webAPI] = webAPIToAnn(newResult);
+    if (withGraphdb) {
+      const oldGN = webApiToGN(oldResult);
+      const newGN = webApiToGN(newResult);
+      const rdf = webApiToRdf(newResult);
 
-    await GraphDB.upsert(
-      newGN === oldGN ? newGN : { old: oldGN, new: newGN },
-      webAPI,
-    );
-    */
+      await GraphDB.upsert(newGN === oldGN ? newGN : { old: oldGN, new: newGN }, rdf);
+    }
 
     res.json(newResult);
   } catch (e) {
@@ -131,14 +133,16 @@ router.patch('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await WebApi.findByIdAndDelete(req.params.id).lean();
+    const result: WebApiLeanDoc = await WebApi.findByIdAndDelete(req.params.id).lean();
 
     if (!result) {
       res.status(404).json({ err: `WebApi with id ${req.params.id} not found` });
       return;
     }
 
-    // await GraphDB.delete(webAPIToGN(result));
+    if (withGraphdb) {
+      await GraphDB.delete(webApiToGN(result));
+    }
 
     res.json(result);
   } catch (e) {

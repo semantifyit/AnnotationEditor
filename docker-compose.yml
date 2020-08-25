@@ -6,7 +6,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - 8012:8012
+      - 8009:8009
 
   mongodb:
     image: mongo:latest

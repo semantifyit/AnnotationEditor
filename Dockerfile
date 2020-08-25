@@ -28,6 +28,6 @@ COPY --from=builder /usr/src/app/server/dist dist
 
 USER node
 
-EXPOSE 8012
+EXPOSE 8009
 
 CMD ["node", "./dist/server"]

@@ -1,7 +1,7 @@
 export default {
   version: '1.0.0',
-  port: 8012,
-  baseUrl: process.env.LOCAL ? 'http://localhost:8012' : 'https://actions.semantify.it',
+  port: 8009,
+  baseUrl: process.env.LOCAL ? 'http://localhost:8009' : 'https://actions.semantify.it',
   graphdb: {
     enabled: true,
     url: 'https://graphdb.sti2.at',

@@ -447,9 +447,7 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
   if (!triedSettingVocabs) {
     if (availableVocabs.length > 0 && webApi.vocabs.length === 0) {
       setSelectedVocabs(
-        availableVocabs
-          .filter((v) => v.name === 'Schema.org' || v.name === 'Schema.org Pending')
-          .map(({ _id }) => _id),
+        availableVocabs.filter((v) => v.name.toLowerCase().includes('schema.org')).map(({ _id }) => _id),
       );
       setTriedSettingVocabs(true);
     }

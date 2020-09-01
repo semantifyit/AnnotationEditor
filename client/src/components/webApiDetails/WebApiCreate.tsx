@@ -428,11 +428,6 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
   const [page, setPage] = useState<SelectedPage>({ type: 'main', main: 0, sub: 0 }); //({ type: 'main', main: 0, sub: 0 });
   const [isSaving, setIsSaving] = useState(false);
 
-  useHotkeys('ctrl+s', (e) => {
-    e.preventDefault();
-    save();
-  });
-
   // console.log(page, subPage);
 
   const isReady = !isLoadingVocabs && !isLoadingWebApi;
@@ -798,6 +793,16 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
 
     setIsSaving(false);
   };
+
+  useHotkeys(
+    'ctrl+s',
+    (e) => {
+      e.preventDefault();
+      save();
+    },
+    {},
+    [save],
+  );
 
   // call here to set title variable
   const detailsPage = getDetailsPage();

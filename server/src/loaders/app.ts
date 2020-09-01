@@ -13,7 +13,7 @@ import configRouter from '../routes/config';
 
 const app = express();
 
-app.use(parser.json({ limit: '5mb' }));
+app.use(parser.json({ limit: '10mb' }));
 app.use(morgan('dev'));
 
 app.use('/api/vocab', vocabRouter);

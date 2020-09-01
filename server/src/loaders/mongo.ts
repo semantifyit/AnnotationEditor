@@ -5,6 +5,7 @@ export const connect = async (db = 'actions'): Promise<void> => {
   mongoose.set('useCreateIndex', true);
   mongoose.set('useFindAndModify', false);
   try {
+    console.log('connecting to mongo: ', config.mongoUrl + db);
     await mongoose.connect(config.mongoUrl + db, {
       useNewUrlParser: true,
       useUnifiedTopology: true,

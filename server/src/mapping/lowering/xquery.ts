@@ -73,6 +73,10 @@ export const xquery = (mapping: string, spp: SPP, config: any): string => {
     return slimdomParser.sync(e);
   });
 
+  registerCustomXPathFunction('fn:serialize', ['item()'], 'xs:string', (_, e) => {
+    return slimdom.serializeToWellFormedString(e);
+  });
+
   const output = evaluateXPath(mapping, null, null, null, evaluateXPath.ANY_TYPE, {
     language: evaluateXPath.XQUERY_3_1_LANGUAGE,
     nodesFactory: new slimdom.Document() as any,

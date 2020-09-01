@@ -44,6 +44,7 @@ const AddVocab = ({ addVocab }: Props) => {
       setFinalMessage(['success', 'Successfully addded vocabulary, you may close this window']);
       addVocab(result as Vocab);
     } catch (e) {
+      setIsLoading(false);
       setFinalMessage(['danger', `Some error happened during the upload: ${e.toString()}`]);
     }
   };

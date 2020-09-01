@@ -25,7 +25,7 @@ export const doFn = (fn: any, input: string, prefixes: any, config: any) => asyn
     return { value: out, success: true };
   } catch (e) {
     // console.log('Error');
-    // console.log(e);
+    console.log(e);
     return { value: e.toString(), success: false };
   }
 };

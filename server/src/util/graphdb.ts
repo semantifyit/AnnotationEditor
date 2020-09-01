@@ -7,8 +7,13 @@ const graphDbBaseUrl = `${config.graphdb.url}/repositories/${config.graphdb.repo
 
 const toBase64 = (str: string) => Buffer.from(str).toString('base64');
 
+if (config.graphdb.enabled) {
+  console.log(`Graphdb enabled with url: ${config.graphdb.url}`);
+}
+
 let client = got.extend();
 if (config.graphdb.username && config.graphdb.password) {
+  console.log(`Graphdb authorization: user <${config.graphdb.username}> pw <${config.graphdb.password}>`);
   const auth = `Basic ${toBase64(`${config.graphdb.username}:${config.graphdb.password}`)}`;
   client = got.extend({
     headers: {

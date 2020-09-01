@@ -46,7 +46,7 @@ router.post('/lowering', async (req, res) => {
 router.post('/request', async (req, res) => {
   const { method, url, headers, body: reqBody } = req.body;
   let body = reqBody;
-  if (method !== 'POST' || method !== 'PATH' || method !== 'PUT') {
+  if (method !== 'POST' && method !== 'PATH' && method !== 'PUT') {
     body = undefined;
   }
 
@@ -59,6 +59,7 @@ router.post('/request', async (req, res) => {
     });
     res.json({ statusCode: resp.statusCode, headers: JSON.stringify(resp.headers), body: resp.body });
   } catch (e) {
+    console.log(e.response.body);
     res.json({ error: e.toString() });
   }
 });
@@ -91,6 +92,7 @@ router.post('/lifting', async (req, res) => {
         body: { value: action, success: true, verification: verificationReport },
       });
     } else {
+      console.log(liftOut);
       res.json({
         body: liftOut,
       });

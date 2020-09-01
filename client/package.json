@@ -22,7 +22,7 @@
     "react-icons": "^3.9.0",
     "react-resize-detector": "^4.2.1",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.4.1",
+    "react-scripts": "^3.4.3",
     "react-select": "^3.0.8",
     "react-sortable-hoc": "^1.11.0",
     "react-split": "^2.0.7",
@@ -36,9 +36,9 @@
     "validator": "^13.0.0"
   },
   "scripts": {
+    "analyze": "source-map-explorer 'build/static/js/*.js'",
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "build": "react-scripts build","test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "proxy": "http://localhost:8009",
@@ -71,6 +71,7 @@
     "@types/react-select": "^3.0.10",
     "@types/react-toastify": "^4.1.0",
     "@types/uuid": "^3.4.7",
-    "@types/validator": "^13.0.0"
+    "@types/validator": "^13.0.0",
+    "source-map-explorer": "^2.5.0"
   }
 }

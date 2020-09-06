@@ -22,7 +22,7 @@ router.post('/:id', async (req, res) => {
       action.annotationSrc,
     );
 
-    res.json(resp);
+    res.send(resp);
   } catch (e) {
     //console.log(e.stack);
     // req.body.actionStatus = 'FailedActionStatus';

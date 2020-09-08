@@ -38,7 +38,7 @@
   "scripts": {
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "start": "react-scripts start",
-    "build": "CI=true GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -74,5 +74,9 @@
     "@types/uuid": "^3.4.7",
     "@types/validator": "^13.0.0",
     "source-map-explorer": "^2.5.0"
+  },
+  "resolutions": {
+    "**/@typescript-eslint/parser": "4.0.1",
+    "**/@typescript-eslint/eslint-plugin": "4.0.1"
   }
 }

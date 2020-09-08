@@ -13,9 +13,6 @@ import {
   isUri,
 } from './utils';
 
-type ReservedNames = '@ids' | '@type';
-type FooName = Exclude<string, ReservedNames>;
-
 type Node = {
   '@id': string;
   '@type'?: string[];

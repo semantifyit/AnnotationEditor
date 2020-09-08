@@ -125,8 +125,9 @@ const WebAPIDetailsPage = ({
 
   useEffect(() => {
     // TODO update eslint bug https://github.com/typescript-eslint/typescript-eslint/issues/1138
-    // eslint-disable-next-line no-unused-expressions
-    editRef?.current?.focus();
+    if (editRef?.current?.focus) {
+      editRef.current.focus();
+    }
   }, [editingPage]);
 
   const saveEditClick = (type: 'actions' | 'templates', index: number) => {

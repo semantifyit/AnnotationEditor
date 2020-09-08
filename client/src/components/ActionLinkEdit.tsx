@@ -97,7 +97,7 @@ const ExpandedTemplatePropertySelection = ({
   );
 };
 
-interface SelectionContext {
+interface ISelectionContext {
   setPropertyPath: (p: TemplatePath) => void;
   usedTemplatePath: TemplatePath;
   usePrefix: (s: string) => string;
@@ -105,7 +105,7 @@ interface SelectionContext {
 
 const fromToToInOut = (fromTo: 'from' | 'to') => (fromTo === 'from' ? 'output' : 'input');
 
-const SelectionContext = React.createContext<SelectionContext>({} as SelectionContext);
+const SelectionContext = React.createContext<ISelectionContext>({} as ISelectionContext);
 
 const PropNodeSelection = ({
   fromTo,

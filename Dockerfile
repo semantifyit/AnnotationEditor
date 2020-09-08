@@ -7,8 +7,8 @@ COPY server/package*.json /usr/src/app/server/
 RUN cd /usr/src/app/server && npm i
 
 COPY client/package*.json /usr/src/app/client/
-RUN cd /usr/src/app/client && npm i
-
+COPY client/yarn.lock /usr/src/app/client/yarn.lock
+RUN cd /usr/src/app/client && yarn
 
 COPY server/ /usr/src/app/server/
 RUN cd /usr/src/app/server && npm run build

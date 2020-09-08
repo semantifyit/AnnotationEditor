@@ -43,7 +43,9 @@ const Vocabularies = ({
   useEffect(() => {
     // TODO update eslint bug https://github.com/typescript-eslint/typescript-eslint/issues/1138
     // eslint-disable-next-line no-unused-expressions
-    inputRef?.current?.focus();
+    if (inputRef?.current?.focus) {
+      inputRef?.current?.focus();
+    }
   }, [editIndex]);
 
   const vocabProcs = availableVocabs

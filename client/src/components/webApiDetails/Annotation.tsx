@@ -30,7 +30,6 @@ import {
   Template,
   TemplateRessourceDesc,
   RessourceDesc,
-  ActionRessourceDesc,
 } from '../../../../server/src/models/WebApi';
 import VocabHandler, { sortNodeDetails, NodeDetails, Restriction } from '../../util/VocabHandler';
 import {
@@ -58,10 +57,6 @@ const SortableListItem = SortableElement(({ children }: any) => <div>{children}<
 const DragHandle = SortableHandle(({ children }: any) => <span className="row-resize">{children}</span>);
 const SortableList = SortableContainer(({ children }: any) => <div>{children}</div>);
 
-type voidFn<T> = (arg: T) => void;
-
-type DefRessourceDesc = RessourceDesc | ActionRessourceDesc | TemplateRessourceDesc;
-
 interface Props {
   baseType: string;
   annotation: DefaultRessourceDesc;
@@ -79,7 +74,7 @@ type PathValue<T = any> = { path: Path; value: T };
 type SetPathVal = (pv: PathValue | PathValue[]) => void;
 type RemovePath = (path: Path) => void;
 
-interface AnnotationContext {
+interface IAnnotationContext {
   setPathVal: SetPathVal;
   removePath: RemovePath;
   vocabHandler: VocabHandler;
@@ -87,7 +82,7 @@ interface AnnotationContext {
   potTemplates: Template[];
 }
 
-const AnnotationContext = React.createContext<AnnotationContext>({} as AnnotationContext);
+const AnnotationContext = React.createContext<IAnnotationContext>({} as IAnnotationContext);
 
 const Annotation = ({
   baseType,
@@ -637,7 +632,7 @@ interface TemplateProps extends PropProps {
 const isDefaultRange = (r: TemplatePropertyRange): r is TemplateRessourceDesc =>
   'type' in r && r.type === 'template';
 
-const templateRangeSelectionPopover = ({ prop, path }: TemplateProps, context: AnnotationContext) => {
+const templateRangeSelectionPopover = ({ prop, path }: TemplateProps, context: IAnnotationContext) => {
   const { setPathVal, removePath, vocabHandler, potTemplates } = context;
   const defaultRanges = vocabHandler.getRanges(prop.path);
 

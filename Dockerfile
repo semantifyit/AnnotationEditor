@@ -25,6 +25,7 @@ WORKDIR /usr/src/app/server
 COPY --from=builder /usr/src/app/client/build ../client/build
 COPY --from=builder /usr/src/app/server/node_modules ./node_modules
 COPY --from=builder /usr/src/app/server/dist dist
+COPY --from=builder /usr/src/app/server/.env* ./
 
 USER node
 

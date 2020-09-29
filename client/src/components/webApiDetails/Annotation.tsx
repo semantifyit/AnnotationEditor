@@ -41,6 +41,7 @@ import {
   prettyJsonStr,
   pluck,
   createSelectOption,
+  fromArray,
 } from '../../util/utils';
 import * as p from '../../util/rdfProperties';
 import '../../styles/annotation.css';
@@ -853,7 +854,10 @@ const AdvRestrInput = (
             options={options}
             defaultValue={options?.filter(({ value }) => prop[name as SchaclRestrPairProps]?.includes(value))}
             onChange={(e: any) => {
-              const newValues = e ? toArray(e as any)?.map(({ value }) => value) : [];
+              let newValues = e ? toArray(e as any)?.map(({ value }) => value) : [];
+              if (!isMultiSelect) {
+                newValues = fromArray(newValues);
+              }
               const changes: Changes = [[name, newValues.length > 0 ? newValues : undefined]];
               setVal(changes);
             }}
@@ -1002,7 +1006,7 @@ const TemplateRange = (props: TemplateProps & { nodeRangeOptions: string[] }) =>
                 <AdvRestrInput
                   name="nodeKind"
                   type="select"
-                  options={shaclNodeKinds.map(createSelectOption)}
+                  options={shaclNodeKinds.map((v) => ({ label: v, value: p.joinNS('sh', v) }))}
                   isMultiSelect={false}
                   {...props}
                 />

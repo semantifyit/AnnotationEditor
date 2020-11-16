@@ -67,6 +67,8 @@ export const schemaURL = joinNS('schema', 'URL');
 export const schemaDomainIncludes = joinNS('schema', 'domainIncludes');
 export const schemaEnumeration = joinNS('schema', 'Enumeration');
 export const schemaQuantity = joinNS('schema', 'Quantity');
+export const schemaDistance = joinNS('schema', 'Distance');
+export const schemaDuration = joinNS('schema', 'Duration');
 export const schemaDataType = joinNS('schema', 'DataType');
 export const schemaRangeIncludes = joinNS('schema', 'rangeIncludes');
 export const schemaText = joinNS('schema', 'Text');
@@ -210,6 +212,8 @@ export const terminalNodes = [
   schemaDateTime,
   // special case schema
   schemaQuantity,
+  schemaDistance,
+  schemaDuration,
   // own terminals
 ];
 

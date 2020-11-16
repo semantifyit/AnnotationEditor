@@ -59,7 +59,7 @@ router.post('/request', async (req, res) => {
     });
     res.json({ statusCode: resp.statusCode, headers: JSON.stringify(resp.headers), body: resp.body });
   } catch (e) {
-    console.log(e.response.body);
+    console.log(e.response?.body);
     res.json({ error: e.toString() });
   }
 });

@@ -43,6 +43,7 @@ import {
   getNameOfAction,
   setNameOfAction,
   getNameOfWebApi,
+  templateHasDepsTo,
 } from '../../util/webApi';
 import { clone, memoize, maxOfArray, Optional } from '../../util/utils';
 import Annotation from './Annotation';
@@ -744,6 +745,8 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
       };
       const template = webApi.templates[templateIndex];
 
+      const potTemplates = webApi.templates.filter((t) => !templateHasDepsTo(t, template, webApi.templates));
+
       return (
         <Template
           key={templateIndex}
@@ -752,7 +755,7 @@ const WebApiDetailPage = ({ globalConfig }: { globalConfig: GlobalConfig }) => {
           setAnnotation={setAnnotation}
           vocabHandler={vocabHandler}
           config={webApi.config}
-          potTemplates={webApi.templates}
+          potTemplates={potTemplates}
           getAnnotation={() => templateToAnnotation(rdfBaseUrl, template, vocabHandler, webApi.templates)}
           sessionConfig={sessionConfig}
         />

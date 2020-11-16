@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactResizeDetector from 'react-resize-detector';
 import 'ace-builds';
 import 'ace-builds/webpack-resolver';
@@ -39,6 +39,15 @@ const Editor = ({
   const onResize = (w: number, h: number) => {
     if (h > 40) setHeight(h);
   };
+
+  // with split.js and ace inside, it has some weird behaviour that disappears once the height is changed
+  // The following is really hacky was of "fixing" that, but for now is fine:)
+  // from https://github.com/securingsincity/react-ace/issues/708
+  useEffect(() => {
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+  }, []);
 
   return (
     <div style={{ border: '1px solid lightgrey', minHeight: '30px' }} className={classNames({ resizable })}>

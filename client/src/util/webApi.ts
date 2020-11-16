@@ -216,7 +216,7 @@ export const createEmptyWebApi = (baseUrl: string): WebApi => {
             types: ['http://schema.org/CreativeWork'],
             props: [
               newSchemaTextNode('name', 'Documentation', 'unremovable'),
-              newSchemaTextNode('url', `${baseUrl}/${webApiId}`, 'disabled'),
+              newSchemaTextNode('url', `${baseUrl}/api/rdf/webapi/${webApiId}`, 'disabled'),
               newSchemaTextNode('encodingFormat', 'application/ld+json', 'unremovable'),
               newSchemaTextNode('version', '1.0.0', 'unremovable'),
             ],
@@ -363,12 +363,21 @@ export const expandTemplateProp = (
   };
 };
 
-// export const replaceAnnotationTemplates = (
-//   annotation: AnnotationSrc,
-//   templates: Template[],
-// ): ExpandedTemplate => {
-//   const src = clone(annotation);
-//   src.props =
+const templatePropHasDepsTo = (
+  templateProp: TemplateProperty,
+  template: Template,
+  allTemplates: Template[],
+): boolean =>
+  templateProp.range.some((r) => {
+    if ('templateId' in r) {
+      const templateFromId = allTemplates.find((t) => t.id === r.templateId);
+      if (!templateFromId) {
+        throw new Error(`Template not ${r.templateId} found`);
+      }
+      return templateHasDepsTo(templateFromId, template, allTemplates);
+    }
+    return r.props.some((p) => templatePropHasDepsTo(p, template, allTemplates));
+  });
 
-//   return src;
-// };
+export const templateHasDepsTo = (t1: Template, t2: Template, allTemplates: Template[]): boolean =>
+  t1.id === t2.id || t1.src.props.some((p) => templatePropHasDepsTo(p, t2, allTemplates));
